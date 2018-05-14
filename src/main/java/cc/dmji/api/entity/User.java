@@ -1,5 +1,10 @@
 package cc.dmji.api.entity;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.GeneratorType;
+import org.hibernate.annotations.GenericGenerator;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
@@ -7,6 +12,9 @@ import java.sql.Timestamp;
  * Created by echisan on 2018/5/14
  */
 @Entity
+@DynamicInsert
+@DynamicUpdate
+@GenericGenerator(name = "jpa-uuid",strategy = "uuid")
 @Table(name = "dm_user", schema = "dmji", catalog = "")
 public class User {
     private String userId;
@@ -26,6 +34,7 @@ public class User {
     private Integer lockTime;
 
     @Id
+    @GeneratedValue(generator = "jpa-uuid")
     @Column(name = "user_id")
     public String getUserId() {
         return userId;

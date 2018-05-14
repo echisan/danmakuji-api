@@ -1,5 +1,9 @@
 package cc.dmji.api.entity;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.GenericGenerator;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
@@ -7,6 +11,9 @@ import java.sql.Timestamp;
  * Created by echisan on 2018/5/14
  */
 @Entity
+@DynamicInsert
+@DynamicUpdate
+@GenericGenerator(name = "jpa-uuid",strategy = "uuid")
 @Table(name = "dm_reply", schema = "dmji", catalog = "")
 public class Reply {
     private String replyId;
@@ -20,8 +27,10 @@ public class Reply {
     private Byte isParent;
     private Integer rLike;
     private Integer rHate;
+    private Integer epId;
 
     @Id
+    @GeneratedValue(generator = "jpa-uuid")
     @Column(name = "reply_id")
     public String getReplyId() {
         return replyId;
@@ -131,4 +140,13 @@ public class Reply {
         this.rHate = rHate;
     }
 
+    @Basic
+    @Column(name = "ep_id")
+    public Integer getEpId() {
+        return epId;
+    }
+
+    public void setEpId(Integer epId) {
+        this.epId = epId;
+    }
 }
