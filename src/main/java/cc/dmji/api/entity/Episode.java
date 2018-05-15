@@ -1,5 +1,8 @@
 package cc.dmji.api.entity;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
@@ -7,22 +10,26 @@ import java.sql.Timestamp;
  * Created by echisan on 2018/5/14
  */
 @Entity
+@DynamicInsert
+@DynamicUpdate
 @Table(name = "dm_episode", schema = "dmji", catalog = "")
 public class Episode {
-    private int epId;
+    private Integer epId;
     private Integer epIndex;
+    private Integer bangumiId;
     private Byte replyable;
     private Timestamp createTime;
     private Timestamp modifyTime;
     private String danmakuId;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ep_id")
-    public int getEpId() {
+    public Integer getEpId() {
         return epId;
     }
 
-    public void setEpId(int epId) {
+    public void setEpId(Integer epId) {
         this.epId = epId;
     }
 
@@ -34,6 +41,16 @@ public class Episode {
 
     public void setEpIndex(Integer epIndex) {
         this.epIndex = epIndex;
+    }
+
+    @Basic
+    @Column(name = "bangumi_id")
+    public Integer getBangumiId() {
+        return bangumiId;
+    }
+
+    public void setBangumiId(Integer bangumiId) {
+        this.bangumiId = bangumiId;
     }
 
     @Basic

@@ -1,5 +1,9 @@
 package cc.dmji.api.entity;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.GenericGenerator;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 
@@ -7,6 +11,9 @@ import java.sql.Timestamp;
  * Created by echisan on 2018/5/14
  */
 @Entity
+@DynamicInsert
+@DynamicUpdate
+@GenericGenerator(name = "jpa-uuid",strategy = "uuid")
 @Table(name = "dm_video", schema = "dmji", catalog = "")
 public class Video {
     private String videoId;
@@ -14,8 +21,10 @@ public class Video {
     private Long fileSize;
     private Timestamp createTime;
     private Timestamp modifyTime;
+    private Integer epId;
 
     @Id
+    @GeneratedValue(generator = "jpa-uuid")
     @Column(name = "video_id")
     public String getVideoId() {
         return videoId;
@@ -63,6 +72,16 @@ public class Video {
 
     public void setModifyTime(Timestamp modifyTime) {
         this.modifyTime = modifyTime;
+    }
+
+    @Basic
+    @Column(name = "ep_id")
+    public Integer getEpId() {
+        return epId;
+    }
+
+    public void setEpId(Integer epId) {
+        this.epId = epId;
     }
 
 }
