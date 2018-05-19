@@ -13,8 +13,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static cc.dmji.api.Constants.SecurityConstants.*;
-import static cc.dmji.api.Constants.SecurityConstants.TOKEN_CLAIM_KEY_LOCK;
+import static cc.dmji.api.constants.SecurityConstants.*;
+import static cc.dmji.api.constants.SecurityConstants.TOKEN_CLAIM_KEY_LOCK;
 
 /**
  * Created by echisan on 2018/5/16
@@ -176,7 +176,7 @@ public class JwtTokenUtils {
     }
 
     private Date getExpireDate(Long expiration) {
-        return new Date(new Date().getTime() + expiration * 1000);
+        return new Date(System.currentTimeMillis()+ expiration * 1000);
     }
 
     /**
@@ -186,7 +186,7 @@ public class JwtTokenUtils {
      * @return true则过期
      */
     private boolean isTokenExpiration(Long expiration) {
-        return new Date().after(new Date(expiration));
+        return System.currentTimeMillis()>expiration;
     }
 
 

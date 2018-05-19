@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static cc.dmji.api.Constants.SecurityConstants.*;
+import static cc.dmji.api.constants.SecurityConstants.*;
 
 /**
  * Created by echisan on 2018/5/18
@@ -77,7 +77,6 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         }else {
             token = jwtTokenUtils.createToken(user, false);
         }
-
         response.setHeader(TOKEN_HEADER_AUTHORIZATION, TOKEN_PREFIX + token);
 
         setResponse(response);

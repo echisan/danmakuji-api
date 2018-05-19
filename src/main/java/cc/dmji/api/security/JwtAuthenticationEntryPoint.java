@@ -1,6 +1,6 @@
 package cc.dmji.api.security;
 
-import cc.dmji.api.Constants.SecurityConstants;
+import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-package cc.dmji.api.Constants;
+package cc.dmji.api.constants;
 
 /**
  * Created by echisan on 2018/5/18

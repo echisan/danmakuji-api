@@ -1,6 +1,6 @@
 package cc.dmji.api.security;
 
-import cc.dmji.api.Constants.SecurityConstants;
+import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.utils.JwtTokenUtils;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
 
-import static cc.dmji.api.Constants.SecurityConstants.*;
+import static cc.dmji.api.constants.SecurityConstants.*;
 
 /**
  * Created by echisan on 2018/5/18
@@ -39,6 +39,7 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
         String h = request.getHeader("Authorization");
 
         if (h == null || !h.startsWith(TOKEN_PREFIX)) {
+            response.setHeader(SecurityConstants.TOKEN_RESULT_CODE_HEADER, String.valueOf(ResultCode.USER_NOT_LOGINED.getCode()));
             chain.doFilter(request, response);
             return;
         }
@@ -74,6 +75,7 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
             }
             return null;
         }
+        response.setHeader(SecurityConstants.TOKEN_RESULT_CODE_HEADER, String.valueOf(ResultCode.USER_NOT_LOGINED.getCode()));
         return null;
     }
 }

@@ -1,4 +1,4 @@
-package cc.dmji.api.config;
+package cc.dmji.api.security;
 
 import cc.dmji.api.security.JWTAuthenticationFilter;
 import cc.dmji.api.security.JWTAuthorizationFilter;
