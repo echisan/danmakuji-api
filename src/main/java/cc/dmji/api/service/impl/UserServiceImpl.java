@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -29,19 +30,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User insertUser(User user) {
-        User u = new User();
-        u.setNick(user.getNick());
-        u.setEmail(user.getEmail());
         // 加密密码存储
         String newPass = bCryptPasswordEncoder.encode(user.getPwd());
-        u.setPwd(newPass);
-        u.setRole(user.getRole());
+        user.setPwd(newPass);
         Timestamp ts = getTimestamp();
-        u.setCreateTime(ts);
-        u.setModifyTime(ts);
-        u.setEmailVerified(user.getEmailVerified());
-        userRepository.save(u);
-        return user;
+        user.setCreateTime(ts);
+        user.setModifyTime(ts);
+        return userRepository.save(user);
     }
 
     @Override
@@ -61,6 +56,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUser(User user) {
+        user.setModifyTime(new Timestamp(System.currentTimeMillis()));
         return userRepository.save(user);
     }
 
@@ -85,6 +81,11 @@ public class UserServiceImpl implements UserService {
         Sort sort = new Sort(Sort.Direction.ASC, "id");
         Pageable pageable = PageRequest.of(page, size, sort);
         return userRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<User> listUser() {
+        return userRepository.findAll();
     }
 
     private Timestamp getTimestamp() {

@@ -22,6 +22,7 @@ public enum  ResultCode {
     USER_ACCOUNT_FORBIDDEN(2003,"账号已被禁用"),
     USER_NOT_EXIST(2004,"用户不存在"),
     USER_ALREADY_EXIST(2005,"用户已存在"),
+    USER_EXPIRATION(2006,"帐号有效期已过，请重新登陆"),
 
     /*业务错误3001-3999*/
     SPECIFIED_QUESTION_USER_NOT_EXIST(3001,"某业务出现问题"),
@@ -62,5 +63,14 @@ public enum  ResultCode {
 
     public void setCode(Integer code) {
         this.code = code;
+    }
+
+    public static String getMsg(Integer code){
+        for (ResultCode rc : ResultCode.values()){
+            if (rc.getCode().equals(code)){
+                return rc.getMsg();
+            }
+        }
+        return null;
     }
 }
