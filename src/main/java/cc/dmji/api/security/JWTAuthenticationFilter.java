@@ -2,14 +2,18 @@ package cc.dmji.api.security;
 
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
+import cc.dmji.api.service.RedisTokenService;
 import cc.dmji.api.utils.JwtTokenUtils;
 import cc.dmji.api.web.model.AuthUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -25,16 +29,19 @@ import static cc.dmji.api.constants.SecurityConstants.*;
 /**
  * Created by echisan on 2018/5/18
  */
-
+@Component
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private static final Integer REMEMBER = 1;
     private static final Integer UN_REMEMBER = 0;
 
-    private AuthenticationManager authenticationManager;
+    @Autowired
+    private RedisTokenService redisTokenService;
 
-    public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
+    @Autowired
+    @Override
+    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
+        super.setAuthenticationManager(authenticationManager);
     }
 
     @Override
@@ -49,7 +56,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             AuthUser user = new ObjectMapper()
                     .readValue(request.getInputStream(), AuthUser.class);
             request.setAttribute("remember_me",user.getRemember_me());
-            return authenticationManager.authenticate(
+            return super.getAuthenticationManager().authenticate(
                     new UsernamePasswordAuthenticationToken(
                             user.getPrincipal(),
                             user.getPassword(),
@@ -72,14 +79,16 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         JwtUser user = (JwtUser) authResult.getPrincipal();
         JwtTokenUtils jwtTokenUtils = new JwtTokenUtils();
         String token;
+        setResponse(response);
         if (rememberMe.equals(REMEMBER)){
             token = jwtTokenUtils.createToken(user,true);
         }else {
             token = jwtTokenUtils.createToken(user, false);
         }
         response.setHeader(TOKEN_HEADER_AUTHORIZATION, TOKEN_PREFIX + token);
+        // 存储到redis中
+        redisTokenService.saveToken(token);
 
-        setResponse(response);
 
         ObjectMapper objectMapper = new ObjectMapper();
         Result<Map> result = new Result<>();

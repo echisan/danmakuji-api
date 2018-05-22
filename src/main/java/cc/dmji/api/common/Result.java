@@ -30,6 +30,7 @@ public class Result<T> {
      * 无参数构造器
      */
     public Result() {
+        this.data = (T) new ArrayList<String>();
     }
 
     /**

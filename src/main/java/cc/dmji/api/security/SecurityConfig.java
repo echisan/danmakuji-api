@@ -1,13 +1,14 @@
 package cc.dmji.api.security;
 
-import cc.dmji.api.security.JWTAuthenticationFilter;
-import cc.dmji.api.security.JWTAuthorizationFilter;
-import cc.dmji.api.security.JwtAuthenticationEntryPoint;
+import cc.dmji.api.service.RedisTokenService;
+import cc.dmji.api.web.interceptor.ValidUserSelfInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -47,26 +48,51 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable().authorizeRequests()
                 .antMatchers("/login").permitAll()
-                .antMatchers(HttpMethod.POST,"/users").permitAll()
+                .antMatchers(HttpMethod.POST, "/users").permitAll()
+                .antMatchers("/auth/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .addFilter(new JWTAuthenticationFilter(authenticationManager()))
-                .addFilter(new JWTAuthorizationFilter(authenticationManager()))
+                .addFilter(jwtAuthenticationFilter())
+                .addFilter(jwtAuthorizationFilter())
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEndpoint());
+                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEndpoint())
+                .and()
+                .exceptionHandling().accessDeniedHandler(jwtAccessDenyHander());
     }
 
+
     @Bean
-    CorsConfigurationSource corsConfigurationSource(){
+    CorsConfigurationSource corsConfigurationSource() {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
         return source;
     }
 
     @Bean
-    JwtAuthenticationEntryPoint jwtAuthenticationEndpoint(){
+    JwtAuthenticationEntryPoint jwtAuthenticationEndpoint() {
         return new JwtAuthenticationEntryPoint();
     }
 
+    // 这个name很关键
+    @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
+    @Bean
+    public JWTAuthenticationFilter jwtAuthenticationFilter(){
+        return new JWTAuthenticationFilter();
+    }
+
+    @Bean
+    public JWTAuthorizationFilter jwtAuthorizationFilter() throws Exception {
+        return new JWTAuthorizationFilter(authenticationManagerBean());
+    }
+
+    @Bean
+    public JwtAccessDenyHander jwtAccessDenyHander(){
+        return new JwtAccessDenyHander();
+    }
 }

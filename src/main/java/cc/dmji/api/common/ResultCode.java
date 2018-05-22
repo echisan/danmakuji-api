@@ -35,9 +35,11 @@ public enum  ResultCode {
     DATA_IS_WRONG(5002,"数据有误"),
     DATA_ALREADY_EXIST(5003,"数据已存在"),
     DATABASE_NOT_CONNECTED(5004,"无法连接到数据库"),
+    DATA_EXPIRATION(5005,"数据已过期"),
 
     /*权限错误6001-6999*/
     PERMISSION_DENY(6001,"无访问权限");
+
 
     /*提示消息*/
     String msg;

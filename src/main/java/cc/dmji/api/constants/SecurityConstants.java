@@ -11,6 +11,7 @@ public class SecurityConstants {
     public static final String TOKEN_PREFIX = "Bearer ";
     public static final String TOKEN_SECRET = "darkersecrettoken";
     public static final String TOKEN_ISSUER = "DMCollection";
+    /* 默认过期时长 432000L 秒 */
     public static final Long TOKEN_EXPIRATION = 432000L;
     public static final Long TOKEN_REMEMBER_ME_EXPIRATION = 2592000L;
 

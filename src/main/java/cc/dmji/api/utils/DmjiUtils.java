@@ -36,7 +36,7 @@ public class DmjiUtils {
         return email.matches(EMAIL_REGEX);
     }
 
-    public static String getUUID32(){
+    public static String getUUID32() {
         return UUID.randomUUID().toString().replace("-", "").toLowerCase();
     }
 }
