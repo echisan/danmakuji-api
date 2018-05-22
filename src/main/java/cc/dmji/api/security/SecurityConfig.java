@@ -56,11 +56,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilter(jwtAuthorizationFilter())
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEndpoint())
-                .and()
-                .exceptionHandling().accessDeniedHandler(jwtAccessDenyHander());
+                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEndpoint());
     }
-
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
@@ -89,10 +86,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public JWTAuthorizationFilter jwtAuthorizationFilter() throws Exception {
         return new JWTAuthorizationFilter(authenticationManagerBean());
-    }
-
-    @Bean
-    public JwtAccessDenyHander jwtAccessDenyHander(){
-        return new JwtAccessDenyHander();
     }
 }
