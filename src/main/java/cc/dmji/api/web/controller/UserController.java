@@ -7,6 +7,7 @@ import cc.dmji.api.constants.RedisKey;
 import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.entity.User;
 import cc.dmji.api.enums.Role;
+import cc.dmji.api.enums.Sex;
 import cc.dmji.api.enums.UserStatus;
 import cc.dmji.api.service.MailService;
 import cc.dmji.api.service.UserService;
@@ -62,33 +63,61 @@ public class UserController extends BaseController {
      * @return 响应信息
      */
     @PostMapping
-    public ResponseEntity<Result> registerUser(@RequestBody User registerUser) throws MessagingException {
-        if (!DmjiUtils.validUsername(registerUser.getNick())) {
-            return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_INVALID, "用户名格式不正确"));
+    public ResponseEntity<Result> registerUser(@RequestBody User user) throws MessagingException {
+        String nick = user.getNick();
+        String password = user.getPwd();
+        String email = user.getEmail();
+
+        if (!DmjiUtils.validUsername(nick)) {
+            return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "账号格式不符合要求"));
+        } else {
+            User dbUser = userService.getUserByNick(nick);
+            if (dbUser != null) {
+                return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "该用户已存在"));
+            }
         }
-        if (!DmjiUtils.validPassword(registerUser.getPwd())) {
-            return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_INVALID, "密码格式不正确"));
-        }
-        if (!DmjiUtils.validEmail(registerUser.getEmail())) {
-            return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_INVALID, "邮箱格式不正确"));
+        if (!DmjiUtils.validPassword(password)) {
+            return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "密码格式不符合要求"));
         }
 
-        registerUser.setRole(Role.USER.getName());
-        registerUser.setEmailVerified(UserStatus.EMAIL_UN_VERIFY.getStatus());
-        registerUser.setIsLock(UserStatus.UN_LOCK.getStatus());
-        registerUser.setAge(0);
-        registerUser.setPhone("");
-        registerUser.setFace("");
-        registerUser.setPhoneVerified(UserStatus.PHONE_UN_VERIFY.getStatus());
-        registerUser.setLockTime(0);
-        User user = userService.insertUser(registerUser);
-        user.setPwd("才不让看");
-        // 邮件发送
-        String uuid = DmjiUtils.getUUID32();
-        stringRedisTemplate.opsForValue().set(RedisKey.VERIFY_EMAIL_KEY + user.getUserId(),
-                uuid, VERIFY_UUID_EXPIRATION, TimeUnit.SECONDS);
-        mailService.sendVerifyEmail(user.getEmail(), user.getUserId(), uuid);
-        return getResponseEntity(HttpStatus.OK, getSuccessResult(user));
+        if (!DmjiUtils.validEmail(email)) {
+            return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "邮箱格式不正确"));
+        } else {
+            User dbUser = userService.getUserByEmail(email);
+            if (dbUser != null) {
+                return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "该邮箱地址已被使用"));
+            }
+        }
+
+        // 验证通过
+        User newUser = new User();
+        newUser.setNick(nick);
+        newUser.setEmail(email);
+        newUser.setEmailVerified(UserStatus.EMAIL_UN_VERIFY.getStatus());
+        newUser.setPwd(password);
+        newUser.setRole(Role.USER.getName());
+        newUser.setAge(0);
+        newUser.setSex(Sex.OTHER.getValue());
+        newUser.setPhone("");
+        newUser.setPhoneVerified(UserStatus.PHONE_UN_VERIFY.getStatus());
+        newUser.setFace("");
+        newUser.setIsLock(UserStatus.UN_LOCK.getStatus());
+        newUser.setLockTime(0);
+
+        try {
+            User user1 = userService.insertUser(newUser);
+            user1.setPwd("不让看");
+            return new ResponseEntity<Result>(
+                    getSuccessResult(user1, "注册成功"),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            logger.info("数据库出现偏差，原因：{}", e.getMessage());
+            return new ResponseEntity<>(
+                    getErrorResult(ResultCode.SYSTEM_INTERNAL_ERROR),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
     }
 
     @GetMapping
@@ -127,21 +156,45 @@ public class UserController extends BaseController {
     @ValidUserSelf
     @PutMapping("/{userId}")
     public ResponseEntity<Result> updateUser(@PathVariable String userId, @RequestBody User user) throws MessagingException {
+
+        logger.info("修改用户信息[PUT] user:[{}]", user.toString());
+
         User dbUser = userService.getUserById(userId);
         boolean isEmailChange = false;
         boolean isPhoneChange = false;
         // 修改密码
         if (!StringUtils.isEmpty(user.getPwd())) {
+            if (!DmjiUtils.validPassword(user.getPwd())) {
+                return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "密码格式不正确"));
+            }
             dbUser.setPwd(bCryptPasswordEncoder.encode(user.getPwd()));
         }
+
         // 修改邮箱
-        if (!StringUtils.isEmpty(user.getFace())) {
-            dbUser.setFace(user.getFace());
+        if (!StringUtils.isEmpty(user.getEmail())) {
+            if (!DmjiUtils.validEmail(user.getEmail())) {
+                return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "邮箱格式不正确"));
+            }
+            if (userService.getUserByEmail(user.getEmail()) != null) {
+                return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "该邮箱地址已被使用"));
+            }
+            dbUser.setEmail(user.getEmail());
+            // 将邮箱验证设置成未验证，需要重新验证
+            dbUser.setEmailVerified(UserStatus.EMAIL_UN_VERIFY.getStatus());
+            isEmailChange = true;
         }
+
         // 修改昵称
         if (!StringUtils.isEmpty(user.getNick())) {
+            if (!DmjiUtils.validUsername(user.getNick())){
+                return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "昵称格式不正确"));
+            }
+            if (userService.getUserByNick(user.getNick()) != null) {
+                return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "该昵称已被使用"));
+            }
             dbUser.setNick(user.getNick());
         }
+
         // 修改电话号码
         if (!StringUtils.isEmpty(user.getPhone())) {
             dbUser.setPhone(user.getPhone());
@@ -152,11 +205,10 @@ public class UserController extends BaseController {
         if (!StringUtils.isEmpty(user.getAge())) {
             dbUser.setAge(user.getAge());
         }
-        // 修改邮箱
-        if (!StringUtils.isEmpty(user.getEmail())) {
-            dbUser.setEmail(user.getEmail());
-            dbUser.setEmailVerified(UserStatus.EMAIL_UN_VERIFY.getStatus());
-            isEmailChange = true;
+
+        // 修改头像
+        if (!StringUtils.isEmpty(user.getFace())){
+            dbUser.setFace(user.getFace());
         }
 
         User updatedUser = userService.updateUser(dbUser);
@@ -169,7 +221,8 @@ public class UserController extends BaseController {
             mailService.sendVerifyEmail(updatedUser.getEmail(), updatedUser.getUserId(), uuid);
             return getResponseEntity(HttpStatus.OK, getSuccessResult("修改邮箱成功，请前往邮箱进行确认"));
         } else {
-            return getResponseEntity(HttpStatus.OK, getSuccessResult("修改成功"));
+            updatedUser.setPwd("_(:3」∠)_");
+            return getResponseEntity(HttpStatus.OK, getSuccessResult(updatedUser,"修改成功"));
         }
 
         // todo 验证手机号码 先不干

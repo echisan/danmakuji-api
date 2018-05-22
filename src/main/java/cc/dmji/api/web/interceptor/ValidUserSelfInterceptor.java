@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -57,8 +58,11 @@ public class ValidUserSelfInterceptor implements HandlerInterceptor {
         // 如果有这个注解
         logger.info("valid user self interceptor");
 
-        String token = request.getHeader(SecurityConstants.TOKEN_HEADER_AUTHORIZATION)
-                .replace(SecurityConstants.TOKEN_PREFIX, "");
+        String header = request.getHeader(SecurityConstants.TOKEN_HEADER_AUTHORIZATION);
+        if(header == null){
+            return true;
+        }
+        String token = header.replace(SecurityConstants.TOKEN_PREFIX, "");
 
         JwtTokenUtils.Payload payload = jwtTokenUtils.getPayload(token);
         // 如果是非普通用户则放行

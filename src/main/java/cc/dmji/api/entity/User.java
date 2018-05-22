@@ -184,4 +184,24 @@ public class User {
         this.lockTime = lockTime;
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId='" + userId + '\'' +
+                ", email='" + email + '\'' +
+                ", pwd='" + pwd + '\'' +
+                ", phone='" + phone + '\'' +
+                ", nick='" + nick + '\'' +
+                ", age=" + age +
+                ", sex='" + sex + '\'' +
+                ", face='" + face + '\'' +
+                ", role='" + role + '\'' +
+                ", emailVerified=" + emailVerified +
+                ", phoneVerified=" + phoneVerified +
+                ", createTime=" + createTime +
+                ", modifyTime=" + modifyTime +
+                ", isLock=" + isLock +
+                ", lockTime=" + lockTime +
+                '}';
+    }
 }

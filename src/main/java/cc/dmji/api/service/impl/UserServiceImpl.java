@@ -78,7 +78,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<User> listUser(Integer page, Integer size) {
-        Sort sort = new Sort(Sort.Direction.ASC, "id");
+        Sort sort = new Sort(Sort.Direction.ASC, "userId");
         Pageable pageable = PageRequest.of(page, size, sort);
         return userRepository.findAll(pageable);
     }
