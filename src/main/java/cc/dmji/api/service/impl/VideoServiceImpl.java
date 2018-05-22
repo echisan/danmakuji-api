@@ -25,6 +25,11 @@ public class VideoServiceImpl implements VideoService {
         return videoRepository.findById(videoId).orElse(null);
     }
 
+    @Override
+    public List<Video> listVideos() {
+        return videoRepository.findAll();
+    }
+
 
     @Override
     public List<Video> listVideosByEpId(Integer epId) {

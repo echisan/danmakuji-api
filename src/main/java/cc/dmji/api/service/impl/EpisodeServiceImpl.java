@@ -3,6 +3,7 @@ package cc.dmji.api.service.impl;
 import cc.dmji.api.entity.Episode;
 import cc.dmji.api.repository.EpisodeRepository;
 import cc.dmji.api.service.EpisodeService;
+import cc.dmji.api.utils.DmjiUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,11 @@ public class EpisodeServiceImpl implements EpisodeService {
 
     @Autowired
     private EpisodeRepository episodeRepository;
+
+    @Override
+    public List<Episode> listEpisodes() {
+        return episodeRepository.findAll();
+    }
 
     @Override
     public List<Episode> listEpisodesByBangumiId(Integer bangumiId) {
@@ -35,13 +41,14 @@ public class EpisodeServiceImpl implements EpisodeService {
     @Override
     public Episode insertEpisode(Episode episode) {
         setCreateAndModifyTime(episode);
+        episode.setDanmakuId(DmjiUtils.getUUID32());
         return episodeRepository.save(episode);
     }
 
     @Override
     public Episode updateEpisode(Episode episode) {
         setModifyTime(episode);
-        return insertEpisode(episode);
+        return episodeRepository.save(episode);
     }
 
     @Override

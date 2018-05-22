@@ -10,4 +10,6 @@ public interface LoginRecordRepository extends JpaRepository<LoginRecord,String>
     List<LoginRecord> findLoginRecordsByIpEquals(String ip);
 
     List<LoginRecord> findLoginRecordsByUserIdEquals(String userId);
+
+    List<LoginRecord> findLoginRecordsByUserIdEqualsAndIpEquals(String userId, String ip);
 }

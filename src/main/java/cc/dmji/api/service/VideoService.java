@@ -10,6 +10,8 @@ public interface VideoService {
 
     Video getVideoByVideoId(String videoId);
 
+    List<Video> listVideos();
+
     List<Video> listVideosByEpId(Integer epId);
 
     Video insertVideo(Video video);

@@ -4,13 +4,12 @@ import cc.dmji.api.entity.Bangumi;
 import cc.dmji.api.repository.BangumiRepository;
 import cc.dmji.api.service.BangumiService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.net.ServerSocket;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Optional;
 
 
 @Service
@@ -40,7 +39,6 @@ public class BangumiServiceImpl implements BangumiService {
 
     @Override
     public Bangumi getBangumiById(Integer id) {
-
         return bangumiRepository.findById(id).orElse(null);
     }
 
@@ -53,7 +51,7 @@ public class BangumiServiceImpl implements BangumiService {
     @Override
     public Bangumi updateBangumi(Bangumi bangumi) {
         setModifyTime(bangumi);
-        return insertBangumi(bangumi);
+        return bangumiRepository.save(bangumi);
     }
 
     @Override

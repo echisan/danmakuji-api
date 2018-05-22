@@ -1,5 +1,7 @@
 package cc.dmji.api.common;
 
+import java.util.ArrayList;
+
 /**
  * 该类表示服务器的返回结果
  * 比如操作成功的返回结果为：

@@ -10,6 +10,10 @@ public interface LoginRecordService {
 
     List<LoginRecord> listLoginRecordsByIp(String ip);
 
+    List<LoginRecord> listLoginRecordsByUserIdAndIp(String userId, String ip);
+
+    List<LoginRecord> listLoginRecords();
+
     LoginRecord getLoginRecordByRecordId(String recordId);
 
     LoginRecord insertLoginRecord(LoginRecord loginRecord);

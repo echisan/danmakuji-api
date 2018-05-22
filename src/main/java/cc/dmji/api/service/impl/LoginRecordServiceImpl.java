@@ -26,6 +26,18 @@ public class LoginRecordServiceImpl implements LoginRecordService {
     }
 
     @Override
+    public List<LoginRecord> listLoginRecordsByUserIdAndIp(String userId, String ip) {
+        List<LoginRecord> result = null;
+        result = loginRecordRepository.findLoginRecordsByUserIdEqualsAndIpEquals(userId,ip);
+        return result;
+    }
+
+    @Override
+    public List<LoginRecord> listLoginRecords() {
+        return loginRecordRepository.findAll();
+    }
+
+    @Override
     public LoginRecord getLoginRecordByRecordId(String recordId) {
         return loginRecordRepository.findById(recordId).orElse(null);
     }

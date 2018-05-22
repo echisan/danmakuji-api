@@ -82,4 +82,15 @@ public class Bangumi {
         this.thumb = thumb;
     }
 
+    @Override
+    public String toString() {
+        return "Bangumi{" +
+                "bangumiId=" + bangumiId +
+                ", bangumiName='" + bangumiName + '\'' +
+                ", episodeTotal=" + episodeTotal +
+                ", createTime=" + createTime +
+                ", modifyTime=" + modifyTime +
+                ", thumb='" + thumb + '\'' +
+                '}';
+    }
 }

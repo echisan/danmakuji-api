@@ -1,5 +1,7 @@
 package cc.dmji.api.utils;
 
+import java.util.UUID;
+
 /**
  * Created by echisan on 2018/5/16
  */
@@ -32,5 +34,9 @@ public class DmjiUtils {
 
     public static boolean validEmail(String email){
         return email.matches(EMAIL_REGEX);
+    }
+
+    public static String getUUID32(){
+        return UUID.randomUUID().toString().replace("-", "").toLowerCase();
     }
 }
