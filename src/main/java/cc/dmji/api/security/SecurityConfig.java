@@ -1,7 +1,5 @@
 package cc.dmji.api.security;
 
-import cc.dmji.api.service.RedisTokenService;
-import cc.dmji.api.web.interceptor.ValidUserSelfInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -80,7 +78,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public JWTAuthenticationFilter jwtAuthenticationFilter(){
-        return new JWTAuthenticationFilter();
+        JWTAuthenticationFilter jwtAuthenticationFilter = new JWTAuthenticationFilter();
+        jwtAuthenticationFilter.setFilterProcessesUrl("/auth/login");
+        return jwtAuthenticationFilter;
     }
 
     @Bean
