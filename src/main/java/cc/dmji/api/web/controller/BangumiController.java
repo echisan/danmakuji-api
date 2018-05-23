@@ -21,10 +21,16 @@ public class BangumiController extends BaseController{
     @GetMapping
     public Result listBangumis(@RequestParam(required = false) String bangumiName) throws ConnectException {
         List<Bangumi> bangumis = null;
-        if(null == bangumiName || bangumiName.equals("")){
+        if(null != bangumiName){
+            bangumiName = bangumiName.trim();//去除前后空格
+        }
+        if(null == bangumiName){
             bangumis = bangumiService.listBangumis();
         }
         else {
+            if(!bangumiName.equals("")){
+                bangumiName = "%"+bangumiName+"%";
+            }
             bangumis = bangumiService.listBangumisByName(bangumiName);
         }
         if(bangumis.size()==0){

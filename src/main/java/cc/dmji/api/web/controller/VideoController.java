@@ -2,10 +2,13 @@ package cc.dmji.api.web.controller;
 
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
+import cc.dmji.api.entity.Bangumi;
 import cc.dmji.api.entity.Episode;
 import cc.dmji.api.entity.Video;
+import cc.dmji.api.service.BangumiService;
 import cc.dmji.api.service.EpisodeService;
 import cc.dmji.api.service.VideoService;
+import cc.dmji.api.web.model.VideoInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +23,9 @@ public class VideoController extends BaseController {
 
     @Autowired
     EpisodeService episodeService;
+
+    @Autowired
+    BangumiService bangumiService;
 
     @GetMapping
     public Result listVideos(@RequestParam(required = false) Integer epId){
@@ -55,7 +61,23 @@ public class VideoController extends BaseController {
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND);
         }
         else {
-            return getSuccessResult(video);
+            Integer epId = video.getEpId();
+            //根据episodeId获取episode
+            Episode episode = episodeService.getEpisodeByEpId(epId);
+            //根据bangumiId获取bangumi
+            Bangumi bangumi = bangumiService.getBangumiById(episode.getBangumiId());
+            VideoInfo videoInfo = new VideoInfo();
+            //设置弹幕id
+            videoInfo.setDanmakuId(episode.getDanmakuId());
+            //设置episodeId
+            videoInfo.setEpisodeId(episode.getEpId());
+            //设置番剧id
+            videoInfo.setBangumiId(episode.getBangumiId());
+            //设置episode索引(第几集)
+            videoInfo.setEpisodeIndex(episode.getEpIndex());
+            //设置番剧名称
+            videoInfo.setBangumiName(bangumi.getBangumiName());
+            return getSuccessResult(videoInfo);
         }
     }
 
