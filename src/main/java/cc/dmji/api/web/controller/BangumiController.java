@@ -6,6 +6,9 @@ import cc.dmji.api.entity.Bangumi;
 import cc.dmji.api.entity.Episode;
 import cc.dmji.api.service.BangumiService;
 import cc.dmji.api.service.EpisodeService;
+import org.hibernate.exception.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +20,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/bangumis")
 public class BangumiController extends BaseController{
+
+    private static final Logger logger = LoggerFactory.getLogger(BangumiController.class);
 
     @Autowired
     BangumiService bangumiService;
@@ -136,5 +141,11 @@ public class BangumiController extends BaseController{
             bangumiService.deleteBangumiById(bangumiId);
             return getSuccessResult(deletedBangumi);
         }
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public Result handleNotUnique(){
+        logger.info("局部异常处理----bangumi已存在");
+        return getErrorResult(ResultCode.DATA_IS_WRONG,"bangumi已存在");
     }
 }

@@ -84,7 +84,7 @@ public class EpisodeController extends BaseController{
         }
         else {
             VideoInfo videoInfo = generateVideoInfo(episode);
-            return getSuccessResult(episode);
+            return getSuccessResult(videoInfo);
         }
     }
 
@@ -114,6 +114,16 @@ public class EpisodeController extends BaseController{
             //剧集索引不能为负数
             if(episode.getEpIndex() < 0){
                 return getErrorResult(ResultCode.DATA_IS_WRONG,"epIndex不能为负数");
+            }
+            List<Episode> episodes = episodeService.listEpisodesByBangumiId(episode.getBangumiId());
+            boolean isEpIndexDup = false;
+            for(Episode e:episodes){
+                if(e.getEpIndex().equals(episode.getEpIndex())){
+                    isEpIndexDup = true;
+                }
+            }
+            if(isEpIndexDup){
+                return getErrorResult(ResultCode.DATA_IS_WRONG,"epIndex已存在");
             }
         }
 
