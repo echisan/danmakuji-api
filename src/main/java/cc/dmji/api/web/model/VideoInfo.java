@@ -2,11 +2,12 @@ package cc.dmji.api.web.model;
 
 public class VideoInfo {
 
-    String danmakuId;
-    Integer episodeId;
-    String bangumiName;
-    Integer bangumiId;
-    Integer episodeIndex;
+    private String danmakuId;
+    private Integer episodeId;
+    private String bangumiName;
+    private Integer bangumiId;
+    private Integer episodeIndex;
+    private Byte replyable;
 
     public Integer getEpisodeIndex() {
         return episodeIndex;
@@ -46,5 +47,13 @@ public class VideoInfo {
 
     public void setBangumiId(Integer bangumiId) {
         this.bangumiId = bangumiId;
+    }
+
+    public Byte getReplyable() {
+        return replyable;
+    }
+
+    public void setReplyable(Byte replyable) {
+        this.replyable = replyable;
     }
 }

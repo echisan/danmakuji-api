@@ -75,6 +75,8 @@ public class VideoController extends BaseController {
             videoInfo.setBangumiId(episode.getBangumiId());
             //设置episode索引(第几集)
             videoInfo.setEpisodeIndex(episode.getEpIndex());
+            //设置是否可回复
+            videoInfo.setReplyable(episode.getReplyable());
             //设置番剧名称
             videoInfo.setBangumiName(bangumi.getBangumiName());
             return getSuccessResult(videoInfo);

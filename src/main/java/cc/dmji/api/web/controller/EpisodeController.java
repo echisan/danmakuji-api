@@ -6,9 +6,11 @@ import cc.dmji.api.entity.Bangumi;
 import cc.dmji.api.entity.Episode;
 import cc.dmji.api.service.BangumiService;
 import cc.dmji.api.service.EpisodeService;
+import cc.dmji.api.web.model.VideoInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -31,6 +33,7 @@ public class EpisodeController extends BaseController{
     public Result listEpisodes(@RequestParam(required = false) Integer bangumiId,
                               @RequestParam( required = false) Integer epIndex){
         List<Episode> result = null;//结果集
+        List<VideoInfo> videoInfos = new ArrayList<>();
         //参数bangumiId不为空，则根据bangumiId查找episode
         if (bangumiId != null){
             //参数epIndex不为空，则根据bangumiId和epIndex查找
@@ -42,23 +45,30 @@ public class EpisodeController extends BaseController{
                 }
                 else {
                     //查找到数据
-                    return getSuccessResult(episode);
+                    VideoInfo videoInfo = generateVideoInfo(episode);
+                    return getSuccessResult(videoInfo);
                 }
             }
             else {
                 //参数epIndex为空，只根据bangumiId查找，结果可能含有多个episode
                 result = episodeService.listEpisodesByBangumiId(bangumiId);
+                result.forEach(e->{
+                    videoInfos.add(generateVideoInfo(e));
+                });
             }
         }
         else {
             //没有任何参数，默认查找所有episode
             result = episodeService.listEpisodes();
+            result.forEach(e->{
+                videoInfos.add(generateVideoInfo(e));
+            });
         }
-        if(result.size() == 0){
+        if(videoInfos.size() == 0){
             //没有数据
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND);
         }
-        return getSuccessResult(result);
+        return getSuccessResult(videoInfos);
     }
 
     /**
@@ -73,6 +83,7 @@ public class EpisodeController extends BaseController{
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND);
         }
         else {
+            VideoInfo videoInfo = generateVideoInfo(episode);
             return getSuccessResult(episode);
         }
     }
@@ -124,7 +135,8 @@ public class EpisodeController extends BaseController{
         if(null == insertedEpisode){
             return getErrorResult(ResultCode.DATA_IS_WRONG,"episode添加失败");
         }
-        return getSuccessResult(insertedEpisode);
+        VideoInfo videoInfo = generateVideoInfo(insertedEpisode);
+        return getSuccessResult(videoInfo);
     }
 
     @PutMapping("/{epId}")
@@ -190,7 +202,8 @@ public class EpisodeController extends BaseController{
             return getErrorResult(ResultCode.DATA_IS_WRONG,"episode信息更新失败");
         }
         else {
-            return getSuccessResult(editedEpisode);
+            VideoInfo videoInfo = generateVideoInfo(editedEpisode);
+            return getSuccessResult(videoInfo);
         }
     }
 
@@ -204,5 +217,20 @@ public class EpisodeController extends BaseController{
             episodeService.deleteEpisode(epId);
             return getSuccessResult(episode);
         }
+    }
+
+    private VideoInfo generateVideoInfo(Episode episode){
+        VideoInfo videoInfo = new VideoInfo();
+        Bangumi bangumi = bangumiService.getBangumiById(episode.getBangumiId());
+        if(null == bangumi){
+            throw new RuntimeException("bangumiId不存在");
+        }
+        videoInfo.setBangumiName(bangumi.getBangumiName());
+        videoInfo.setBangumiId(episode.getBangumiId());
+        videoInfo.setEpisodeIndex(episode.getEpIndex());
+        videoInfo.setReplyable(episode.getReplyable());
+        videoInfo.setDanmakuId(episode.getDanmakuId());
+        videoInfo.setEpisodeId(episode.getEpId());
+        return videoInfo;
     }
 }

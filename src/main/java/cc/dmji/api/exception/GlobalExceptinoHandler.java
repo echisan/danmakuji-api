@@ -30,7 +30,7 @@ public class GlobalExceptinoHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Result> handleRuntimeException(RuntimeException e){
         logger.info("运行时异常，"+e.getMessage()+","+e.getClass().getName());
-        Result<String> result = null;
+        Result<String> result = new Result<>();
         if(e instanceof JDBCConnectionException){
             result = new Result<>(ResultCode.DATABASE_NOT_CONNECTED,e.getMessage());
         }
@@ -39,6 +39,8 @@ public class GlobalExceptinoHandler {
             result = new Result<>(ResultCode.PERMISSION_DENY,e.getMessage());
             return new ResponseEntity<Result>(result,HttpStatus.FORBIDDEN);
         }
+        result.setData(e.getMessage());
+        result.setResultCode(ResultCode.SYSTEM_INTERNAL_ERROR);
         return new ResponseEntity<Result>(result,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
