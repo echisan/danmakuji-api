@@ -16,6 +16,8 @@ public interface EpisodeService {
 
     Episode insertEpisode(Episode episode);
 
+    List<Episode> insertEpisodes(List<Episode> episodes);
+
     Episode updateEpisode(Episode episode);
 
     void deleteEpisode(Integer id);

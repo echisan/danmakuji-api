@@ -22,7 +22,7 @@ public class Bangumi {
     private String thumb;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "bangumi_id")
     public Integer getBangumiId() {
         return bangumiId;

@@ -23,7 +23,7 @@ public class Episode {
     private String danmakuId;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ep_id")
     public Integer getEpId() {
         return epId;

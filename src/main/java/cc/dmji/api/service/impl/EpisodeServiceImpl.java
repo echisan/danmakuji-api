@@ -46,6 +46,15 @@ public class EpisodeServiceImpl implements EpisodeService {
     }
 
     @Override
+    public List<Episode> insertEpisodes(List<Episode> episodes) {
+        episodes.forEach(e->{
+            setCreateAndModifyTime(e);
+            e.setDanmakuId(DmjiUtils.getUUID32());
+        });
+        return episodeRepository.saveAll(episodes);
+    }
+
+    @Override
     public Episode updateEpisode(Episode episode) {
         setModifyTime(episode);
         return episodeRepository.save(episode);

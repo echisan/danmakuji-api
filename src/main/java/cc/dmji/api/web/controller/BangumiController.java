@@ -3,12 +3,15 @@ package cc.dmji.api.web.controller;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.entity.Bangumi;
+import cc.dmji.api.entity.Episode;
 import cc.dmji.api.service.BangumiService;
+import cc.dmji.api.service.EpisodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.ConnectException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -17,6 +20,9 @@ public class BangumiController extends BaseController{
 
     @Autowired
     BangumiService bangumiService;
+
+    @Autowired
+    EpisodeService episodeService;
 
     @GetMapping
     public Result listBangumis(@RequestParam(required = false) String bangumiName) throws ConnectException {
@@ -69,6 +75,15 @@ public class BangumiController extends BaseController{
             return getErrorResult(ResultCode.DATA_IS_WRONG,"添加番剧信息失败");
         }
         else {
+            List<Episode> episodes = new ArrayList<>(insertedBangumi.getEpisodeTotal());
+            for(int i = 1;i <= insertedBangumi.getEpisodeTotal(); i++){
+                Episode episode = new Episode();
+                episode.setBangumiId(insertedBangumi.getBangumiId());
+                episode.setEpIndex(i);
+                episode.setReplyable((byte) 1);
+                episodes.add(episode);
+            }
+            episodeService.insertEpisodes(episodes);
             return getSuccessResult(insertedBangumi);
         }
     }
