@@ -50,7 +50,8 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+            throws AuthenticationException {
 
         try {
             AuthUser user = new ObjectMapper()
@@ -64,9 +65,18 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                     )
             );
         } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
+            logger.info("不能从request中读取到相应的数据");
+            setResponse(response);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            Result result = new Result(ResultCode.PARAM_IS_INVALID);
+            result.setData(new ArrayList<>());
+            try {
+                response.getWriter().write(new ObjectMapper().writeValueAsString(result));
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         }
+        return null;
     }
 
     @Override

@@ -3,14 +3,11 @@ package cc.dmji.api.security;
 import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.service.RedisTokenService;
-import cc.dmji.api.service.impl.RedisTokenServiceImpl;
 import cc.dmji.api.utils.JwtTokenUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -100,7 +97,4 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
         return null;
     }
 
-    public void setRedisTokenService(RedisTokenService redisTokenService) {
-        this.redisTokenService = redisTokenService;
-    }
 }
