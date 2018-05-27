@@ -186,7 +186,7 @@ public class UserController extends BaseController {
 
         // 修改昵称
         if (!StringUtils.isEmpty(user.getNick())) {
-            if (!DmjiUtils.validUsername(user.getNick())){
+            if (!DmjiUtils.validUsername(user.getNick())) {
                 return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "昵称格式不正确"));
             }
             if (userService.getUserByNick(user.getNick()) != null) {
@@ -207,7 +207,7 @@ public class UserController extends BaseController {
         }
 
         // 修改头像
-        if (!StringUtils.isEmpty(user.getFace())){
+        if (!StringUtils.isEmpty(user.getFace())) {
             dbUser.setFace(user.getFace());
         }
 
@@ -222,7 +222,7 @@ public class UserController extends BaseController {
             return getResponseEntity(HttpStatus.OK, getSuccessResult("修改邮箱成功，请前往邮箱进行确认"));
         } else {
             updatedUser.setPwd("_(:3」∠)_");
-            return getResponseEntity(HttpStatus.OK, getSuccessResult(updatedUser,"修改成功"));
+            return getResponseEntity(HttpStatus.OK, getSuccessResult(updatedUser, "修改成功"));
         }
 
         // todo 验证手机号码 先不干

@@ -127,4 +127,20 @@ public class Message {
     public void setEpId(Integer epId) {
         this.epId = epId;
     }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "messageId='" + messageId + '\'' +
+                ", type='" + type + '\'' +
+                ", replyId='" + replyId + '\'' +
+                ", isRead=" + isRead +
+                ", userId='" + userId + '\'' +
+                ", atAnchor='" + atAnchor + '\'' +
+                ", createTime=" + createTime +
+                ", modifyTime=" + modifyTime +
+                ", mStatus='" + mStatus + '\'' +
+                ", epId=" + epId +
+                '}';
+    }
 }

@@ -1,5 +1,7 @@
 package cc.dmji.api.utils;
 
+import org.springframework.util.StringUtils;
+
 import java.util.UUID;
 
 /**
@@ -38,5 +40,23 @@ public class DmjiUtils {
 
     public static String getUUID32() {
         return UUID.randomUUID().toString().replace("-", "").toLowerCase();
+    }
+
+    /**
+     * 清除html代码
+     * @param html
+     * @return
+     */
+    public static String htmlEncode(String html) {
+        if (StringUtils.hasText(html)) {
+            html = html.replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+                    .replaceAll("\\(", "&#40;").replaceAll("\\)", "&#41;")
+                    .replaceAll("'", "&#39;")
+                    .replaceAll("eval\\((.*)\\)", "")
+                    .replaceAll("[\\\"\\\'][\\s]*javascript:(.*)[\\\"\\\']", "\"\"")
+                    .replaceAll("script", "");
+            return html;
+        }
+        return "";
     }
 }

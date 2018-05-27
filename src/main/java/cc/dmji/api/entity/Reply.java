@@ -16,11 +16,15 @@ import java.sql.Timestamp;
 @GenericGenerator(name = "jpa-uuid",strategy = "uuid")
 @Table(name = "dm_reply", schema = "dmji", catalog = "")
 public class Reply {
+    // 回复id
     private String replyId;
+    // 回复内容
     private String content;
+    // 回复所在的页面
     private Integer rPage;
     private Timestamp createTime;
     private Timestamp modifyTime;
+    // 回复的用户
     private String userId;
     private String rStatus;
     private String parentId;
@@ -148,5 +152,23 @@ public class Reply {
 
     public void setEpId(Integer epId) {
         this.epId = epId;
+    }
+
+    @Override
+    public String toString() {
+        return "Reply{" +
+                "replyId='" + replyId + '\'' +
+                ", content='" + content + '\'' +
+                ", rPage=" + rPage +
+                ", createTime=" + createTime +
+                ", modifyTime=" + modifyTime +
+                ", userId='" + userId + '\'' +
+                ", rStatus='" + rStatus + '\'' +
+                ", parentId='" + parentId + '\'' +
+                ", isParent=" + isParent +
+                ", rLike=" + rLike +
+                ", rHate=" + rHate +
+                ", epId=" + epId +
+                '}';
     }
 }
