@@ -1,9 +1,6 @@
 package cc.dmji.api.web.model;
 
-import cc.dmji.api.utils.PageInfo;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
