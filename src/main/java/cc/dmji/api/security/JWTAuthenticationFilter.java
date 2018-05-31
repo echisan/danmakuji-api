@@ -2,10 +2,15 @@ package cc.dmji.api.security;
 
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
+import cc.dmji.api.entity.User;
 import cc.dmji.api.service.RedisTokenService;
+import cc.dmji.api.service.UserService;
 import cc.dmji.api.utils.JwtTokenUtils;
 import cc.dmji.api.web.model.AuthUser;
+import cc.dmji.api.web.model.UserInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,7 +25,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,11 +39,16 @@ import static cc.dmji.api.constants.SecurityConstants.*;
 @Component
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
+
     private static final Integer REMEMBER = 1;
     private static final Integer UN_REMEMBER = 0;
 
     @Autowired
     private RedisTokenService redisTokenService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     @Override
@@ -65,11 +77,11 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                     )
             );
         } catch (IOException e) {
-            logger.info("不能从request中读取到相应的数据");
+            logger.info("不能从request中读取到相应的数据,{}",e.getMessage());
             setResponse(response);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             Result result = new Result(ResultCode.PARAM_IS_INVALID);
-            result.setData(new ArrayList<>());
+            result.setData(Collections.EMPTY_LIST);
             try {
                 response.getWriter().write(new ObjectMapper().writeValueAsString(result));
             } catch (IOException e1) {
@@ -99,12 +111,19 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         // 存储到redis中
         redisTokenService.saveToken(token);
 
+        User user1 = userService.getUserByNick(user.getUsername());
+        UserInfo userInfo = new UserInfo();
+        userInfo.setUid(user1.getUserId());
+        userInfo.setSex(user1.getSex());
+        userInfo.setFace(user1.getFace());
+        userInfo.setNick(user1.getNick());
 
         ObjectMapper objectMapper = new ObjectMapper();
         Result<Map> result = new Result<>();
         result.setResultCode(ResultCode.SUCCESS);
-        Map<String, String> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
         map.put("token", TOKEN_PREFIX + token);
+        map.put("user",userInfo);
         result.setData(map);
         response.getWriter().write(objectMapper.writeValueAsString(result));
     }

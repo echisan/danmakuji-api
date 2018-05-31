@@ -146,7 +146,7 @@ public class ReplyServiceImpl implements ReplyService {
             reply.setParentId(resultSet.getString("parent_id"));
             reply.setIsParent(resultSet.getByte("is_parent"));
             reply.setrStatus("");
-            userInfo.setuId(resultSet.getString("user_id"));
+            userInfo.setUid(resultSet.getString("user_id"));
             userInfo.setNick(resultSet.getString("nick"));
             userInfo.setFace(resultSet.getString("face"));
             userInfo.setSex(resultSet.getString("sex"));
