@@ -22,4 +22,7 @@ public interface ReplyRepository extends JpaRepository<Reply, String>
     Long countByEpIdEquals(Integer epId);
 
     Long countByEpIdAndIsParentEquals(Integer epId, Byte isParent);
+
+    Long countByReplyId(String replyId);
+
 }

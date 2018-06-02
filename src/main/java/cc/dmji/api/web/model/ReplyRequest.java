@@ -1,7 +1,5 @@
 package cc.dmji.api.web.model;
 
-import cc.dmji.api.entity.Reply;
-
 /**
  * 这是一条评论里所需的内容
  * Created by echisan on 2018/5/26

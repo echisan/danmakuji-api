@@ -89,13 +89,13 @@ public class ReplyServiceImpl implements ReplyService {
         String sql = "select * from dm_reply" +
                 " right join dm_user" +
                 " on dm_reply.user_id = dm_user.user_id " +
-                " where ep_id = ? and is_parent = 1 and r_status=? limit ?,?";
+                " where ep_id = ? and is_parent = 1 and r_status=? order by dm_reply.create_time desc limit ?,?";
 
         Integer pageLimit = pn == 1 ? 0 : (pn - 1) * ps;
         List<ReplyInfo> replyInfoList = jdbcTemplate.query(sql,
                 new ReplyInfoMapper(), epId, Status.NORMAL.name(), pageLimit, ps);
 
-        logger.info("reply info list: {}", replyInfoList);
+//        logger.debug("reply info list: {}", replyInfoList);
         List<Replies> repliesList = new ArrayList<>();
         replyInfoList.forEach(replyInfo -> {
             Replies replies = new Replies();

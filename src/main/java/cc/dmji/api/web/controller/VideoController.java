@@ -9,6 +9,8 @@ import cc.dmji.api.service.BangumiService;
 import cc.dmji.api.service.EpisodeService;
 import cc.dmji.api.service.VideoService;
 import cc.dmji.api.web.model.VideoInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/videos")
 public class VideoController extends BaseController {
+
+    private static final Logger logger = LoggerFactory.getLogger(VideoController.class);
 
     @Autowired
     VideoService videoService;
@@ -56,6 +60,7 @@ public class VideoController extends BaseController {
     @GetMapping("/{fileSize}/{vMd5}")
     public Result getVideoByFileSizeAndVmd5(@PathVariable(value = "fileSize") Long fileSize,
                                             @PathVariable(value = "vMd5") String vMd5){
+        logger.info("fileSize: [ {} ] , md5: [ {} ]", fileSize, vMd5);
         Video video = videoService.getVideoByFileSizeAndVmd5(fileSize,vMd5);
         if(null == video){
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND);

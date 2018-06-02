@@ -11,6 +11,8 @@ import cc.dmji.api.entity.Status;
 import cc.dmji.api.service.MessageService;
 import cc.dmji.api.service.ReplyService;
 import cc.dmji.api.utils.DmjiUtils;
+import cc.dmji.api.web.model.Replies;
+import cc.dmji.api.web.model.ReplyInfo;
 import cc.dmji.api.web.model.ReplyRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -41,7 +44,7 @@ public class ReplyController extends BaseController {
     public ResponseEntity<Result> listEpReplies(@RequestParam Integer epId,
                                                 @RequestParam(value = "pn", defaultValue = "1", required = false) Integer pn) {
         if (epId == null) {
-            return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_BLANK));
+            return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_BLANK, "epId不能为空"));
         }
         Map<String, Object> data = replyService.listEpisodeReplies(epId, pn);
 
@@ -52,6 +55,7 @@ public class ReplyController extends BaseController {
     public ResponseEntity<Result> addReply(@RequestBody ReplyRequest replyRequest) {
 
         boolean isReplyParent = false;
+        boolean isRequireSendMessage = true;
 
         if (StringUtils.isEmpty(replyRequest.getContent())) {
             return getResponseEntity(
@@ -60,6 +64,23 @@ public class ReplyController extends BaseController {
             );
 
         }
+
+        if (StringUtils.isEmpty(replyRequest.getUid())){
+            return getResponseEntity(
+                    HttpStatus.BAD_REQUEST,
+                    getErrorResult(ResultCode.PARAM_IS_INVALID,"用户id不能为空!!!!!!")
+            );
+        }
+
+        if (replyRequest.getIs_parent().equals(ReplyConstants.NOT_PARENT)){
+            if (StringUtils.isEmpty(replyRequest.getP_rid())){
+                return getResponseEntity(
+                        HttpStatus.BAD_REQUEST,
+                        getErrorResult(ResultCode.PARAM_IS_INVALID,"父评论p_rid不能为空!!!!!!")
+                );
+            }
+        }
+
 
         Reply reply = new Reply();
 
@@ -97,11 +118,21 @@ public class ReplyController extends BaseController {
         Reply newReply = replyService.insertReply(reply);
         logger.info("new Reply:{}", newReply.toString());
 
-        // 如果是父级评论则直接返回该评论信息
-        if (isReplyParent) {
+        // 如果回复的是自己的评论 则不需要通知
+        if (!replyRequest.getUid().equalsIgnoreCase(replyRequest.getP_uid())){
+            isRequireSendMessage = false;
+        }
+
+        // 如果是父级评论或者不需要消息通知则直接返回该评论信息
+        if (isReplyParent || !isRequireSendMessage) {
+
+            Replies replies = new Replies();
+            ReplyInfo replyInfo = replyService.getReplyInfoById(newReply.getReplyId());
+            replies.setReply(replyInfo);
+            replies.setReplies(new ArrayList<>());
             return getResponseEntity(
                     HttpStatus.OK,
-                    getSuccessResult(newReply)
+                    getSuccessResult(replies)
             );
         }
         // 如果不是父级评论，则通知该父级评论用户
@@ -125,7 +156,9 @@ public class ReplyController extends BaseController {
 
         logger.info("new Message:{}", newMessage.toString());
 
-        return getResponseEntity(HttpStatus.OK, getSuccessResult(newReply));
+        ReplyInfo replies = replyService.getReplyInfoById(newReply.getReplyId());
+
+        return getResponseEntity(HttpStatus.OK, getSuccessResult(replies));
     }
 
     @DeleteMapping("/{replyId}")
