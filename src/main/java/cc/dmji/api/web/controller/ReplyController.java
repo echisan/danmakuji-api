@@ -123,9 +123,8 @@ public class ReplyController extends BaseController {
             isRequireSendMessage = false;
         }
 
-        // 如果是父级评论或者不需要消息通知则直接返回该评论信息
-        if (isReplyParent || !isRequireSendMessage) {
-
+        // 如果是父级评论
+        if (isReplyParent) {
             Replies replies = new Replies();
             ReplyInfo replyInfo = replyService.getReplyInfoById(newReply.getReplyId());
             replies.setReply(replyInfo);
@@ -135,8 +134,14 @@ public class ReplyController extends BaseController {
                     getSuccessResult(replies)
             );
         }
-        // 如果不是父级评论，则通知该父级评论用户
 
+        // 不需要消息通知则直接返回该评论信息
+        if (!isRequireSendMessage){
+            ReplyInfo replyInfo = replyService.getReplyInfoById(newReply.getReplyId());
+            return getResponseEntity(HttpStatus.OK, getSuccessResult(replyInfo));
+        }
+
+        // 如果不是父级评论，则通知该父级评论用户
         // 消息通知
         Message message = new Message();
         // 如果不是父级评论
@@ -156,9 +161,9 @@ public class ReplyController extends BaseController {
 
         logger.info("new Message:{}", newMessage.toString());
 
-        ReplyInfo replies = replyService.getReplyInfoById(newReply.getReplyId());
+        ReplyInfo replyInfo = replyService.getReplyInfoById(newReply.getReplyId());
 
-        return getResponseEntity(HttpStatus.OK, getSuccessResult(replies));
+        return getResponseEntity(HttpStatus.OK, getSuccessResult(replyInfo));
     }
 
     @DeleteMapping("/{replyId}")
