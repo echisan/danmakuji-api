@@ -59,4 +59,15 @@ public class DmjiUtils {
         }
         return "";
     }
+
+    public static String commentHtmlEncode(String html){
+        if (StringUtils.hasText(html)) {
+            html = html
+                    .replaceAll("eval\\((.*)\\)", "")
+                    .replaceAll("[\\\"\\\'][\\s]*javascript:(.*)[\\\"\\\']", "\"\"")
+                    .replaceAll("script", "");
+            return html;
+        }
+        return "";
+    }
 }

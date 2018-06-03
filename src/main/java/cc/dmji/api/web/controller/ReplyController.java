@@ -85,7 +85,7 @@ public class ReplyController extends BaseController {
         Reply reply = new Reply();
 
         // 清除xss
-        String content = DmjiUtils.htmlEncode(replyRequest.getContent());
+        String content = DmjiUtils.commentHtmlEncode(replyRequest.getContent());
 
 
         // 设置该评论的用户
