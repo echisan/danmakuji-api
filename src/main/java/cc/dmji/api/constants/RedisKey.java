@@ -10,4 +10,10 @@ public class RedisKey {
 
     /** 存放token */
     public static final String LOGIN_TOKEN_KEY = "login_token";
+
+    /** IP提交频繁 */
+    public static final String POST_FREQUENT_IP_KEY = "POST_FREQUENT_IP_";
+
+    /** 弹幕缓存 */
+    public static final String DANMAKU_KEY = "danmaku_id_";
 }
