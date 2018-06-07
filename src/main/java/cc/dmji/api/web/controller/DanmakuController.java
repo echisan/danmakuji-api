@@ -74,11 +74,10 @@ public class DanmakuController {
         DanmakuResponse danmakuResponse = new DanmakuResponse();
         // 先验证token
         String header = request.getHeader(SecurityConstants.TOKEN_HEADER_AUTHORIZATION);
-        if (header == null) {
+        if (StringUtils.isEmpty(header)) {
             header = danmaku.getToken();
         }
-        if (header == null) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        if (StringUtils.isEmpty(header)) {
             danmakuResponse.setMsg("请先登录后再发弹幕");
             danmakuResponse.setCode(DanmakuResponseType.PERMISSION_DENY);
             return danmakuResponse;
@@ -86,7 +85,6 @@ public class DanmakuController {
 
         String token = header.replace(SecurityConstants.TOKEN_PREFIX, "");
         if (!jwtTokenUtils.validateToken(token)) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             danmakuResponse.setMsg("无效的登录凭证或该凭证已过期，请重新登录");
             danmakuResponse.setCode(DanmakuResponseType.PERMISSION_DENY);
             return danmakuResponse;
@@ -138,7 +136,7 @@ public class DanmakuController {
         danmakuEntity.setType(GeneralUtils.htmlEncode(type));
         danmakuEntity.setIpAddress(ip);
         danmakuEntity.setReferer(referer);
-        danmakuEntity.setToken(token);
+//        danmakuEntity.setToken(token);
 
         try {
             Danmaku newDanmaku = danmakuService.saveDanmaku(danmakuEntity);

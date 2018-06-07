@@ -15,6 +15,8 @@ public class SecurityConstants {
     public static final Long TOKEN_EXPIRATION = 432000L;
     public static final Long TOKEN_REMEMBER_ME_EXPIRATION = 2592000L;
 
+    /** 用户id */
+    public static final String TOKEN_CLAIM_KEY_UID = "uid";
     /** 用户角色 */
     public static final String TOKEN_CLAIM_KEY_ROLE = "rol";
     /** 封禁信息 */

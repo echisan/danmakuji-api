@@ -36,4 +36,6 @@ public interface ReplyService  {
 
     ReplyInfo getReplyInfoById(String replyId);
 
+    Map<String, Object> listPageSonRepliesByParentId(String parentId, Integer pn, Integer ps);
+
 }

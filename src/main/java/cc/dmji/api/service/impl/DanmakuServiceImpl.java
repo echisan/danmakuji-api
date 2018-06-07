@@ -43,11 +43,11 @@ public class DanmakuServiceImpl implements DanmakuService {
     }
 
     @Override
-    public List<Danmaku> listDanmakuById(String id, Integer max) throws Exception {
+    public List<Danmaku> listDanmakuById(String id, Integer max) {
         List<Danmaku> danmakuEntityList = null;
         String danmakuIdKey = RedisKey.DANMAKU_KEY + id;
         if (redisTemplate.hasKey(danmakuIdKey)) {
-            logger.info("redis danmake_id_key is [{}] and limit [{}]", id, max);
+            logger.info("redis danmake_id_key is [{}] and limit [{}]", danmakuIdKey, max);
             danmakuEntityList = (List<Danmaku>) redisTemplate.opsForValue().get(danmakuIdKey);
         } else {
             danmakuEntityList = danmakuRespository.findDanmakusByPlayerEquals(id);

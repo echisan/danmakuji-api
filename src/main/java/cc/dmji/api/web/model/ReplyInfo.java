@@ -11,6 +11,7 @@ public class ReplyInfo {
 
     private UserInfo user;
     private Reply reply;
+    private Long totalSize = 0L;
 
     public UserInfo getUser() {
         return user;
@@ -28,11 +29,20 @@ public class ReplyInfo {
         this.reply = reply;
     }
 
+    public Long getTotalSize() {
+        return totalSize;
+    }
+
+    public void setTotalSize(Long totalSize) {
+        this.totalSize = totalSize;
+    }
+
     @Override
     public String toString() {
         return "ReplyInfo{" +
                 "user=" + user +
                 ", reply=" + reply +
+                ", totalSize=" + totalSize +
                 '}';
     }
 }

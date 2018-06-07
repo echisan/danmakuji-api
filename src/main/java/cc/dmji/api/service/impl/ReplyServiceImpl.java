@@ -99,10 +99,12 @@ public class ReplyServiceImpl implements ReplyService {
         List<Replies> repliesList = new ArrayList<>();
         replyInfoList.forEach(replyInfo -> {
             Replies replies = new Replies();
-            replies.setReply(replyInfo);
+
             if (replyInfo.getReply().getIsParent().equals(ReplyConstants.IS_PARENT)) {
-                replies.setReplies(listSonRepliesByParentId(replyInfo.getReply().getReplyId()));
+                replies.setReplies(listSonRepliesByParentId(replyInfo.getReply().getReplyId(), 1, ReplyPageInfo.DEFAULT_SON_PAGE_SIZE));
+                replyInfo.setTotalSize(replyRepository.countByParentIdEquals(replyInfo.getReply().getReplyId()));
             }
+            replies.setReply(replyInfo);
             repliesList.add(replies);
         });
 
@@ -117,7 +119,7 @@ public class ReplyServiceImpl implements ReplyService {
         // 设置总长度
         pageInfo.setTotalSize(totalSize);
         // 设置父级评论大小
-        pageInfo.setParentTotalSize(replyRepository.countByEpIdAndIsParentEquals(epId,ReplyConstants.IS_PARENT));
+        pageInfo.setParentTotalSize(replyRepository.countByEpIdAndIsParentEquals(epId, ReplyConstants.IS_PARENT));
         pageInfo.setPageNumber(pn);
         pageInfo.setPageSize(ReplyPageInfo.DEFAULT_PAGE_SIZE);
 
@@ -156,16 +158,58 @@ public class ReplyServiceImpl implements ReplyService {
         }
     }
 
-    private List<ReplyInfo> listSonRepliesByParentId(String parentId) {
-        if (StringUtils.isEmpty(parentId)){
+    /**
+     * 默认返回10条
+     *
+     * @param parentId 父级评论id
+     * @return 评论列表
+     */
+    private List<ReplyInfo> listSonRepliesByParentId(String parentId, Integer pn, Integer ps) {
+        if (StringUtils.isEmpty(parentId)) {
             return Collections.emptyList();
         }
 
         String sql = "select * from dm_reply" +
                 " right join dm_user" +
                 " on dm_reply.user_id = dm_user.user_id " +
-                " where r_status='NORMAL' and parent_id = ?";
-        return jdbcTemplate.query(sql, new ReplyInfoMapper(), parentId);
+                " where r_status='NORMAL' and parent_id = ? order by dm_reply.create_time limit ?,?";
+        Integer pageLimit = pn == 1 ? 0 : (pn - 1) * ps;
+        return jdbcTemplate.query(sql, new ReplyInfoMapper(), parentId, pageLimit, ps);
+    }
+
+
+    /**
+     * 查询子评论以及分页
+     *
+     * @param parentId 父级评论id
+     * @param pn       页数
+     * @param ps       页大小
+     * @return 子评论列表
+     */
+    @Override
+    public Map<String, Object> listPageSonRepliesByParentId(String parentId, Integer pn, Integer ps) {
+
+        if (StringUtils.isEmpty(parentId)) {
+            return Collections.EMPTY_MAP;
+        }
+
+        String sql = "select * from dm_reply" +
+                " right join dm_user" +
+                " on dm_reply.user_id = dm_user.user_id " +
+                " where r_status='NORMAL' and parent_id = ? order by dm_reply.create_time limit ?,?";
+
+        Integer pageLimit = pn == 1 ? 0 : (pn - 1) * ps;
+        List<ReplyInfo> replyInfos = jdbcTemplate.query(sql, new ReplyInfoMapper(), parentId, pageLimit, ps);
+
+        Map<String, Object> data = new HashMap<>();
+        ReplyPageInfo replyPageInfo = new ReplyPageInfo();
+        replyPageInfo.setTotalSize(replyRepository.countByParentIdEquals(parentId));
+        replyPageInfo.setPageNumber(pn);
+        replyPageInfo.setPageSize(ps);
+        replyPageInfo.setParentTotalSize(0L);
+        data.put("replies", replyInfos);
+        data.put("page", replyPageInfo);
+        return data;
     }
 
     @Override

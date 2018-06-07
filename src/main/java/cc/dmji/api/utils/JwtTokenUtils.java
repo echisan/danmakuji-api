@@ -62,6 +62,7 @@ public class JwtTokenUtils {
         claims.put(TOKEN_CLAIM_KEY_ROLE, role);
         claims.put(TOKEN_CLAIM_KEY_EMAIL, user.getIsEmailVerify());
         claims.put(TOKEN_CLAIM_KEY_LOCK, user.getIsLock());
+        claims.put(TOKEN_CLAIM_KEY_UID, user.getId());
         return doCreateToken(claims, user.getUsername(), rememberMe);
     }
 
@@ -125,6 +126,10 @@ public class JwtTokenUtils {
 
     public String getIssuer(String token) {
         return getClaim(token).getIssuer();
+    }
+
+    public String getUid(String token){
+        return (String) getClaim(token).get(TOKEN_CLAIM_KEY_UID);
     }
 
     /**

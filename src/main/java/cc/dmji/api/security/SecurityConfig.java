@@ -50,6 +50,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/auth/verify/**").permitAll()
                 .antMatchers(HttpMethod.GET,"/replies").permitAll()
                 .antMatchers("/dplayer/**").permitAll()
+                .antMatchers(HttpMethod.GET,"/videos/**").permitAll()
+                .antMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilter(jwtAuthenticationFilter())

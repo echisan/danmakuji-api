@@ -88,4 +88,8 @@ public class JwtUser implements UserDetails {
     public Byte getIsEmailVerify() {
         return isEmailVerify;
     }
+
+    public String getId() {
+        return id;
+    }
 }

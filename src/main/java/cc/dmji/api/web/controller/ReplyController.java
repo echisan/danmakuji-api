@@ -11,6 +11,7 @@ import cc.dmji.api.entity.Status;
 import cc.dmji.api.service.MessageService;
 import cc.dmji.api.service.ReplyService;
 import cc.dmji.api.utils.DmjiUtils;
+import cc.dmji.api.utils.ReplyPageInfo;
 import cc.dmji.api.web.model.Replies;
 import cc.dmji.api.web.model.ReplyInfo;
 import cc.dmji.api.web.model.ReplyRequest;
@@ -85,8 +86,9 @@ public class ReplyController extends BaseController {
         Reply reply = new Reply();
 
         // 清除xss
-        String content = DmjiUtils.commentHtmlEncode(replyRequest.getContent());
+//        String content = DmjiUtils.commentHtmlEncode(replyRequest.getContent());
 
+        String content = replyRequest.getContent();
 
         // 设置该评论的用户
         reply.setUserId(replyRequest.getUid());
@@ -170,6 +172,18 @@ public class ReplyController extends BaseController {
     public ResponseEntity<Result> deleteReplyById(@PathVariable String replyId){
         replyService.deleteReplyById(replyId);
         return getResponseEntity(HttpStatus.OK,getSuccessResult());
+    }
+
+    @GetMapping("/son")
+    public ResponseEntity<Result> listSonReplies(@RequestParam("prid")String prid,
+                                                 @RequestParam(value = "pn", required = false, defaultValue = "1") Integer pn){
+
+        if (StringUtils.isEmpty(prid)){
+            return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_INVALID, "p_rid不能为空"));
+        }
+
+        Map<String, Object> data = replyService.listPageSonRepliesByParentId(prid, pn, ReplyPageInfo.DEFAULT_SON_PAGE_SIZE);
+        return getResponseEntity(HttpStatus.OK,getSuccessResult(data));
     }
 
     /**

@@ -1,6 +1,5 @@
 package cc.dmji.api.utils;
 
-import java.util.List;
 
 /**
  * Created by echisan on 2018/5/26
@@ -9,6 +8,9 @@ public class ReplyPageInfo {
 
     // 默认长度
     public static final Integer DEFAULT_PAGE_SIZE = 20;
+
+    // 默认子评论长度
+    public static final Integer DEFAULT_SON_PAGE_SIZE = 10;
 
     // 总评论
     private Long totalSize;
