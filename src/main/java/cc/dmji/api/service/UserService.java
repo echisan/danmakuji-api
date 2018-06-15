@@ -26,8 +26,14 @@ public interface UserService {
 
     User getUserByEmail(String email);
 
-    Page<User> listUser(Integer page, Integer size);
+    List<User> listUser(Integer pn, Integer ps);
 
     List<User> listUser();
+
+    Long countUsers();
+
+    List<User> listUsersNickLike(String nick, Integer pn, Integer ps);
+
+    Long countUsersNickLike(String nick);
 
 }

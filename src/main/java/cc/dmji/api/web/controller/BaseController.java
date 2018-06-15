@@ -2,10 +2,17 @@ package cc.dmji.api.web.controller;
 
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
+import cc.dmji.api.constants.SecurityConstants;
+import cc.dmji.api.entity.User;
+import cc.dmji.api.service.UserService;
+import cc.dmji.api.utils.JwtTokenUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by echisan on 2018/5/16
@@ -25,19 +32,19 @@ public class BaseController {
         return result;
     }
 
-    public Result getSuccessResult(String msg){
+    public Result getSuccessResult(String msg) {
         Result result = new Result().setResultCode(ResultCode.SUCCESS);
         result.setMsg(msg);
         return result;
     }
 
-    public <T> Result<T> getSuccessResult(T data, String msg){
+    public <T> Result<T> getSuccessResult(T data, String msg) {
         Result<T> result = getSuccessResult(data);
         result.setMsg(msg);
         return result;
     }
 
-    public Result getErrorResult(ResultCode resultCode, String msg){
+    public Result getErrorResult(ResultCode resultCode, String msg) {
         Result result = new Result();
         result.setResultCode(resultCode);
         result.setMsg(msg);
@@ -52,12 +59,41 @@ public class BaseController {
         return result;
     }
 
-    public Result getErrorResult(ResultCode resultCode){
+    public Result getErrorResult(ResultCode resultCode) {
         return new Result().setResultCode(resultCode);
     }
 
-    public ResponseEntity<Result> getResponseEntity(HttpStatus httpStatus, Result result){
-        return new ResponseEntity<>(result,httpStatus);
+    public ResponseEntity<Result> getResponseEntity(HttpStatus httpStatus, Result result) {
+        return new ResponseEntity<>(result, httpStatus);
+    }
+
+    public String getToken(HttpServletRequest request) {
+        String header = request.getHeader(SecurityConstants.TOKEN_HEADER_AUTHORIZATION);
+        if (StringUtils.isEmpty(header)) {
+            return null;
+        }
+        return header.replace(SecurityConstants.TOKEN_PREFIX, "");
+    }
+
+    public String getUidFromToken(HttpServletRequest request) {
+        String token = getToken(request);
+        if (token != null) {
+            JwtTokenUtils jwtTokenUtils = new JwtTokenUtils();
+            return jwtTokenUtils.getUid(token);
+        }
+        return null;
+    }
+
+    /**
+     * 获取当前用户， 只能用在"/admin/**"下
+     * 因为在header上肯定存在token
+     * @param request request
+     * @param userService userServiceImpl
+     * @return User
+     */
+    public User getCurrentUser(HttpServletRequest request, UserService userService){
+        String uid = getUidFromToken(request);
+        return userService.getUserById(uid);
     }
 
 }

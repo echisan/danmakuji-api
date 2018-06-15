@@ -4,15 +4,14 @@ import cc.dmji.api.entity.User;
 import cc.dmji.api.repository.UserRepository;
 import cc.dmji.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +26,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Override
     public User insertUser(User user) {
@@ -77,10 +79,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> listUser(Integer page, Integer size) {
-        Sort sort = new Sort(Sort.Direction.ASC, "userId");
-        Pageable pageable = PageRequest.of(page, size, sort);
-        return userRepository.findAll(pageable);
+    public List<User> listUser(Integer pn, Integer ps) {
+
+        String sql = "select * from dm_user order by create_time desc limit ?,?";
+        Integer limit = pn == 1 ? 0 : (pn - 1) * ps;
+        return jdbcTemplate.query(sql, new UserMapper(), limit, ps);
     }
 
     @Override
@@ -88,7 +91,47 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll();
     }
 
+    @Override
+    public Long countUsers() {
+        return userRepository.count();
+    }
+
+    @Override
+    public List<User> listUsersNickLike(String nick, Integer pn, Integer ps) {
+        Integer limit = pn == 1 ? 0 : (pn -1) * ps;
+        return userRepository.getUsersByNickLike("%" + nick + "%", limit, ps);
+    }
+
+    @Override
+    public Long countUsersNickLike(String nick) {
+        return userRepository.countByNickLike("%" + nick + "%");
+    }
+
     private Timestamp getTimestamp() {
         return new Timestamp(System.currentTimeMillis());
+    }
+
+    class UserMapper implements RowMapper<User> {
+
+        @Override
+        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+            User user = new User();
+            user.setPwd(rs.getString("pwd"));
+            user.setFace(rs.getString("face"));
+            user.setEmail(rs.getString("email"));
+            user.setLockTime(rs.getInt("lock_time"));
+            user.setSex(rs.getString("sex"));
+            user.setPhone(rs.getString("phone"));
+            user.setPhoneVerified(rs.getByte("phone_verified"));
+            user.setCreateTime(rs.getTimestamp("create_time"));
+            user.setModifyTime(rs.getTimestamp("modify_time"));
+            user.setNick(rs.getString("nick"));
+            user.setAge(rs.getInt("age"));
+            user.setEmailVerified(rs.getByte("email_verified"));
+            user.setRole(rs.getString("role"));
+            user.setUserId(rs.getString("user_id"));
+            user.setIsLock(rs.getByte("is_lock"));
+            return user;
+        }
     }
 }

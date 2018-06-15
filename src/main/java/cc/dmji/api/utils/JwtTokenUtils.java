@@ -238,6 +238,7 @@ public class JwtTokenUtils {
         boolean isLock;
         boolean isEmailVerify;
         Claims claims;
+        String uid;
 
         public Payload(String token) {
             this.token = token;
@@ -251,6 +252,7 @@ public class JwtTokenUtils {
             int email = (Integer) claims.get(TOKEN_CLAIM_KEY_EMAIL);
             isLock = UserStatus.LOCK.getStatus().equals(lock);
             isEmailVerify = UserStatus.EMAIL_VERIFY.getStatus().equals(email);
+            uid = (String) claims.get(TOKEN_CLAIM_KEY_UID);
         }
 
         public String getRole() {
@@ -273,15 +275,8 @@ public class JwtTokenUtils {
             return claims.getSubject();
         }
 
-        @Override
-        public String toString() {
-            return "Payload{" +
-                    "token='" + token + '\'' +
-                    ", role='" + role + '\'' +
-                    ", isLock=" + isLock +
-                    ", isEmailVerify=" + isEmailVerify +
-                    ", claims=" + claims +
-                    '}';
+        public String getUid() {
+            return uid;
         }
     }
 

@@ -13,6 +13,7 @@ import cc.dmji.api.service.MailService;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.JwtTokenUtils;
+import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.model.AuthUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -62,7 +65,7 @@ public class UserController extends BaseController {
      *
      * @return 响应信息
      */
-    @PostMapping
+    @PostMapping(name = "registerUser")
     public ResponseEntity<Result> registerUser(@RequestBody User user) throws MessagingException {
         String nick = user.getNick();
         String password = user.getPwd();
@@ -120,18 +123,6 @@ public class UserController extends BaseController {
         }
     }
 
-    @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public Result getAllUser(@RequestParam(value = "page", required = false) Integer page,
-                             @RequestParam(value = "size", required = false) Integer size) {
-        if (page == null && size == null) {
-            List<User> users = userService.listUser();
-            return getSuccessResult(users);
-        } else {
-            Page<User> users = userService.listUser(page, size);
-            return getSuccessResult(users);
-        }
-    }
 
     @GetMapping("/{userId}")
     public ResponseEntity getUser(@PathVariable String userId) {
@@ -142,24 +133,31 @@ public class UserController extends BaseController {
         return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND));
     }
 
-    @ValidUserSelf
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Result> deleteUser(@PathVariable String userId) {
+    public ResponseEntity<Result> deleteUser(@PathVariable String userId, HttpServletRequest request) {
+        String uid = getUidFromToken(request);
         User user = userService.getUserById(userId);
         if (user == null) {
             return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND));
+        }
+        if (!user.getUserId().equalsIgnoreCase(uid)) {
+            return getResponseEntity(HttpStatus.FORBIDDEN, getErrorResult(ResultCode.PERMISSION_DENY));
         }
         userService.deleteUserById(userId);
         return getResponseEntity(HttpStatus.OK, getSuccessResult());
     }
 
-    @ValidUserSelf
     @PutMapping("/{userId}")
-    public ResponseEntity<Result> updateUser(@PathVariable String userId, @RequestBody User user) throws MessagingException {
+    public ResponseEntity<Result> updateUser(@PathVariable String userId, @RequestBody User user,
+                                             HttpServletRequest request) throws MessagingException {
 
         logger.info("修改用户信息[PUT] user:[{}]", user.toString());
-
+        String uid = getUidFromToken(request);
         User dbUser = userService.getUserById(userId);
+        if (!dbUser.getUserId().equalsIgnoreCase(uid)) {
+            return getResponseEntity(HttpStatus.FORBIDDEN, getErrorResult(ResultCode.PERMISSION_DENY));
+        }
+
         boolean isEmailChange = false;
         boolean isPhoneChange = false;
         // 修改密码

@@ -8,5 +8,7 @@ public enum MessageType {
     REPLY,
     // 赞
     LIKE,
+    // 系统通知
+    SYSTEM
 
 }

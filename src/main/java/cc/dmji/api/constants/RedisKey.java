@@ -11,6 +11,9 @@ public class RedisKey {
     /** 存放token */
     public static final String LOGIN_TOKEN_KEY = "login_token";
 
+    /** 存放LockUser */
+    public static final String LOGIN_LOCK_USER_KEY = "login_lock_user";
+
     /** IP提交频繁 */
     public static final String POST_FREQUENT_IP_KEY = "POST_FREQUENT_IP_";
 

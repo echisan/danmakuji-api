@@ -92,4 +92,17 @@ public class JwtUser implements UserDetails {
     public String getId() {
         return id;
     }
+
+    @Override
+    public String toString() {
+        return "JwtUser{" +
+                "id='" + id + '\'' +
+                ", nick='" + nick + '\'' +
+                ", pwd='" + pwd + '\'' +
+                ", email='" + email + '\'' +
+                ", authorities=" + authorities +
+                ", isLock=" + isLock +
+                ", isEmailVerify=" + isEmailVerify +
+                '}';
+    }
 }

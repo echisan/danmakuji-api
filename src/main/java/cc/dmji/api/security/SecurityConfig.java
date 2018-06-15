@@ -1,5 +1,6 @@
 package cc.dmji.api.security;
 
+import cc.dmji.api.enums.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +46,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable().authorizeRequests()
+                .antMatchers("/admin/**").hasAnyRole(Role.ADMIN.name(),Role.MANAGER.name())
+                .antMatchers(HttpMethod.DELETE,"/users/**").authenticated()
+                .antMatchers(HttpMethod.PUT, "/users/**").authenticated()
+                .antMatchers(HttpMethod.POST, "/replies/**").authenticated()
                 .anyRequest().permitAll()
                 .and()
                 .addFilter(jwtAuthenticationFilter())
@@ -57,7 +62,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.addAllowedOrigin("*");
+        configuration.applyPermitDefaultValues();
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 

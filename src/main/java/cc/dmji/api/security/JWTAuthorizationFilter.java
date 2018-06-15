@@ -1,5 +1,6 @@
 package cc.dmji.api.security;
 
+import cc.dmji.api.constants.RedisKey;
 import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.service.RedisTokenService;
@@ -51,19 +52,19 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
             return;
         }
 
-        UsernamePasswordAuthenticationToken authenticationToken = getAuthentication(request,response);
+        UsernamePasswordAuthenticationToken authenticationToken = getAuthentication(request, response);
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         chain.doFilter(request, response);
     }
 
-    private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request,HttpServletResponse response) {
+    private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request, HttpServletResponse response) {
         String token = request.getHeader(TOKEN_HEADER_AUTHORIZATION);
         if (token != null) {
             String realToken = token.replace(TOKEN_PREFIX, "");
 
             // 检查redis是否存在该token，如果没有返回null
-            if (!redisTokenService.hasToken(realToken)){
-                logger.info("redis中找不到该token:[{}]，该token已过时或不合法",realToken);
+            if (!redisTokenService.hasToken(realToken)) {
+                logger.info("redis中找不到该token:[{}]，该token已过时或不合法", realToken);
                 response.setHeader(SecurityConstants.TOKEN_RESULT_CODE_HEADER, String.valueOf(ResultCode.USER_EXPIRATION.getCode()));
                 return null;
             }
@@ -73,6 +74,14 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
                 if (jwtTokenUtils.validateToken(realToken)) {
                     JwtTokenUtils.Payload payload = jwtTokenUtils.getPayload(realToken);
                     logger.debug("username is {}", payload.getUsername());
+
+                    // 查看该用户是不是已被锁定
+                    if (redisTokenService.isUserLock(payload.getUid())){
+                        // 强制登出
+                        redisTokenService.invalidToken(realToken);
+                        // 删除该记录
+                        redisTokenService.deleteUserLock(payload.getUid());
+                    }
                     return new UsernamePasswordAuthenticationToken(
                             payload.getUsername(),
                             null,
@@ -87,7 +96,7 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
                 redisTokenService.invalidToken(realToken);
                 logger.info("并从redis中删除");
                 response.setHeader(SecurityConstants.TOKEN_RESULT_CODE_HEADER, String.valueOf(ResultCode.USER_EXPIRATION.getCode()));
-            } catch (Exception e){
+            } catch (Exception e) {
                 logger.info("其他错误");
                 response.setHeader(SecurityConstants.TOKEN_RESULT_CODE_HEADER, String.valueOf(ResultCode.PERMISSION_DENY.getCode()));
             }

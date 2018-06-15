@@ -2,6 +2,7 @@ package cc.dmji.api;
 
 import cc.dmji.api.entity.Video;
 import cc.dmji.api.repository.VideoRepository;
+import cc.dmji.api.service.MailService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
