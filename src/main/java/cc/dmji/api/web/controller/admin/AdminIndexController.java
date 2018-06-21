@@ -1,15 +1,23 @@
 package cc.dmji.api.web.controller.admin;
 
 import cc.dmji.api.common.Result;
+import cc.dmji.api.constants.RedisKey;
+import cc.dmji.api.service.OnlineUserRedisService;
+import cc.dmji.api.service.ReplyService;
 import cc.dmji.api.service.UserService;
+import cc.dmji.api.utils.GeneralUtils;
 import cc.dmji.api.web.controller.BaseController;
 import cc.dmji.api.web.model.admin.IndexInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by echisan on 2018/6/9
@@ -21,13 +29,49 @@ public class AdminIndexController extends BaseController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private OnlineUserRedisService onlineUserRedisService;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private ReplyService replyService;
+
     @GetMapping
     public ResponseEntity<Result> getIndexInfo(){
-        IndexInfo indexInfo = new IndexInfo();
-        indexInfo.setUsers(userService.countUsers());
-        indexInfo.setNew_users(0L);
-        indexInfo.setOnline(0L);
 
-        return getResponseEntity(HttpStatus.OK, getSuccessResult(indexInfo));
+        Map<String, Object> map = new HashMap<>();
+
+        // 当前总用户数
+        map.put("totalUsers", userService.countUsers());
+        // 今天注册的用户数
+        Long newUsersCount = userService.countUsersByCreateTime(GeneralUtils.getToday0Clock(), GeneralUtils.getToday2359Clock());
+        map.put("newUsers", newUsersCount);
+
+        // 当前在线游客
+        Long anon = onlineUserRedisService.countAnonOnlineUser();
+        map.put("anonOnline", anon);
+
+        // 在线注册注册用户
+        Long auth = onlineUserRedisService.countAuthOnlineUser();
+        map.put("authOnline", auth);
+
+        // 当前在线用户
+        map.put("totalOnline",anon+auth);
+
+        // 总访问人数
+        String visitCountString = stringRedisTemplate.opsForValue().get(RedisKey.VISIT_COUNT_KEY);
+        Long visitCount = visitCountString == null ? 0L :Long.valueOf(visitCountString);
+        map.put("visit", visitCount);
+
+        // 新评论
+        Long newReplies = replyService.countReplysBetween(GeneralUtils.getToday0Clock(), GeneralUtils.getToday2359Clock());
+        map.put("newReplies", newReplies);
+
+        // 今日总访客
+        Long totalVisitors = onlineUserRedisService.countVisitors();
+        map.put("totalVisitors", totalVisitors);
+        return getResponseEntity(HttpStatus.OK, getSuccessResult(map));
     }
 }

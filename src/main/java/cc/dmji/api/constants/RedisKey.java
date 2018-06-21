@@ -19,4 +19,16 @@ public class RedisKey {
 
     /** 弹幕缓存 */
     public static final String DANMAKU_KEY = "danmaku_id_";
+
+    /** 用户日志记录 */
+    public static final String USER_LOG_RECORD_KEY = "user_log_record";
+
+    /** 在线注册用户 */
+    public static final String ONLINE_AUTH_USER_KEY = "online_auth_user";
+
+    /** 在线游客 */
+    public static final String ONLINE_ANON_USER_KEY = "online_anon_user";
+
+    /** 一天共访问次数 */
+    public static final String VISIT_COUNT_KEY = "visit_count_key";
 }

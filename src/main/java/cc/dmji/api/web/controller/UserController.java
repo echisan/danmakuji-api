@@ -1,10 +1,9 @@
 package cc.dmji.api.web.controller;
 
-import cc.dmji.api.annotation.ValidUserSelf;
+import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.constants.RedisKey;
-import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.entity.User;
 import cc.dmji.api.enums.Role;
 import cc.dmji.api.enums.Sex;
@@ -13,25 +12,18 @@ import cc.dmji.api.service.MailService;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.JwtTokenUtils;
-import cc.dmji.api.utils.PageInfo;
-import cc.dmji.api.web.model.AuthUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -65,7 +57,8 @@ public class UserController extends BaseController {
      *
      * @return 响应信息
      */
-    @PostMapping(name = "registerUser")
+    @PostMapping
+    @UserLog("账号注册")
     public ResponseEntity<Result> registerUser(@RequestBody User user) throws MessagingException {
         String nick = user.getNick();
         String password = user.getPwd();
@@ -125,6 +118,7 @@ public class UserController extends BaseController {
 
 
     @GetMapping("/{userId}")
+    @UserLog("获取单个用户信息")
     public ResponseEntity getUser(@PathVariable String userId) {
         User user = userService.getUserById(userId);
         if (user != null) {
@@ -134,6 +128,7 @@ public class UserController extends BaseController {
     }
 
     @DeleteMapping("/{userId}")
+    @UserLog("注销账号")
     public ResponseEntity<Result> deleteUser(@PathVariable String userId, HttpServletRequest request) {
         String uid = getUidFromToken(request);
         User user = userService.getUserById(userId);
@@ -148,6 +143,7 @@ public class UserController extends BaseController {
     }
 
     @PutMapping("/{userId}")
+    @UserLog("更新用户信息")
     public ResponseEntity<Result> updateUser(@PathVariable String userId, @RequestBody User user,
                                              HttpServletRequest request) throws MessagingException {
 

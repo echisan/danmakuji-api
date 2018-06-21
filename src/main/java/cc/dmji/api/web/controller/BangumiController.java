@@ -1,5 +1,6 @@
 package cc.dmji.api.web.controller;
 
+import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.entity.Bangumi;

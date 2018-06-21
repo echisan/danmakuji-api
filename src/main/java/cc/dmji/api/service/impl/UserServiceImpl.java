@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,6 +106,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public Long countUsersNickLike(String nick) {
         return userRepository.countByNickLike("%" + nick + "%");
+    }
+
+    @Override
+    public Long countUsersByCreateTime(Date begin, Date end) {
+        return userRepository.countByCreateTimeBetween(begin, end);
     }
 
     private Timestamp getTimestamp() {

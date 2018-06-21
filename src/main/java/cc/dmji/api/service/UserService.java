@@ -3,6 +3,7 @@ package cc.dmji.api.service;
 import cc.dmji.api.entity.User;
 import org.springframework.data.domain.Page;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,5 +36,7 @@ public interface UserService {
     List<User> listUsersNickLike(String nick, Integer pn, Integer ps);
 
     Long countUsersNickLike(String nick);
+
+    Long countUsersByCreateTime(Date begin, Date end);
 
 }

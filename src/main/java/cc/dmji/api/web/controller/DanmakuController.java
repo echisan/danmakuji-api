@@ -1,5 +1,6 @@
 package cc.dmji.api.web.controller;
 
+import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.constants.DanmakuResponseType;
 import cc.dmji.api.constants.RedisKey;
 import cc.dmji.api.constants.SecurityConstants;
@@ -44,6 +45,7 @@ public class DanmakuController {
 
     @CrossOrigin
     @GetMapping
+    @UserLog("获取某个视频下的弹幕")
     public DanmakuResponse getDanmakuList(@RequestParam("id") String id,
                                           @RequestParam(value = "max", required = false, defaultValue = "1000") Integer max) {
         DanmakuResponse danmakuResponse = new DanmakuResponse();
@@ -68,6 +70,7 @@ public class DanmakuController {
 
     @CrossOrigin
     @PostMapping
+    @UserLog("发送弹幕")
     public DanmakuResponse postDanmaku(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         Danmaku danmaku = new ObjectMapper().readValue(request.getInputStream(), Danmaku.class);

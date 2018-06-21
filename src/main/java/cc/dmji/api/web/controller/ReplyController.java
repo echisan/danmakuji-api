@@ -1,5 +1,6 @@
 package cc.dmji.api.web.controller;
 
+import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.constants.MessageConstants;
@@ -42,6 +43,7 @@ public class ReplyController extends BaseController {
     private MessageService messageService;
 
     @GetMapping
+    @UserLog("获取回复")
     public ResponseEntity<Result> listEpReplies(@RequestParam Integer epId,
                                                 @RequestParam(value = "pn", defaultValue = "1", required = false) Integer pn) {
         if (epId == null) {
@@ -53,6 +55,7 @@ public class ReplyController extends BaseController {
     }
 
     @PostMapping
+    @UserLog("添加回复")
     public ResponseEntity<Result> addReply(@RequestBody ReplyRequest replyRequest) {
 
         boolean isReplyParent = false;
@@ -169,6 +172,7 @@ public class ReplyController extends BaseController {
     }
 
     @DeleteMapping("/{replyId}")
+    @UserLog("删除回复")
     public ResponseEntity<Result> deleteReplyById(@PathVariable String replyId){
         replyService.deleteReplyById(replyId);
         return getResponseEntity(HttpStatus.OK,getSuccessResult());
@@ -191,6 +195,7 @@ public class ReplyController extends BaseController {
      * @return
      */
     @PostMapping("/action")
+    @UserLog("点赞")
     public ResponseEntity<Result> doActionAtReply(){
         return getResponseEntity(HttpStatus.OK,getSuccessResult());
     }

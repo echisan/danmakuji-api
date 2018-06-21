@@ -1,25 +1,21 @@
 package cc.dmji.api.web.controller;
 
-import cc.dmji.api.annotation.ValidUserSelf;
+import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.constants.RedisKey;
 import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.entity.User;
-import cc.dmji.api.enums.Role;
 import cc.dmji.api.enums.UserStatus;
 import cc.dmji.api.service.RedisTokenService;
 import cc.dmji.api.service.UserService;
-import cc.dmji.api.utils.DmjiUtils;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +38,7 @@ public class AuthController extends BaseController {
     private RedisTokenService redisTokenService;
 
     @GetMapping("/logout")
+    @UserLog("登出")
     public ResponseEntity<Result> logout(HttpServletRequest request) {
         String header = request.getHeader(SecurityConstants.TOKEN_HEADER_AUTHORIZATION);
         String token = header.replace(SecurityConstants.TOKEN_PREFIX, "");
@@ -55,6 +52,7 @@ public class AuthController extends BaseController {
     }
 
     @GetMapping("/verify/uid/{uid}/key/{key}")
+    @UserLog("邮箱验证")
     public ResponseEntity<Result> verifyEmail(@PathVariable("uid") String uid,
                                               @PathVariable("key") String uuid) {
 

@@ -1,6 +1,5 @@
 package cc.dmji.api.security;
 
-import cc.dmji.api.constants.RedisKey;
 import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.service.RedisTokenService;
@@ -14,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.stereotype.Component;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -28,7 +26,6 @@ import static cc.dmji.api.constants.SecurityConstants.*;
 /**
  * Created by echisan on 2018/5/18
  */
-@Component
 public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JWTAuthorizationFilter.class);

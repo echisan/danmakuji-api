@@ -12,7 +12,10 @@ import cc.dmji.api.web.model.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
@@ -190,7 +193,7 @@ public class ReplyServiceImpl implements ReplyService {
     public Map<String, Object> listPageSonRepliesByParentId(String parentId, Integer pn, Integer ps) {
 
         if (StringUtils.isEmpty(parentId)) {
-            return Collections.EMPTY_MAP;
+            return new HashMap<>();
         }
 
         String sql = "select * from dm_reply" +
@@ -222,4 +225,8 @@ public class ReplyServiceImpl implements ReplyService {
         return jdbcTemplate.queryForObject(sql, new ReplyInfoMapper(), replyId);
     }
 
+    @Override
+    public Long countReplysBetween(Date begin, Date end) {
+        return replyRepository.countByCreateTimeBetween(begin, end);
+    }
 }

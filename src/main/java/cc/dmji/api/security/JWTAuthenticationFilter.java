@@ -35,7 +35,6 @@ import static cc.dmji.api.constants.SecurityConstants.*;
 /**
  * Created by echisan on 2018/5/18
  */
-@Component
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JWTAuthenticationFilter.class);

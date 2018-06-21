@@ -1,6 +1,7 @@
 package cc.dmji.api.config;
 
-import cc.dmji.api.web.interceptor.ValidUserSelfInterceptor;
+import cc.dmji.api.web.filter.OnlineUserFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.*;
@@ -12,14 +13,18 @@ import org.springframework.web.servlet.config.annotation.*;
 @EnableWebMvc
 public class WebConfig implements WebMvcConfigurer {
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(validUserSelfInterceptor());
+    @Bean
+    public FilterRegistrationBean<OnlineUserFilter> onlineUserFilterFilterRegistrationBean(){
+        FilterRegistrationBean<OnlineUserFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setOrder(1);
+        registrationBean.setFilter(onlineUserFilter());
+        registrationBean.addUrlPatterns("/*");
+        return registrationBean;
     }
 
     @Bean
-    public ValidUserSelfInterceptor validUserSelfInterceptor(){
-        return new ValidUserSelfInterceptor();
+    public OnlineUserFilter onlineUserFilter(){
+        return new OnlineUserFilter();
     }
 
 }

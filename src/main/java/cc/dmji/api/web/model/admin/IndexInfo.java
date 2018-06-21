@@ -5,34 +5,64 @@ package cc.dmji.api.web.model.admin;
  */
 public class IndexInfo {
 
-    // 在线人数
-    private Long online;
+    // 网站今日总访问数
+    private Long visit;
+    // 在线人总人数
+    private Long totalOnline;
+    // 在线游客
+    private Long anonOnline;
+    // 在线注册用户
+    private Long authOnline;
     // 总注册人数
-    private Long users;
+    private Long totalUsers;
     // 今日新增人数
-    private Long new_users;
+    private Long newUsers;
 
-    public Long getOnline() {
-        return online;
+    public Long getVisit() {
+        return visit;
     }
 
-    public void setOnline(Long online) {
-        this.online = online;
+    public void setVisit(Long visit) {
+        this.visit = visit;
     }
 
-    public Long getUsers() {
-        return users;
+    public Long getTotalOnline() {
+        return totalOnline;
     }
 
-    public void setUsers(Long users) {
-        this.users = users;
+    public void setTotalOnline(Long totalOnline) {
+        this.totalOnline = totalOnline;
     }
 
-    public Long getNew_users() {
-        return new_users;
+    public Long getAnonOnline() {
+        return anonOnline;
     }
 
-    public void setNew_users(Long new_users) {
-        this.new_users = new_users;
+    public void setAnonOnline(Long anonOnline) {
+        this.anonOnline = anonOnline;
+    }
+
+    public Long getAuthOnline() {
+        return authOnline;
+    }
+
+    public void setAuthOnline(Long authOnline) {
+        this.authOnline = authOnline;
+    }
+
+    public Long getTotalUsers() {
+        return totalUsers;
+    }
+
+    public void setTotalUsers(Long totalUsers) {
+        this.totalUsers = totalUsers;
+    }
+
+    public Long getNewUsers() {
+        return newUsers;
+    }
+
+    public void setNewUsers(Long newUsers) {
+        this.newUsers = newUsers;
     }
 }

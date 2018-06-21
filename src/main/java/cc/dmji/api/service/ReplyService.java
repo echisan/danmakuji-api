@@ -5,6 +5,7 @@ import cc.dmji.api.web.model.Replies;
 import cc.dmji.api.web.model.ReplyInfo;
 import org.springframework.data.domain.Page;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -37,5 +38,7 @@ public interface ReplyService  {
     ReplyInfo getReplyInfoById(String replyId);
 
     Map<String, Object> listPageSonRepliesByParentId(String parentId, Integer pn, Integer ps);
+
+    Long countReplysBetween(Date begin, Date end);
 
 }

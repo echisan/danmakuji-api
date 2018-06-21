@@ -4,6 +4,7 @@ import cc.dmji.api.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Date;
 import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, String> {
@@ -20,5 +21,7 @@ public interface UserRepository extends JpaRepository<User, String> {
     List<User> getUsersByNickLike(String nick, Integer pn, Integer ps);
 
     Long countByNickLike(String nick);
+
+    Long countByCreateTimeBetween(Date begin, Date end);
 
 }

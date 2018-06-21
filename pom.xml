@@ -78,10 +78,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.springframework.boot</groupId>-->
+            <!--<artifactId>spring-boot-starter-actuator</artifactId>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
@@ -90,8 +90,9 @@
         <dependency>
             <groupId>com.github.echisan</groupId>
             <artifactId>wbp4j</artifactId>
-            <version>0.0.2</version>
+            <version>0.0.3</version>
         </dependency>
+
     </dependencies>
 
     <build>

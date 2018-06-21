@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.UUID;
 
 public class GeneralUtils {
@@ -67,6 +69,31 @@ public class GeneralUtils {
             return html;
         }
         return "";
+    }
+
+    /**
+     * 获取今天的0点
+     * @return 时间戳
+     */
+    public static Date getToday0Clock(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
+    }
+
+    /**
+     * 获取今天晚上11点59分
+     * @return 时间戳
+     */
+    public static Date getToday2359Clock(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        return calendar.getTime();
     }
 
 }
