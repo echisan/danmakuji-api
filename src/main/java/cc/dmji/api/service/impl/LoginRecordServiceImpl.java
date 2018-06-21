@@ -60,6 +60,11 @@ public class LoginRecordServiceImpl implements LoginRecordService {
     }
 
     @Override
+    public void deleteLoginRecords(List<LoginRecord> records) {
+        loginRecordRepository.deleteInBatch(records);
+    }
+
+    @Override
     public Long countLoginRecord() {
         return loginRecordRepository.count();
     }

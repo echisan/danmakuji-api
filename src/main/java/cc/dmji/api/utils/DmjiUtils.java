@@ -70,4 +70,28 @@ public class DmjiUtils {
         }
         return "";
     }
+
+    public static int validatePageParam(Integer pageNum, Integer pageSize){
+        if(null == pageNum){
+            return 1;//1表示pageNum为空
+        }
+        else {
+            if(pageNum < 1){
+                return 2;//2表示pageNum不合法（小于1)
+            }
+            else {
+                if(pageSize == null){
+                    return 3;//3表示pageNum不为空，pageSize为空
+                }
+                else {
+                    if(pageSize < 1){
+                        return 4;//4表示pageSize不合法（小于1）
+                    }
+                    else {
+                        return 5;//5表示pageNum和pageSize均为有效参数
+                    }
+                }
+            }
+        }
+    }
 }

@@ -6,10 +6,12 @@ import cc.dmji.api.entity.Bangumi;
 import cc.dmji.api.entity.Episode;
 import cc.dmji.api.service.BangumiService;
 import cc.dmji.api.service.EpisodeService;
+import cc.dmji.api.utils.BangumiPageInfo;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.ConnectException;
@@ -30,21 +32,64 @@ public class BangumiController extends BaseController{
     EpisodeService episodeService;
 
     @GetMapping
-    public Result listBangumis(@RequestParam(required = false) String bangumiName) throws ConnectException {
-        List<Bangumi> bangumis = null;
+    public Result listBangumis(@RequestParam(required = false) String bangumiName,
+                               @RequestParam(required = false) Integer pageNum,
+                               @RequestParam(required = false) Integer pageSize){
+        BangumiPageInfo bangumis = null;
         if(null != bangumiName){
             bangumiName = bangumiName.trim();//去除前后空格
         }
         if(null == bangumiName){
-            bangumis = bangumiService.listBangumis();
+            if(pageNum != null){
+                if(pageNum < 1){
+                    return getErrorResult(ResultCode.PARAM_IS_INVALID,"页码不能为0或负数");
+                }
+                else {
+                    if( pageSize != null){
+                        if(pageSize < 1){
+                            return getErrorResult(ResultCode.PARAM_IS_INVALID,"页大小不能为0或负数");
+                        }
+                        else {
+                            bangumis = bangumiService.listBangumis(pageNum,pageSize);
+                        }
+                    }
+                    else {
+                        bangumis = bangumiService.listBangumis(pageNum);
+                    }
+                }
+            }
+            else {
+                bangumis = bangumiService.listBangumis();
+            }
+
         }
         else {
             if(!bangumiName.equals("")){
                 bangumiName = "%"+bangumiName+"%";
             }
-            bangumis = bangumiService.listBangumisByName(bangumiName);
+            if(pageNum != null){
+                if(pageNum < 1){
+                    return getErrorResult(ResultCode.PARAM_IS_INVALID,"页码不能为0或负数");
+                }
+                else {
+                    if(pageSize != null){
+                        if(pageSize < 1){
+                            return getErrorResult(ResultCode.PARAM_IS_INVALID,"页大小不能为0或负数");
+                        }
+                        else {
+                            bangumis = bangumiService.listBangumisByName(bangumiName,pageNum,pageSize);
+                        }
+                    }
+                    else {
+                        bangumis = bangumiService.listBangumisByName(bangumiName,pageNum);
+                    }
+                }
+            }
+            else {
+                bangumis = bangumiService.listBangumisByName(bangumiName);
+            }
         }
-        if(bangumis.size()==0){
+        if(bangumis.getContent().size() == 0){
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND);
         }
         else {
@@ -59,76 +104,6 @@ public class BangumiController extends BaseController{
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND);
         }
         return getSuccessResult(bangumi);
-    }
-
-    @PostMapping
-    public Result addBangumi(@RequestBody Bangumi bangumi){
-        if(null == bangumi.getBangumiName() || bangumi.getBangumiName().equals("")){
-            return getErrorResult(ResultCode.DATA_IS_WRONG,"BangumiName不能为空");
-        }
-        if(null == bangumi.getEpisodeTotal() || bangumi.getEpisodeTotal()<0){
-            return getErrorResult(ResultCode.DATA_IS_WRONG,"集数不能为负数");
-        }
-        if(null != bangumi.getBangumiId()){
-            return getErrorResult(ResultCode.DATA_IS_WRONG,"非法参数(插入数据不需要提供id)");
-        }
-        // TODO 图片链接验证
-
-        Bangumi insertedBangumi = null;
-        insertedBangumi = bangumiService.insertBangumi(bangumi);
-        if(null == insertedBangumi){
-            return getErrorResult(ResultCode.DATA_IS_WRONG,"添加番剧信息失败");
-        }
-        else {
-            List<Episode> episodes = new ArrayList<>(insertedBangumi.getEpisodeTotal());
-            for(int i = 1;i <= insertedBangumi.getEpisodeTotal(); i++){
-                Episode episode = new Episode();
-                episode.setBangumiId(insertedBangumi.getBangumiId());
-                episode.setEpIndex(i);
-                episode.setReplyable((byte) 1);
-                episodes.add(episode);
-            }
-            episodeService.insertEpisodes(episodes);
-            return getSuccessResult(insertedBangumi);
-        }
-    }
-
-    @PutMapping("/{bangumiId}")
-    public Result editBangumi(@PathVariable("bangumiId") Integer bangumiId, @RequestBody Bangumi bangumi){
-
-        Bangumi editedBangumi = bangumiService.getBangumiById(bangumiId);
-        if(editedBangumi == null){
-            return getErrorResult(ResultCode.DATA_IS_WRONG,"BangumiId不存在");
-        }
-        if(null != bangumi.getBangumiName()){
-            if(bangumi.getBangumiName().equals("")){
-                return getErrorResult(ResultCode.DATA_IS_WRONG,"BangumiName不能为空");
-            }
-            else {
-                editedBangumi.setBangumiName(bangumi.getBangumiName());
-            }
-        }
-        if(null != bangumi.getEpisodeTotal()){
-            if(bangumi.getEpisodeTotal() < 0){
-                return getErrorResult(ResultCode.DATA_IS_WRONG,"番剧集数不能为空或负数");
-            }
-            else {
-                editedBangumi.setEpisodeTotal(bangumi.getEpisodeTotal());
-            }
-        }
-        // TODO 图片链接验证
-        if(bangumi.getThumb() == null || bangumi.getThumb().equals("")){}
-        else {
-            editedBangumi.setThumb(bangumi.getThumb());
-        }
-        editedBangumi.setModifyTime(new Timestamp(System.currentTimeMillis()));
-        editedBangumi = bangumiService.updateBangumi(editedBangumi);
-        if(null == editedBangumi){
-            return getErrorResult(ResultCode.DATA_IS_WRONG,"更新番剧信息失败");
-        }
-        else {
-            return getSuccessResult(editedBangumi);
-        }
     }
 
     @DeleteMapping("/{bangumiId}")

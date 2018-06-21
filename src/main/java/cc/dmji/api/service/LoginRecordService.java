@@ -22,7 +22,7 @@ public interface LoginRecordService {
 
     void deleteLoginRecordByRecordId(String recordId);
 
+    void deleteLoginRecords(List<LoginRecord> records);
+
     Long countLoginRecord();
-
-
 }

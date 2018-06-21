@@ -7,12 +7,11 @@ import cn.echisan.wbp4j.WbpUpload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Map;
 
 /**
@@ -28,10 +27,10 @@ public class UploadController extends BaseController{
     private WbpUpload wbpUpload;
 
     @PostMapping
-    public ResponseEntity<Result> upload(@RequestBody Map<String,String> requestMap) throws IOException {
+    public ResponseEntity<Result> upload(@RequestPart MultipartFile file) throws IOException {
 
-        String b64pic = requestMap.get(REQUEST_KEY_B64_PIC);
-        ImageInfo imageInfo = wbpUpload.uploadB64(b64pic);
+        ImageInfo imageInfo = null;
+        imageInfo = wbpUpload.upload(file.getBytes());
         return getResponseEntity(HttpStatus.OK,getSuccessResult(imageInfo,"上传成功"));
     }
 }

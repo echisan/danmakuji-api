@@ -6,33 +6,41 @@ package cc.dmji.api.utils;
  */
 public class PageInfo {
 
-    private Long totalSize;
+    private long totalSize;
 
-    private Integer pageSize;
+    private int pageSize;
 
-    private Integer PageNumber;
+    private int pageNumber;
 
-    public Long getTotalSize() {
-        return totalSize;
-    }
+    public PageInfo(){}
 
-    public void setTotalSize(Long totalSize) {
+    public PageInfo(int pageNumber, int pageSize, long totalSize){
+        this.pageNumber = pageNumber;
+        this.pageSize = pageSize;
         this.totalSize = totalSize;
     }
 
-    public Integer getPageSize() {
+    public long getTotalSize() {
+        return totalSize;
+    }
+
+    public void setTotalSize(long totalSize) {
+        this.totalSize = totalSize;
+    }
+
+    public int getPageSize() {
         return pageSize;
     }
 
-    public void setPageSize(Integer pageSize) {
+    public void setPageSize(int pageSize) {
         this.pageSize = pageSize;
     }
 
-    public Integer getPageNumber() {
-        return PageNumber;
+    public int getPageNumber() {
+        return pageNumber;
     }
 
-    public void setPageNumber(Integer pageNumber) {
-        PageNumber = pageNumber;
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
     }
 }
