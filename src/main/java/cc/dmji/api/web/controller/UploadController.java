@@ -25,8 +25,8 @@ public class UploadController extends BaseController {
 
     @PostMapping
     @UserLog("上传图片")
-    public ResponseEntity<Result> upload(@RequestPart MultipartFile multipartFile) throws IOException {
-        ImageInfo imageInfo = wbpUpload.upload(multipartFile.getBytes());
+    public ResponseEntity<Result> upload(@RequestPart MultipartFile file) throws IOException {
+        ImageInfo imageInfo = wbpUpload.upload(file.getBytes());
         if (imageInfo==null){
             return getResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR,
                     getErrorResult(ResultCode.SYSTEM_INTERNAL_ERROR,"上传失败, 稍后再试"));
