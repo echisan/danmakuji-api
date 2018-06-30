@@ -84,6 +84,10 @@ public class BaseController {
         return null;
     }
 
+    public String getNickFormRequest(HttpServletRequest request){
+        return new JwtTokenUtils().getUsername(getToken(request));
+    }
+
     /**
      * 获取当前用户， 只能用在"/admin/**"下
      * 因为在header上肯定存在token
@@ -95,5 +99,6 @@ public class BaseController {
         String uid = getUidFromToken(request);
         return userService.getUserById(uid);
     }
+
 
 }

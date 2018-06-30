@@ -7,7 +7,9 @@ public enum Role {
     /** 系统管理员 */
     ADMIN("ROLE_ADMIN"),
     /** 普通管理员 */
-    MANAGER("ROLE_MANAGER");
+    MANAGER("ROLE_MANAGER"),
+    /** 特殊的游客 */
+    VISITOR("ROLE_VISITOR");
 
     String name;
 

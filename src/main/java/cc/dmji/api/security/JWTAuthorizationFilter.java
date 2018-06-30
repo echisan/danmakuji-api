@@ -94,7 +94,8 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
                 logger.info("并从redis中删除");
                 response.setHeader(SecurityConstants.TOKEN_RESULT_CODE_HEADER, String.valueOf(ResultCode.USER_EXPIRATION.getCode()));
             } catch (Exception e) {
-                logger.info("其他错误");
+                logger.info("其他错误,也把token从redis中清除");
+                redisTokenService.invalidToken(realToken);
                 response.setHeader(SecurityConstants.TOKEN_RESULT_CODE_HEADER, String.valueOf(ResultCode.PERMISSION_DENY.getCode()));
             }
             return null;

@@ -88,7 +88,11 @@ public class UserActionLogAspect {
 
         String description = getMethodDescription(joinPoint);
         ulr.setDescription(description);
-        ulr.setParams(Arrays.toString(joinPoint.getArgs()));
+        String paramsString = Arrays.toString(joinPoint.getArgs());
+        if (paramsString.length()>250){
+            paramsString = paramsString.substring(0, 250);
+        }
+        ulr.setParams(paramsString);
         ulr.setCreateTime(new Date());
         logger.debug("用户日志信息: {}",ulr.toString());
 

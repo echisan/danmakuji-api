@@ -1,12 +1,16 @@
 package cc.dmji.api.service.impl;
 
 import cc.dmji.api.service.MailService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
@@ -15,16 +19,18 @@ import javax.mail.internet.MimeMessage;
  */
 @Service
 public class MailServiceImpl implements MailService {
+    private static final Logger logger = LoggerFactory.getLogger(MailServiceImpl.class);
 
-    private static final String MAIL_CONTENT = "<html><body><a href='http://localhost:8080/auth/verify/uid/%s/key/%s' target='_blank'>单击此处完成注册</a><br><p>有效期30分钟</p></body></html>";
+    private static final String MAIL_CONTENT = "<html><body><a href='http://10.0.46.28:8080/#/vemail?userId=%s&uuid=%s' target='_blank'>单击此处完成注册</a><br><p>有效期30分钟</p></body></html>";
 
     @Value("${spring.mail.username}")
     private String from;
 
-    @Autowired
+    @Resource
     private JavaMailSender javaMailSender;
 
     @Override
+    @Async
     public void sendVerifyEmail(String toEmail, String userId, String uuid) throws MessagingException {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
@@ -35,5 +41,7 @@ public class MailServiceImpl implements MailService {
         String href = String.format(MAIL_CONTENT, userId, uuid);
         helper.setText(href, true);
         javaMailSender.send(mimeMessage);
+
+        logger.debug("发送的邮件地址:{}",href);
     }
 }

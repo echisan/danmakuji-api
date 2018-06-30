@@ -6,16 +6,16 @@ package cc.dmji.api.web.model;
 public class UserInfo {
 
     // 用户id
-    private String uid;
+    private String uid = "";
 
     // 用户名
-    private String nick;
+    private String nick = "";
 
     // 用户头像
-    private String face;
+    private String face = "";
 
     // 用户性别
-    private String sex;
+    private String sex = "";
 
     public String getUid() {
         return uid;

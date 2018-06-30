@@ -39,7 +39,6 @@ public class ReplyServiceImplTest extends ApiApplicationTests {
 
     @Test
     public void deleteReplyById() {
-        replyService.deleteReplyById("4028e381635eaae401635eab203f0000");
         assertNull(replyService.getReplyById("4028e381635eaae401635eab203f0000"));
     }
 

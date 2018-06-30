@@ -14,13 +14,42 @@ public interface OnlineUserRedisService {
 
     Long countOnlineUser();
 
+    /**
+     * @return 今日最多同时在线人数
+     */
+    Long countTodayMaxOnlineUser();
+
     Long countAuthOnlineUser();
 
+    /**
+     * @return 今日最多在线注册用户数
+     */
+    Long countTodayMaxAuthOnlineUser();
+
+    /**
+     * @return 今日总共在线注册用户人数
+     */
+    Long countTodayTotalAuthOnlineUser();
+
+    /**
+     * @return 当前在线游客人数
+     */
     Long countAnonOnlineUser();
+
+    /**
+     * @return 今日最多在线游客人数
+     */
+    Long countTodayMaxAnonOnlineUser();
+
+    /**
+     * @return 今日总共在线游客人数
+     */
+    Long countTodayTotalAnonOnlineUser();
 
     Long countVisitors();
 
     void deleteExpirationUsers();
 
     List<String> listAuthOnlineUserIds();
+
 }

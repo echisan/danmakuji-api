@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -39,10 +40,15 @@ public class UserLogRecordSchedule {
             // 清空内存中的记录
             stringRedisTemplate.delete(RedisKey.USER_LOG_RECORD_KEY);
             logger.info("已清除redis中的用户操作记录,共清除记录{}条", redisUserLogRecord.size());
-            // 插入到数据库中
-            List<UserLogRecord> userLogRecords = userLogRecordService.insertUserLogRecords(redisUserLogRecord);
-            logger.info("用户日志记录持久化成功!共读取数据{}条,写入数据{}条", redisUserLogRecord.size(), userLogRecords.size());
+            saveUserLog(redisUserLogRecord);
         }
         logger.info("缓存中暂无用户日志记录,无需写入数据库");
+    }
+
+    @Async
+    public void saveUserLog(List<UserLogRecord> userLogRecordList){
+        // 插入到数据库中
+        List<UserLogRecord> userLogRecords = userLogRecordService.insertUserLogRecords(userLogRecordList);
+        logger.info("用户日志记录持久化成功!共读取数据{}条,写入数据{}条", userLogRecordList.size(), userLogRecords.size());
     }
 }

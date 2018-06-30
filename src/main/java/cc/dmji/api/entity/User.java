@@ -74,7 +74,7 @@ public class User {
     }
 
     @Basic
-    @Column(name = "nick")
+    @Column(name = "nick",unique = true)
     public String getNick() {
         return nick;
     }

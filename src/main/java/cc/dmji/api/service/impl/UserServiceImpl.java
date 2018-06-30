@@ -113,6 +113,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.countByCreateTimeBetween(begin, end);
     }
 
+    @Override
+    public List<User> listUserByIdsIn(List<String> userId) {
+        return userRepository.findByUserIdIn(userId);
+    }
+
     private Timestamp getTimestamp() {
         return new Timestamp(System.currentTimeMillis());
     }
@@ -139,5 +144,10 @@ public class UserServiceImpl implements UserService {
             user.setIsLock(rs.getByte("is_lock"));
             return user;
         }
+    }
+
+    @Override
+    public List<User> listUserByNickIn(List<String> usernameList) {
+        return userRepository.findByNickIn(usernameList);
     }
 }

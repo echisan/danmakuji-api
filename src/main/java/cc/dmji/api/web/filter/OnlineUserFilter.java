@@ -92,6 +92,9 @@ public class OnlineUserFilter implements Filter {
      */
     private boolean isAdminUri(String uri) {
         String[] split = uri.split("/");
+        if (split.length<2){
+            return false;
+        }
         return split[1].equals("admin");
     }
 }

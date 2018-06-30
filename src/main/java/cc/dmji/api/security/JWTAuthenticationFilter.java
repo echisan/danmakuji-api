@@ -7,18 +7,15 @@ import cc.dmji.api.service.RedisTokenService;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.utils.JwtTokenUtils;
 import cc.dmji.api.web.model.AuthUser;
-import cc.dmji.api.web.model.UserInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.stereotype.Component;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -30,7 +27,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static cc.dmji.api.constants.SecurityConstants.*;
+import static cc.dmji.api.constants.SecurityConstants.TOKEN_HEADER_AUTHORIZATION;
+import static cc.dmji.api.constants.SecurityConstants.TOKEN_PREFIX;
 
 /**
  * Created by echisan on 2018/5/18
@@ -66,7 +64,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         try {
             AuthUser user = new ObjectMapper()
                     .readValue(request.getInputStream(), AuthUser.class);
-            request.setAttribute("remember_me",user.getRemember_me());
+            request.setAttribute("remember_me", user.getRemember_me());
             return super.getAuthenticationManager().authenticate(
                     new UsernamePasswordAuthenticationToken(
                             user.getPrincipal(),
@@ -75,7 +73,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                     )
             );
         } catch (IOException e) {
-            logger.info("不能从request中读取到相应的数据,{}",e.getMessage());
+            logger.info("不能从request中读取到相应的数据,{}", e.getMessage());
             setResponse(response);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             Result result = new Result(ResultCode.PARAM_IS_INVALID);
@@ -101,9 +99,9 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         JwtTokenUtils jwtTokenUtils = new JwtTokenUtils();
         String token;
         setResponse(response);
-        if (rememberMe.equals(REMEMBER)){
-            token = jwtTokenUtils.createToken(user,true);
-        }else {
+        if (rememberMe.equals(REMEMBER)) {
+            token = jwtTokenUtils.createToken(user, true);
+        } else {
             token = jwtTokenUtils.createToken(user, false);
         }
         response.setHeader(TOKEN_HEADER_AUTHORIZATION, TOKEN_PREFIX + token);
@@ -111,18 +109,24 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         redisTokenService.saveToken(token);
 
         User user1 = userService.getUserByNick(user.getUsername());
-        UserInfo userInfo = new UserInfo();
-        userInfo.setUid(user1.getUserId());
-        userInfo.setSex(user1.getSex());
-        userInfo.setFace(user1.getFace());
-        userInfo.setNick(user1.getNick());
+//        UserInfo userInfo = new UserInfo();
+//        userInfo.setUid(user1.getUserId());
+//        userInfo.setSex(user1.getSex());
+//        userInfo.setFace(user1.getFace());
+//        userInfo.setNick(user1.getNick());
+
+        Map<String, String> userMap = new HashMap<>();
+        userMap.put("uid", user1.getUserId());
+        userMap.put("face", user1.getFace());
+        userMap.put("role", user1.getRole());
+        userMap.put("nick",user1.getNick());
 
         ObjectMapper objectMapper = new ObjectMapper();
         Result<Map> result = new Result<>();
         result.setResultCode(ResultCode.SUCCESS);
         Map<String, Object> map = new HashMap<>();
         map.put("token", TOKEN_PREFIX + token);
-        map.put("user",userInfo);
+        map.put("user", userMap);
         result.setData(map);
         response.getWriter().write(objectMapper.writeValueAsString(result));
     }

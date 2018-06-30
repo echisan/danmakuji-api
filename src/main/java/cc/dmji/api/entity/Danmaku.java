@@ -68,6 +68,10 @@ public class Danmaku implements Serializable {
     @Column(name = "referer")
     private String referer;
 
+    @Column(name = "user_id")
+    private String userId;
+
+    @Transient
     private String token;
 
     public Long getId() {
@@ -140,6 +144,14 @@ public class Danmaku implements Serializable {
 
     public void setReferer(String referer) {
         this.referer = referer;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getToken() {

@@ -32,6 +32,8 @@ public class Reply {
     private Integer rLike;
     private Integer rHate;
     private Integer epId;
+    @Column(name = "floor")
+    private Long floor;
 
     @Id
     @GeneratedValue(generator = "jpa-uuid")
@@ -45,7 +47,7 @@ public class Reply {
     }
 
     @Basic
-    @Column(name = "content")
+    @Column(name = "content",columnDefinition = "text")
     public String getContent() {
         return content;
     }
@@ -154,6 +156,14 @@ public class Reply {
         this.epId = epId;
     }
 
+    public Long getFloor() {
+        return floor;
+    }
+
+    public void setFloor(Long floor) {
+        this.floor = floor;
+    }
+
     @Override
     public String toString() {
         return "Reply{" +
@@ -169,6 +179,7 @@ public class Reply {
                 ", rLike=" + rLike +
                 ", rHate=" + rHate +
                 ", epId=" + epId +
+                ", floor=" + floor +
                 '}';
     }
 }

@@ -21,12 +21,10 @@ public class MessageServiceImplTest extends ApiApplicationTests {
     public void insertMessage() {
         Message message = new Message();
         message.setEpId(3);
-        message.setReplyId("reply_id");
         message.setType("type");
         message.setmStatus("m_status");
         message.setIsRead((byte) 1);
         message.setUserId("4028e381635e269c01635e26b1a80000");
-        message.setAtAnchor("at_anchor");
         Message m = messageService.insertMessage(message);
         assertNotNull(m);
 

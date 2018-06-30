@@ -85,4 +85,17 @@ public class ReplyRequest {
     public void setIs_parent(Byte is_parent) {
         this.is_parent = is_parent;
     }
+
+    @Override
+    public String toString() {
+        return "ReplyRequest{" +
+                "uid='" + uid + '\'' +
+                ", ep_id=" + ep_id +
+                ", content='" + content + '\'' +
+                ", r_page=" + r_page +
+                ", is_parent=" + is_parent +
+                ", p_uid='" + p_uid + '\'' +
+                ", p_rid='" + p_rid + '\'' +
+                '}';
+    }
 }

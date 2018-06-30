@@ -32,7 +32,6 @@ public class DanmakuController {
     private static final Logger logger = LoggerFactory.getLogger(DanmakuController.class);
 
     private static final Long POST_FREQUENT_IP_TIME_OUT = 5L;
-    private static final String BLACK_LIST_FILE_NAME = "blacklist";
 
     @Autowired
     private DanmakuService danmakuService;
@@ -139,7 +138,7 @@ public class DanmakuController {
         danmakuEntity.setType(GeneralUtils.htmlEncode(type));
         danmakuEntity.setIpAddress(ip);
         danmakuEntity.setReferer(referer);
-//        danmakuEntity.setToken(token);
+        danmakuEntity.setUserId(jwtTokenUtils.getUid(token));
 
         try {
             Danmaku newDanmaku = danmakuService.saveDanmaku(danmakuEntity);

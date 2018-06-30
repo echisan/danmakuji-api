@@ -1,4 +1,4 @@
-package cc.dmji.api.entity;
+package cc.dmji.api.enums;
 
 public enum Status {
 

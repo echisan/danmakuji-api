@@ -39,4 +39,8 @@ public interface UserService {
 
     Long countUsersByCreateTime(Date begin, Date end);
 
+    List<User> listUserByIdsIn(List<String> userId);
+
+    List<User> listUserByNickIn(List<String> usernameList);
+
 }

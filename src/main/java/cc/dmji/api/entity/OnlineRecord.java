@@ -20,21 +20,34 @@ public class OnlineRecord {
     @Column(name = "id")
     private Long id;
 
-    /** 在线人数 */
-    @Column(name = "totle")
-    private Long totle;
+    /** 最多在线人数 */
+    @Column(name = "total")
+    private Long total;
 
-    /** 在线游客人数 */
+    /** 今日游客人数 */
     @Column(name = "anon")
     private Long anon;
 
-    /** 在线注册人数 */
+    /** 今日注册人数 */
     @Column(name = "auth")
     private Long auth;
 
     /** 访问次数 */
     @Column(name = "visit_count")
     private Long visitCount;
+
+    /** 总共访问人数 */
+    @Column(name = "total_visitors")
+    private Long totalVisitors;
+
+    /** 今日同时在线游客峰值 */
+    private Long maxAnon;
+
+    /** 今日同时在线用户峰值 */
+    private Long maxAuth;
+
+    /** 今日同时在线人数峰值 */
+    private Long maxTotal;
 
     /** 创建时间 */
     @Column(name = "create_time")
@@ -48,12 +61,12 @@ public class OnlineRecord {
         this.id = id;
     }
 
-    public Long getTotle() {
-        return totle;
+    public Long getTotal() {
+        return total;
     }
 
-    public void setTotle(Long totle) {
-        this.totle = totle;
+    public void setTotal(Long total) {
+        this.total = total;
     }
 
     public Long getAnon() {
@@ -84,18 +97,54 @@ public class OnlineRecord {
         return createTime;
     }
 
+    public Long getTotalVisitors() {
+        return totalVisitors;
+    }
+
+    public void setTotalVisitors(Long totalVisitors) {
+        this.totalVisitors = totalVisitors;
+    }
+
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
 
+    public Long getMaxAnon() {
+        return maxAnon;
+    }
+
+    public void setMaxAnon(Long maxAnon) {
+        this.maxAnon = maxAnon;
+    }
+
+    public Long getMaxAuth() {
+        return maxAuth;
+    }
+
+    public void setMaxAuth(Long maxAuth) {
+        this.maxAuth = maxAuth;
+    }
+
+    public Long getMaxTotal() {
+        return maxTotal;
+    }
+
+    public void setMaxTotal(Long maxTotal) {
+        this.maxTotal = maxTotal;
+    }
+
     @Override
     public String toString() {
-        return "OnlineUserRecord{" +
+        return "OnlineRecord{" +
                 "id=" + id +
-                ", totle=" + totle +
+                ", total=" + total +
                 ", anon=" + anon +
                 ", auth=" + auth +
                 ", visitCount=" + visitCount +
+                ", totalVisitors=" + totalVisitors +
+                ", maxAnon=" + maxAnon +
+                ", maxAuth=" + maxAuth +
+                ", maxTotal=" + maxTotal +
                 ", createTime=" + createTime +
                 '}';
     }

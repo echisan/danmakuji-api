@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,7 +54,7 @@ public class AdminIndexController extends BaseController {
         Long anon = onlineUserRedisService.countAnonOnlineUser();
         map.put("anonOnline", anon);
 
-        // 在线注册注册用户
+        // 当前在线注册用户
         Long auth = onlineUserRedisService.countAuthOnlineUser();
         map.put("authOnline", auth);
 
@@ -62,7 +63,7 @@ public class AdminIndexController extends BaseController {
 
         // 总访问人数
         String visitCountString = stringRedisTemplate.opsForValue().get(RedisKey.VISIT_COUNT_KEY);
-        Long visitCount = visitCountString == null ? 0L :Long.valueOf(visitCountString);
+        Long visitCount = StringUtils.isEmpty(visitCountString) ? 0L :Long.valueOf(visitCountString);
         map.put("visit", visitCount);
 
         // 新评论
@@ -72,6 +73,12 @@ public class AdminIndexController extends BaseController {
         // 今日总访客
         Long totalVisitors = onlineUserRedisService.countVisitors();
         map.put("totalVisitors", totalVisitors);
+
+        // 今日在线游客峰值
+        map.put("maxAnonOnline",onlineUserRedisService.countTodayMaxAnonOnlineUser());
+        // 今日在线注册用户峰值
+        map.put("maxAuthOnline",onlineUserRedisService.countTodayMaxAuthOnlineUser());
+
         return getResponseEntity(HttpStatus.OK, getSuccessResult(map));
     }
 }

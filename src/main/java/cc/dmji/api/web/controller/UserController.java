@@ -11,13 +11,16 @@ import cc.dmji.api.enums.UserStatus;
 import cc.dmji.api.service.MailService;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.utils.DmjiUtils;
+import cc.dmji.api.utils.GeneralUtils;
 import cc.dmji.api.utils.JwtTokenUtils;
+import cc.dmji.api.web.model.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -100,9 +103,18 @@ public class UserController extends BaseController {
         newUser.setIsLock(UserStatus.UN_LOCK.getStatus());
         newUser.setLockTime(0);
 
+
         try {
             User user1 = userService.insertUser(newUser);
             user1.setPwd("不让看");
+            logger.debug("异步发送验证邮件");
+            String key = RedisKey.VERIFY_EMAIL_KEY + user1.getUserId();
+            String uuid = GeneralUtils.getUUID();
+            stringRedisTemplate.opsForValue().set(key, uuid, 20L, TimeUnit.MINUTES);
+            logger.debug("发送验证的邮件，key:{},uuid:{}", key, uuid);
+
+            mailService.sendVerifyEmail(user1.getEmail(), user1.getUserId(), uuid);
+
             return new ResponseEntity<Result>(
                     getSuccessResult(user1, "注册成功"),
                     HttpStatus.OK
@@ -119,9 +131,21 @@ public class UserController extends BaseController {
 
     @GetMapping("/{userId}")
     @UserLog("获取单个用户信息")
-    public ResponseEntity getUser(@PathVariable String userId) {
+    public ResponseEntity getUser(@PathVariable String userId, HttpServletRequest request) {
         User user = userService.getUserById(userId);
+        String currentUserId = getUidFromToken(request);
+
         if (user != null) {
+            // 如果不是本人的话只能获取一些奇怪的东西了
+            if (currentUserId == null || !currentUserId.equals(user.getUserId())) {
+                UserInfo userInfo = new UserInfo();
+                userInfo.setSex(user.getSex());
+                userInfo.setFace(user.getFace());
+                userInfo.setUid(user.getUserId());
+                userInfo.setNick(user.getNick());
+                return getResponseEntity(HttpStatus.OK, getSuccessResult(userInfo));
+            }
+
             return getResponseEntity(HttpStatus.OK, getSuccessResult(user));
         }
         return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND));
@@ -205,6 +229,16 @@ public class UserController extends BaseController {
             dbUser.setFace(user.getFace());
         }
 
+        if (!StringUtils.isEmpty(user.getSex())){
+            String sex = user.getSex();
+            Sex[] values = Sex.values();
+            for (Sex s :values){
+                if (s.getValue().equals(sex)){
+                    dbUser.setSex(s.getValue());
+                }
+            }
+        }
+
         User updatedUser = userService.updateUser(dbUser);
 
         // 如果修改了邮箱则验证
@@ -220,5 +254,10 @@ public class UserController extends BaseController {
         }
 
         // todo 验证手机号码 先不干
+    }
+
+    @Async
+    public void sendVerifyEmail() {
+
     }
 }

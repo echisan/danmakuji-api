@@ -2,7 +2,11 @@ package cc.dmji.api.utils;
 
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by echisan on 2018/5/16
@@ -25,6 +29,11 @@ public class DmjiUtils {
      * 验证邮箱格式
      */
     private static final String EMAIL_REGEX = "^[A-Za-z0-9\\u4e00-\\u9fa5]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$";
+
+    /**
+     * 匹配 @用户
+     */
+    private static final String AT_REGEX = "@([a-z0-9A-Z\\u4e00-\\u9fa5_]+)\\s";
 
     public static boolean validUsername(String username){
         return username.matches(USERNAME_REGEX);
@@ -93,5 +102,35 @@ public class DmjiUtils {
                 }
             }
         }
+    }
+
+
+    /**
+     * 查找出该段字符串中是否存在 "@用户名 "格式的
+     * @param text 需要查找的字符串
+     * @return 用户名列表,或者是一个size=0的列表
+     */
+    public static List<String> findAtUsername(String text){
+        List<String> usernameList = new ArrayList<>();
+        Pattern pattern = Pattern.compile(AT_REGEX);
+        Matcher matcher = pattern.matcher(text);
+        while (matcher.find()){
+            String group = matcher.group();
+            String username = group.substring(1,group.length()-1);
+            usernameList.add(username);
+        }
+        return usernameList;
+    }
+
+    /**
+     * 将需要限制长度的回复限制在75个字符内
+     * @param content
+     * @return
+     */
+    public static String formatReplyContent(String content) {
+        if (content.length() < 75) {
+            return content;
+        }
+        return content.substring(0, 75);
     }
 }

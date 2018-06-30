@@ -9,6 +9,7 @@ public enum MessageType {
     // 赞
     LIKE,
     // 系统通知
-    SYSTEM
-
+    SYSTEM,
+    // 艾特
+    AT
 }
