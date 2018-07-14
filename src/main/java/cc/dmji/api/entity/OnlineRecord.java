@@ -32,9 +32,9 @@ public class OnlineRecord {
     @Column(name = "auth")
     private Long auth;
 
-    /** 访问次数 */
-    @Column(name = "visit_count")
-    private Long visitCount;
+    /** api调用次数 */
+    @Column(name = "api_count")
+    private Long apiCount;
 
     /** 总共访问人数 */
     @Column(name = "total_visitors")
@@ -85,12 +85,12 @@ public class OnlineRecord {
         this.auth = auth;
     }
 
-    public Long getVisitCount() {
-        return visitCount;
+    public Long getApiCount() {
+        return apiCount;
     }
 
-    public void setVisitCount(Long visitCount) {
-        this.visitCount = visitCount;
+    public void setApiCount(Long apiCount) {
+        this.apiCount = apiCount;
     }
 
     public Date getCreateTime() {
@@ -140,7 +140,7 @@ public class OnlineRecord {
                 ", total=" + total +
                 ", anon=" + anon +
                 ", auth=" + auth +
-                ", visitCount=" + visitCount +
+                ", apiCount=" + apiCount +
                 ", totalVisitors=" + totalVisitors +
                 ", maxAnon=" + maxAnon +
                 ", maxAuth=" + maxAuth +

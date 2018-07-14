@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -138,14 +140,20 @@ public class UserController extends BaseController {
         if (user != null) {
             // 如果不是本人的话只能获取一些奇怪的东西了
             if (currentUserId == null || !currentUserId.equals(user.getUserId())) {
-                UserInfo userInfo = new UserInfo();
-                userInfo.setSex(user.getSex());
-                userInfo.setFace(user.getFace());
-                userInfo.setUid(user.getUserId());
-                userInfo.setNick(user.getNick());
+//                UserInfo userInfo = new UserInfo();
+//                userInfo.setSex(user.getSex());
+//                userInfo.setFace(user.getFace());
+//                userInfo.setUid(user.getUserId());
+//                userInfo.setNick(user.getNick());
+                Map<String,String> userInfo = new HashMap<>();
+                userInfo.put("sex",user.getSex());
+                userInfo.put("face",user.getFace());
+                userInfo.put("uid",user.getUserId());
+                userInfo.put("nick",user.getNick());
+                userInfo.put("sign",user.getSign());
                 return getResponseEntity(HttpStatus.OK, getSuccessResult(userInfo));
             }
-
+            user.setPwd("");
             return getResponseEntity(HttpStatus.OK, getSuccessResult(user));
         }
         return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND));
@@ -227,6 +235,11 @@ public class UserController extends BaseController {
         // 修改头像
         if (!StringUtils.isEmpty(user.getFace())) {
             dbUser.setFace(user.getFace());
+        }
+
+        // 修改个性前面
+        if (!StringUtils.isEmpty(user.getSign())){
+            dbUser.setSign(user.getSign());
         }
 
         if (!StringUtils.isEmpty(user.getSex())){

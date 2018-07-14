@@ -75,9 +75,11 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
                     // 查看该用户是不是已被锁定
                     if (redisTokenService.isUserLock(payload.getUid())){
                         // 强制登出
-                        redisTokenService.invalidToken(realToken);
+                        // redisTokenService.invalidToken(realToken);
                         // 删除该记录
-                        redisTokenService.deleteUserLock(payload.getUid());
+                        // redisTokenService.deleteUserLock(payload.getUid());
+                        response.setHeader(SecurityConstants.TOKEN_RESULT_CODE_HEADER, String.valueOf(ResultCode.PERMISSION_DENY.getCode()));
+                        return null;
                     }
                     return new UsernamePasswordAuthenticationToken(
                             payload.getUsername(),

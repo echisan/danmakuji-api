@@ -22,6 +22,9 @@ public class Video {
     private Timestamp createTime;
     private Timestamp modifyTime;
     private Integer epId;
+    @Column(name = "is_match")
+    private Byte isMatch;
+    private Integer score;
 
     @Id
     @GeneratedValue(generator = "jpa-uuid")
@@ -84,4 +87,33 @@ public class Video {
         this.epId = epId;
     }
 
+    public Byte getIsMatch() {
+        return isMatch;
+    }
+
+    public void setIsMatch(Byte isMatch) {
+        this.isMatch = isMatch;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
+
+    @Override
+    public String toString() {
+        return "Video{" +
+                "videoId='" + videoId + '\'' +
+                ", vMd5='" + vMd5 + '\'' +
+                ", fileSize=" + fileSize +
+                ", createTime=" + createTime +
+                ", modifyTime=" + modifyTime +
+                ", epId=" + epId +
+                ", isMatch=" + isMatch +
+                ", score=" + score +
+                '}';
+    }
 }

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.dmji.api.mapper.PostBangumiMapper">
+
+    <!--
+
+        private Long id;
+    private String bangumiName;
+    private Integer episodeTotal;
+    private String thumb;
+    private Byte hasZeroIndex;
+    private Timestamp createTime;
+    private Timestamp modifyTime;
+    private String status;
+    private String postBangumiStatus;
+    private String message;
+    private String userId;
+    private String managerUserId;
+    private Byte isShow;
+    private UserInfo postUserInfo;
+    private UserInfo managerUserInfo;
+    -->
+
+    <resultMap id="postBangumiInfoResultMap" type="cc.dmji.api.web.model.admin.PostBangumiInfo">
+        <id column="id" property="id" javaType="java.lang.Long"/>
+        <result column="bangumi_name" property="bangumiName" javaType="java.lang.String"/>
+        <result column="create_time" property="createTime" javaType="java.sql.Timestamp"/>
+        <result column="episode_total" property="episodeTotal" javaType="java.lang.Integer"/>
+        <result column="has_zero_index" property="hasZeroIndex" javaType="java.lang.Byte"/>
+        <result column="modify_time" property="modifyTime" javaType="java.sql.Timestamp"/>
+        <result column="is_show" property="isShow" javaType="java.lang.Byte"/>
+        <result column="status" property="status" javaType="java.lang.String"/>
+        <result column="thumb" property="thumb" javaType="java.lang.String"/>
+        <result column="post_bangumi_status" property="postBangumiStatus" javaType="java.lang.String"/>
+        <result column="message" property="message" javaType="java.lang.String"/>
+        <association column="manager_user_id" property="managerUserInfo" javaType="cc.dmji.api.web.model.UserInfo">
+            <id column="m_user_id" property="uid" javaType="java.lang.String"/>
+            <result column="m_nick" property="nick" javaType="java.lang.String"/>
+            <result column="m_sex" property="sex" javaType="java.lang.String"/>
+            <result column="m_face" property="face" javaType="java.lang.String"/>
+        </association>
+        <association property="postUserInfo" column="user_id" javaType="cc.dmji.api.web.model.UserInfo">
+            <id column="p_user_id" property="uid" javaType="java.lang.String"/>
+            <result column="p_nick" property="nick" javaType="java.lang.String"/>
+            <result column="p_sex" property="sex" javaType="java.lang.String"/>
+            <result column="p_face" property="face" javaType="java.lang.String"/>
+        </association>
+    </resultMap>
+
+    <select id="listPostBangumi" resultMap="postBangumiInfoResultMap">
+        select
+        dpb.*,
+        pdu.user_id p_user_id,
+        pdu.sex p_sex,
+        pdu.nick p_nick,
+        pdu.face p_face,
+        mdu.user_id m_user_id,
+        mdu.sex m_sex,
+        mdu.nick m_nick,
+        mdu.face m_face
+        from dm_post_bangumi dpb
+        left join dm_user pdu on dpb.user_id = pdu.user_id
+        left join dm_user mdu on dpb.manager_user_id = mdu.user_id
+        where 1=1
+        <if test="status != null">
+            and dpb.status = #{status}
+        </if>
+        <if test="postBangumiStatus != null">
+            and dpb.post_bangumi_status = 'PENDING'
+        </if>
+        <if test="beginTime != null and endTime !=null">
+            and dpb.create_time between #{beginTime} and #{endTime}
+        </if>
+        <if test="orderBy != null and direction != null">
+            order by #{orderBy} #{direction}
+        </if>
+    </select>
+
+</mapper>

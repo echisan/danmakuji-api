@@ -2,16 +2,21 @@ package cc.dmji.api.web.controller.admin;
 
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
+import cc.dmji.api.constants.MessageConstants;
+import cc.dmji.api.entity.Message;
 import cc.dmji.api.entity.User;
-import cc.dmji.api.enums.Role;
-import cc.dmji.api.enums.UserStatus;
+import cc.dmji.api.enums.*;
+import cc.dmji.api.service.MessageService;
 import cc.dmji.api.service.RedisTokenService;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +32,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin/users")
 public class AdminUserController extends BaseController {
+    private static final Logger logger = LoggerFactory.getLogger(AdminUserController.class);
 
     // 降为普通用户
     private static final int TO_USER = 0;
@@ -48,6 +54,9 @@ public class AdminUserController extends BaseController {
 
     @Autowired
     private RedisTokenService redisTokenService;
+
+    @Autowired
+    private MessageService messageService;
 
     @GetMapping
     public ResponseEntity<Result> listUser(@RequestParam(value = "pn", required = false, defaultValue = "1") Integer pn,
@@ -130,13 +139,22 @@ public class AdminUserController extends BaseController {
         }
 
         // 如果密码不一致则403
-        if (!bCryptPasswordEncoder.encode(pwd).equals(user.getPwd())) {
+        if (!bCryptPasswordEncoder.matches(pwd,currentUser.getPwd())) {
             return getResponseEntity(HttpStatus.FORBIDDEN,
                     getErrorResult(ResultCode.PERMISSION_DENY, "密码不正确，无权限对用户[" + user.getNick() + "]进行操作"));
         }
 
         String currentRole = currentUser.getRole();
         String targetRole = user.getRole();
+
+        // 消息通知
+        Message msg = new Message();
+        msg.setTitle("系统通知");
+        msg.setmStatus(Status.NORMAL.name());
+        msg.setPublisherUserId(currentUser.getUserId());
+        msg.setIsRead(MessageConstants.NOT_READ);
+        msg.setType(MessageType.SYSTEM.name());
+        msg.setUserId(user.getUserId());
 
         String message;
         switch (action) {
@@ -149,6 +167,7 @@ public class AdminUserController extends BaseController {
                 }
                 user.setRole(Role.USER.getName());
                 message = "已将该用户[" + user.getNick() + "]设置为[普通用户]";
+                msg.setContent("你的管理员权限已被撤回，更多详情请联系help@darker.online。");
                 break;
             case TO_MANAGER:
                 if (isCurrMangerTarMangerOrAdmin(currentRole, targetRole)) {
@@ -157,6 +176,7 @@ public class AdminUserController extends BaseController {
                 }
                 user.setRole(Role.MANAGER.getName());
                 message = "已将该用户[" + user.getNick() + "]设置为[管理员]";
+                msg.setContent("恭喜你成为我们Darker的管理员啦！");
                 break;
             case TO_ADMIN:
                 if (isCurrMangerTarMangerOrAdmin(currentRole, targetRole)) {
@@ -165,6 +185,7 @@ public class AdminUserController extends BaseController {
                 }
                 user.setRole(Role.ADMIN.getName());
                 message = "已将该用户[" + user.getNick() + "]设置为[系统管理员]";
+                msg.setContent("哇塞！恭喜你成为Darker的系统管理员啦！lalala~");
                 break;
             default:
                 return getResponseEntity(HttpStatus.BAD_REQUEST,
@@ -172,6 +193,8 @@ public class AdminUserController extends BaseController {
         }
 
         User updateUser = userService.updateUser(user);
+        sendMessage(msg);
+        redisTokenService.addUserLock(user.getUserId());
 
         // TODO 消息通知该用户，已被设置为管理员或者降级为普通用户
         return getResponseEntity(HttpStatus.OK, getSuccessResult(updateUser, message));
@@ -261,6 +284,12 @@ public class AdminUserController extends BaseController {
     private User getCurrentUser(HttpServletRequest request) {
         String uid = getUidFromToken(request);
         return userService.getUserById(uid);
+    }
+
+    @Async
+    public void sendMessage(Message message){
+        Message message1 = messageService.insertMessage(message);
+        logger.debug("发送的系统通知:{}",message1);
     }
 
 

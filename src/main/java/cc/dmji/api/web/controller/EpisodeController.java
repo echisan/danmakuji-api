@@ -88,8 +88,6 @@ public class EpisodeController extends BaseController{
         }
     }
 
-
-
     public static VideoInfo generateVideoInfo(Episode episode, BangumiService bangumiService){
         VideoInfo videoInfo = new VideoInfo();
         Bangumi bangumi = bangumiService.getBangumiById(episode.getBangumiId());

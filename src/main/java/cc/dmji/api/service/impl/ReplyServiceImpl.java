@@ -107,6 +107,12 @@ public class ReplyServiceImpl implements ReplyService {
 //        logger.debug("reply info list: {}", replyInfoList);
         List<Replies> repliesList = new ArrayList<>();
         List<String> parentReplyIds = new ArrayList<>();
+
+        // 如果评论为空，则直接返回
+        if (replyInfoList.size() == 0) {
+            return repliesList;
+        }
+
         // 记录父级评论id
         replyInfoList.forEach(replyInfo -> parentReplyIds.add(replyInfo.getReply().getReplyId()));
         // 查询点赞情况
@@ -117,7 +123,7 @@ public class ReplyServiceImpl implements ReplyService {
             likeRecords.forEach(likeRecord -> isLikeMap.put(likeRecord.getReplyId(), likeRecord.getStatus()));
         }
 
-        Map<String,Long> parentSonCountMap = countByReplyIds(parentReplyIds);
+        Map<String, Long> parentSonCountMap = countByReplyIds(parentReplyIds);
         List<ReplyInfo> sonReplyList = listSonReplyInfoByParentIds(parentReplyIds);
 
         replyInfoList.forEach(replyInfo -> {
@@ -126,9 +132,9 @@ public class ReplyServiceImpl implements ReplyService {
                 // 分配子评论
                 String parentId = replyInfo.getReply().getReplyId();
                 List<ReplyInfo> tempReplyInfoList = new ArrayList<>();
-                for (int i = sonReplyList.size() -1 ; i >= 0 ; i--) {
+                for (int i = sonReplyList.size() - 1; i >= 0; i--) {
                     ReplyInfo temp = sonReplyList.get(i);
-                    if (parentId.equals(temp.getReply().getParentId())){
+                    if (parentId.equals(temp.getReply().getParentId())) {
                         tempReplyInfoList.add(temp);
                     }
                 }
@@ -204,6 +210,7 @@ public class ReplyServiceImpl implements ReplyService {
 
     /**
      * 默认返回10条
+     *
      * @param parentId 父级评论id
      * @return 评论列表
      */

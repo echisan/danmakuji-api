@@ -2,6 +2,7 @@ package cc.dmji.api;
 
 import org.junit.Test;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -17,6 +18,12 @@ public class DateTest {
         long now = new Date().getTime();
         Date nowDate = new Date(now + expire * 1000);
         System.out.println(nowDate);
+    }
+
+    @Test
+    public void timestampTest(){
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        System.out.println(timestamp);
     }
 
     @Test
@@ -59,5 +66,18 @@ public class DateTest {
 
 
 
+    }
+
+    @Test
+    public void enumTest(){
+        Sex sex = Sex.valueOf("MAN");
+        System.out.println(sex);
+        Sex sex1 = Sex.valueOf("aa");
+        System.out.println(sex1);
+    }
+
+    enum Sex{
+        MAN,
+        GRIL
     }
 }

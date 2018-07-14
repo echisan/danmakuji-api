@@ -31,6 +31,8 @@ public class User {
     private Timestamp modifyTime;
     private Byte isLock;
     private Integer lockTime;
+    // 个性签名
+    private String sign;
 
     @Id
     @GeneratedValue(generator = "jpa-uuid")
@@ -183,6 +185,14 @@ public class User {
         this.lockTime = lockTime;
     }
 
+    public String getSign() {
+        return sign;
+    }
+
+    public void setSign(String sign) {
+        this.sign = sign;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -201,6 +211,7 @@ public class User {
                 ", modifyTime=" + modifyTime +
                 ", isLock=" + isLock +
                 ", lockTime=" + lockTime +
+                ", sign='" + sign + '\'' +
                 '}';
     }
 }

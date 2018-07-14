@@ -48,4 +48,14 @@ public class UserInfo {
     public void setSex(String sex) {
         this.sex = sex;
     }
+
+    @Override
+    public String toString() {
+        return "UserInfo{" +
+                "uid='" + uid + '\'' +
+                ", nick='" + nick + '\'' +
+                ", face='" + face + '\'' +
+                ", sex='" + sex + '\'' +
+                '}';
+    }
 }

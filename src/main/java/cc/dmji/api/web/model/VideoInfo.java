@@ -56,4 +56,16 @@ public class VideoInfo {
     public void setReplyable(Byte replyable) {
         this.replyable = replyable;
     }
+
+    @Override
+    public String toString() {
+        return "VideoInfo{" +
+                "danmakuId='" + danmakuId + '\'' +
+                ", episodeId=" + episodeId +
+                ", bangumiName='" + bangumiName + '\'' +
+                ", bangumiId=" + bangumiId +
+                ", episodeIndex=" + episodeIndex +
+                ", replyable=" + replyable +
+                '}';
+    }
 }

@@ -50,6 +50,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.DELETE,"/users/**").authenticated()
                 .antMatchers(HttpMethod.PUT, "/users/**").authenticated()
                 .antMatchers(HttpMethod.POST, "/replies/**").authenticated()
+                .antMatchers("/postBangumis/**").authenticated()
                 .anyRequest().permitAll()
                 .and()
                 .addFilter(jwtAuthenticationFilter())

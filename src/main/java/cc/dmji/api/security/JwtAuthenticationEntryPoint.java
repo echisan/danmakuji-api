@@ -28,10 +28,11 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         Result<String> result = new Result<String>(ResultCode.PERMISSION_DENY);
         result.setData(url.toString());
-        String msg = ResultCode.getMsg(code);
-        if (msg != null){
-            result.setMsg(msg);
-        }
+//        String msg = ResultCode.getMsg(code);
+//        if (msg != null){
+//            result.setMsg(msg);
+//        }
+        result.setMsg(authException.getMessage());
         response.getWriter().write(new ObjectMapper().writeValueAsString(result));
     }
 }

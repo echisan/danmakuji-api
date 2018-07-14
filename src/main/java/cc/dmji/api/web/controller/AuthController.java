@@ -11,6 +11,7 @@ import cc.dmji.api.service.MailService;
 import cc.dmji.api.service.RedisTokenService;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.utils.GeneralUtils;
+import cc.dmji.api.utils.JwtTokenUtils;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,9 @@ public class AuthController extends BaseController {
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private JwtTokenUtils jwtTokenUtils;
+
     @GetMapping("/logout")
     @UserLog("登出")
     public ResponseEntity<Result> logout(HttpServletRequest request) {
@@ -56,6 +60,7 @@ public class AuthController extends BaseController {
             String token = header.replace(SecurityConstants.TOKEN_PREFIX, "");
             if (redisTokenService.hasToken(token)) {
                 Long tokenIndex = redisTokenService.invalidToken(token);
+                redisTokenService.deleteUserLock(jwtTokenUtils.getUid(token));
                 logger.info("登出成功, 该tokenIndex为：{}", tokenIndex);
                 return getResponseEntity(HttpStatus.OK, getSuccessResult("登出成功"));
             } else {

@@ -1,13 +1,23 @@
 package cc.dmji.api;
 
 import cc.dmji.api.entity.Reply;
+import cc.dmji.api.enums.Direction;
+import cc.dmji.api.enums.PostBangumiOrderBy;
+import cc.dmji.api.enums.Status;
+import cc.dmji.api.mapper.PostBangumiMapper;
 import cc.dmji.api.repository.ReplyRepository;
+import cc.dmji.api.service.PostBangumiService;
 import cc.dmji.api.service.ReplyService;
+import cc.dmji.api.utils.BangumiPageInfo;
 import cc.dmji.api.web.model.ReplyInfo;
+import cc.dmji.api.web.model.admin.PostBangumiInfo;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
@@ -23,6 +33,9 @@ public class ApiApplicationTests {
 
     @Autowired
     private ReplyService replyService;
+
+    @Autowired
+    private PostBangumiService postBangumiService;
 
     @Test
     public void Test(){
@@ -47,6 +60,15 @@ public class ApiApplicationTests {
 
         List<ReplyInfo> replyInfos = replyService.listSonReplyInfoByParentIds(ids);
         System.out.println(replyInfos);
+    }
+
+    @Test
+    public void mapperTest(){
+        Page<PostBangumiInfo> postBangumiInfoPage = PageHelper.startPage(1,20).doSelectPage(() ->
+                postBangumiService.listPostBangumi(Status.NORMAL, null, null, null, PostBangumiOrderBy.modifyTime, Direction.DESC));
+//        List<PostBangumiInfo> postBangumiInfoList = postBangumiService.listPostBangumi(Status.NORMAL, null, null, null, null, Direction.DESC);
+
+        System.out.println(postBangumiInfoPage);
     }
 
 }

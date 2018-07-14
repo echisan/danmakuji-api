@@ -109,11 +109,11 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         redisTokenService.saveToken(token);
 
         User user1 = userService.getUserByNick(user.getUsername());
-//        UserInfo userInfo = new UserInfo();
-//        userInfo.setUid(user1.getUserId());
-//        userInfo.setSex(user1.getSex());
-//        userInfo.setFace(user1.getFace());
-//        userInfo.setNick(user1.getNick());
+
+        // 看看有没有被强制登出的用户
+        if (redisTokenService.isUserLock(user.getId())){
+            redisTokenService.deleteUserLock(user.getId());
+        }
 
         Map<String, String> userMap = new HashMap<>();
         userMap.put("uid", user1.getUserId());
@@ -132,9 +132,12 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     }
 
     @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
+    protected void unsuccessfulAuthentication(HttpServletRequest request,
+                                              HttpServletResponse response,
+                                              AuthenticationException failed) throws IOException, ServletException {
         setResponse(response);
         Result result = new Result(ResultCode.USER_LOGIN_ERROR);
+        result.setMsg(failed.getMessage());
         response.getWriter().write(new ObjectMapper().writeValueAsString(result));
     }
 

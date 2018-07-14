@@ -101,7 +101,7 @@ public class GeneralUtils {
         if (value != null) {
             //推荐使用ESAPI库来避免脚本攻击,value = ESAPI.encoder().canonicalize(value);
             // 避免空字符串
-            value = value.replaceAll(" ", "");
+            // value = value.replaceAll(" ", "");
             // 避免script 标签
             Pattern scriptPattern = Pattern.compile("<script>(.*?)</script>", Pattern.CASE_INSENSITIVE);
             value = scriptPattern.matcher(value).replaceAll("");

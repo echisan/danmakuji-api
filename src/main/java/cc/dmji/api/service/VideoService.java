@@ -2,12 +2,13 @@ package cc.dmji.api.service;
 
 import cc.dmji.api.entity.Video;
 import cc.dmji.api.utils.VideoPageInfo;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface VideoService {
 
-    Video getVideoByFileSizeAndVmd5(Long fileSize, String md5);
+    List<Video> getVideoByFileSizeAndVmd5(Long fileSize, String md5);
 
     Video getVideoByVideoId(String videoId);
 
@@ -34,4 +35,8 @@ public interface VideoService {
     void deleteVideos(List<Video> videos);
 
     Long countVideo();
+
+    VideoPageInfo listVideoByEpIdAndIsMatch(Integer epId, Byte isMatch, int pn, int ps);
+
+    VideoPageInfo listVideoByIsMatch(Byte isMatch,int pn,int ps);
 }

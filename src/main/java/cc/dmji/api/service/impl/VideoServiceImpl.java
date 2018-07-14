@@ -8,6 +8,7 @@ import cc.dmji.api.utils.VideoPageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -20,8 +21,8 @@ public class VideoServiceImpl implements VideoService {
     private VideoRepository videoRepository;
 
     @Override
-    public Video getVideoByFileSizeAndVmd5(Long fileSize, String md5) {
-        return  videoRepository.findVideoByFileSizeEqualsAndVMd5Equals(fileSize,md5);
+    public List<Video> getVideoByFileSizeAndVmd5(Long fileSize, String md5) {
+        return videoRepository.findVideoByFileSizeEqualsAndVMd5Equals(fileSize, md5);
     }
 
     @Override
@@ -31,37 +32,37 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public VideoPageInfo listVideos() {
-        return this.listVideos(1,20);
+        return this.listVideos(1, 20);
     }
 
     @Override
     public VideoPageInfo listVideos(int pageNum) {
-        return this.listVideos(pageNum,20);
+        return this.listVideos(pageNum, 20);
     }
 
     @Override
     public VideoPageInfo listVideos(int pageNum, int pageSize) {
-        Page<Video> result = videoRepository.findAll(PageRequest.of(pageNum-1,pageSize));
-        PageInfo pageInfo = new PageInfo(pageNum,pageSize,result.getTotalElements());
-        return new VideoPageInfo(result.getContent(),pageInfo);
+        Page<Video> result = videoRepository.findAll(PageRequest.of(pageNum - 1, pageSize));
+        PageInfo pageInfo = new PageInfo(pageNum, pageSize, result.getTotalElements());
+        return new VideoPageInfo(result.getContent(), pageInfo);
     }
 
 
     @Override
     public VideoPageInfo listVideosByEpId(Integer epId) {
-        return this.listVideosByEpId(epId,1,20);
+        return this.listVideosByEpId(epId, 1, 20);
     }
 
     @Override
     public VideoPageInfo listVideosByEpId(Integer epId, int pageNum) {
-        return this.listVideosByEpId(epId,pageNum,20);
+        return this.listVideosByEpId(epId, pageNum, 20);
     }
 
     @Override
     public VideoPageInfo listVideosByEpId(Integer epId, int pageNum, int pageSize) {
-        Page<Video> result = videoRepository.findVideosByEpId(epId,PageRequest.of(pageNum-1,pageSize));
-        PageInfo pageInfo = new PageInfo(pageNum,pageSize,result.getTotalElements());
-        return new VideoPageInfo(result.getContent(),pageInfo);
+        Page<Video> result = videoRepository.findVideosByEpId(epId, PageRequest.of(pageNum - 1, pageSize));
+        PageInfo pageInfo = new PageInfo(pageNum, pageSize, result.getTotalElements());
+        return new VideoPageInfo(result.getContent(), pageInfo);
     }
 
     @Override
@@ -72,6 +73,8 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public Video insertVideo(Video video) {
         setCreateAndModifyTime(video);
+        video.setIsMatch((byte) 0);
+        video.setScore(0);
         return videoRepository.save(video);
     }
 
@@ -96,12 +99,40 @@ public class VideoServiceImpl implements VideoService {
         return videoRepository.count();
     }
 
-    private void setModifyTime(Video video){
+    @Override
+    public VideoPageInfo listVideoByEpIdAndIsMatch(Integer epId, Byte isMatch, int pn, int ps) {
+        PageRequest pageRequest = PageRequest.of(pn - 1, ps, Sort.by(Sort.Direction.DESC, "createTime"));
+        Page<Video> videoPage = videoRepository.findByEpIdEqualsAndIsMatchEquals(epId, isMatch, pageRequest);
+        VideoPageInfo vpi = new VideoPageInfo();
+        vpi.setVideos(videoPage.getContent());
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setPageSize(ps);
+        pageInfo.setPageNumber(pn);
+        pageInfo.setTotalSize(videoPage.getTotalElements());
+        vpi.setPageInfo(pageInfo);
+        return vpi;
+    }
+
+    @Override
+    public VideoPageInfo listVideoByIsMatch(Byte isMatch, int pn, int ps) {
+        PageRequest pageRequest = PageRequest.of(pn - 1, ps, Sort.by(Sort.Direction.DESC, "createTime"));
+        Page<Video> videoPage = videoRepository.findByIsMatchEquals(isMatch, pageRequest);
+        VideoPageInfo vpi = new VideoPageInfo();
+        vpi.setVideos(videoPage.getContent());
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setPageSize(ps);
+        pageInfo.setPageNumber(pn);
+        pageInfo.setTotalSize(videoPage.getTotalElements());
+        vpi.setPageInfo(pageInfo);
+        return vpi;
+    }
+
+    private void setModifyTime(Video video) {
         Timestamp date = new Timestamp(System.currentTimeMillis());
         video.setModifyTime(date);
     }
 
-    private void setCreateAndModifyTime(Video video){
+    private void setCreateAndModifyTime(Video video) {
         Timestamp date = new Timestamp(System.currentTimeMillis());
         video.setModifyTime(date);
         video.setCreateTime(date);

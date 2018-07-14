@@ -100,5 +100,13 @@ public class BaseController {
         return userService.getUserById(uid);
     }
 
+    public ResponseEntity<Result> getErrorResponseEntity(HttpStatus httpStatus,ResultCode resultCode,String msg){
+        return getResponseEntity(httpStatus,getErrorResult(resultCode,msg));
+    }
+
+    public ResponseEntity<Result> getErrorResponseEntity(HttpStatus httpStatus,ResultCode resultCode){
+        return getResponseEntity(httpStatus,getErrorResult(resultCode));
+    }
+
 
 }

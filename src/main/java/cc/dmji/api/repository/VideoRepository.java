@@ -9,6 +9,11 @@ import java.util.List;
 
 public interface VideoRepository extends JpaRepository<Video, String> {
 
-    Video findVideoByFileSizeEqualsAndVMd5Equals(Long fileSize, String vMD5);
+    List<Video> findVideoByFileSizeEqualsAndVMd5Equals(Long fileSize, String vMD5);
+
     Page<Video> findVideosByEpId(Integer epId, Pageable pageable);
+
+    Page<Video> findByEpIdEqualsAndIsMatchEquals(Integer epId, Byte isMatch, Pageable pageable);
+
+    Page<Video> findByIsMatchEquals(Byte isMatch,Pageable pageable);
 }

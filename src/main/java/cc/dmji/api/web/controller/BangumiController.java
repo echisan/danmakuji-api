@@ -1,10 +1,8 @@
 package cc.dmji.api.web.controller;
 
-import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.entity.Bangumi;
-import cc.dmji.api.entity.Episode;
 import cc.dmji.api.service.BangumiService;
 import cc.dmji.api.service.EpisodeService;
 import cc.dmji.api.utils.BangumiPageInfo;
@@ -12,13 +10,11 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.ConnectException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("/bangumis")
@@ -118,6 +114,20 @@ public class BangumiController extends BaseController{
             return getSuccessResult(deletedBangumi);
         }
     }
+
+    @PostMapping("/contribute")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Result> contributeBangumiInfo(@RequestBody Bangumi bangumi){
+        if (StringUtils.isEmpty(bangumi.getBangumiName())){
+            return getResponseEntity(HttpStatus.BAD_REQUEST,getErrorResult(ResultCode.PARAM_IS_INVALID,"番剧名不能为空"));
+        }
+        if (bangumi.getEpisodeTotal()==null || bangumi.getEpisodeTotal()<=0){
+            return getResponseEntity(HttpStatus.BAD_REQUEST,getErrorResult(ResultCode.PARAM_IS_INVALID,"番剧名不能为空"));
+        }
+
+        return getResponseEntity(HttpStatus.OK,getSuccessResult());
+    }
+
 
     @ExceptionHandler(ConstraintViolationException.class)
     public Result handleNotUnique(){

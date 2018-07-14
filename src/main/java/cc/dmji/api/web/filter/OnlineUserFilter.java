@@ -29,9 +29,6 @@ public class OnlineUserFilter implements Filter {
     @Autowired
     private OnlineUserRedisService onlineUserRedisService;
 
-    @Autowired
-    private StringRedisTemplate stringRedisTemplate;
-
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
 
@@ -50,9 +47,6 @@ public class OnlineUserFilter implements Filter {
             filterChain.doFilter(request, response);
             return;
         }
-
-        // 记录访问次数
-        stringRedisTemplate.opsForValue().increment(RedisKey.VISIT_COUNT_KEY, 1);
 
         String tokenHeader = request.getHeader(SecurityConstants.TOKEN_HEADER_AUTHORIZATION);
         if (tokenHeader != null) {

@@ -2,6 +2,7 @@ package cc.dmji.api.web.aspect;
 
 import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.constants.HeaderConstants;
+import cc.dmji.api.constants.RedisKey;
 import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.entity.UserLogRecord;
 import cc.dmji.api.service.UserLogRecordService;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -38,6 +40,9 @@ public class UserActionLogAspect {
 
     @Autowired
     private JwtTokenUtils jwtTokenUtils;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Pointcut("@annotation(cc.dmji.api.annotation.UserLog)")
     public void userActionLogPointCut() {
@@ -89,15 +94,17 @@ public class UserActionLogAspect {
         String description = getMethodDescription(joinPoint);
         ulr.setDescription(description);
         String paramsString = Arrays.toString(joinPoint.getArgs());
-        if (paramsString.length()>250){
+        if (paramsString.length() > 250) {
             paramsString = paramsString.substring(0, 250);
         }
         ulr.setParams(paramsString);
         ulr.setCreateTime(new Date());
-        logger.debug("用户日志信息: {}",ulr.toString());
+        logger.debug("用户日志信息: {}", ulr.toString());
 
         // 插入到redis
         userLogRecordRedisService.insertUserLogRecord(ulr);
+        // 记录访问次数
+        stringRedisTemplate.opsForValue().increment(RedisKey.VISIT_COUNT_KEY, 1);
 
     }
 
@@ -121,7 +128,7 @@ public class UserActionLogAspect {
         return description;
     }
 
-    private String getMethodName(JoinPoint joinPoint){
-        return joinPoint.getSignature().getDeclaringTypeName()+"."+joinPoint.getSignature().getName();
+    private String getMethodName(JoinPoint joinPoint) {
+        return joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName();
     }
 }

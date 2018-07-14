@@ -43,7 +43,7 @@ public class OnlineRecordSchedule {
         record.setTotal(totalAnon+totalAuth);
         record.setAnon(totalAnon);
         record.setAuth(totalAuth);
-        record.setVisitCount(Long.valueOf(stringRedisTemplate.opsForValue().get(RedisKey.VISIT_COUNT_KEY)));
+        record.setApiCount(Long.valueOf(stringRedisTemplate.opsForValue().get(RedisKey.VISIT_COUNT_KEY)));
         record.setTotalVisitors(onlineUserService.countVisitors());
         record.setMaxAnon(onlineUserService.countTodayMaxAnonOnlineUser());
         record.setMaxAuth(onlineUserService.countTodayMaxAuthOnlineUser());

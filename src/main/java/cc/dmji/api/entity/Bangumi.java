@@ -20,6 +20,10 @@ public class Bangumi {
     private Timestamp createTime;
     private Timestamp modifyTime;
     private String thumb;
+    @Column(name = "user_id")
+    private String userId;
+    @Column(name = "is_confirm")
+    private Byte isConfirm;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -82,6 +86,22 @@ public class Bangumi {
         this.thumb = thumb;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public Byte getIsConfirm() {
+        return isConfirm;
+    }
+
+    public void setIsConfirm(Byte isConfirm) {
+        this.isConfirm = isConfirm;
+    }
+
     @Override
     public String toString() {
         return "Bangumi{" +
@@ -91,6 +111,8 @@ public class Bangumi {
                 ", createTime=" + createTime +
                 ", modifyTime=" + modifyTime +
                 ", thumb='" + thumb + '\'' +
+                ", userId='" + userId + '\'' +
+                ", isConfirm=" + isConfirm +
                 '}';
     }
 }

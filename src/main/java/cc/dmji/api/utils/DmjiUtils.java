@@ -133,4 +133,21 @@ public class DmjiUtils {
         }
         return content.substring(0, 75);
     }
+
+    /**
+     * 判断字符串是不是正整数
+     * @param string
+     * @return
+     */
+    public static boolean isPositiveNumber(String string) {
+
+        if (!StringUtils.hasText(string))
+            return false;
+        String regEx1 = "\\d+";
+        Pattern p;
+        Matcher m;
+        p = Pattern.compile(regEx1);
+        m = p.matcher(string);
+        return m.matches();
+    }
 }
