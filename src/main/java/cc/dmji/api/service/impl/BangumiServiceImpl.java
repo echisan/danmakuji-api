@@ -69,6 +69,11 @@ public class BangumiServiceImpl implements BangumiService {
     }
 
     @Override
+    public Bangumi getBangumiByName(String name) {
+        return bangumiRepository.findByBangumiNameEquals(name);
+    }
+
+    @Override
     public List<Bangumi> getBangumisByIds(List<Integer> ids) {
         return bangumiRepository.findAllById(ids);
     }

@@ -49,10 +49,27 @@ public class VideoController extends BaseController {
     public Result getVideoByFileSizeAndVmd5(@PathVariable(value = "fileSize") Long fileSize,
                                             @PathVariable(value = "vMd5") String vMd5) {
         logger.info("fileSize: [ {} ] , md5: [ {} ]", fileSize, vMd5);
-        List<Video> videos = videoService.getVideoByFileSizeAndVmd5(fileSize, vMd5);
+        List<Video> videos = videoService.listVideoByFileSizeAndVmd5SortByScore(fileSize, vMd5);
+
         if (null == videos || videos.size() == 0) {
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND);
         } else {
+//            Map<String,Object> data = new HashMap<>();
+//            // 判断score进行识别
+//            // 如果查出2个或以上的数据
+//            if (videos.size() >= 2) {
+//                // score最高
+//                Integer score1 = videos.get(0).getScore();
+//                // score第二高
+//                Integer score2 = videos.get(1).getScore();
+//
+//                // 如果最高的score是第二的两倍
+//                if (score1/score2 > 2){
+//                    Video expectVideo = videos.get(0);
+//                    data.put("ev",expectVideo);
+//                }
+//            }
+
             List<VideoInfo> videoInfos = new ArrayList<>();
             videos.forEach(video -> {
                 Integer epId = video.getEpId();
@@ -92,6 +109,7 @@ public class VideoController extends BaseController {
         video.setEpId(epId);
         video.setFileSize(fileSize);
         video.setvMd5(md5);
+        video.setScore(1);
         Video newVideo = videoService.insertVideo(video);
         logger.debug(newVideo.toString());
         return getSuccessResult();

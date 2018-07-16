@@ -3,6 +3,7 @@ package cc.dmji.api.repository;
 import cc.dmji.api.entity.Video;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -10,6 +11,8 @@ import java.util.List;
 public interface VideoRepository extends JpaRepository<Video, String> {
 
     List<Video> findVideoByFileSizeEqualsAndVMd5Equals(Long fileSize, String vMD5);
+
+    List<Video> findVideoByFileSizeEqualsAndVMd5Equals(Long fileSize, String vMD5, Sort sort);
 
     Page<Video> findVideosByEpId(Integer epId, Pageable pageable);
 

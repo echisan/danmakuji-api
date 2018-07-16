@@ -43,6 +43,11 @@ public class PostBangumiServiceImpl implements PostBangumiService {
     }
 
     @Override
+    public PostBangumi updatePostBangumi(PostBangumi postBangumi) {
+        return postBangumiRepository.save(postBangumi);
+    }
+
+    @Override
     public List<PostBangumi> insertPostBangumiList(List<PostBangumi> postBangumiList) {
         return postBangumiRepository.saveAll(postBangumiList);
     }
@@ -82,6 +87,11 @@ public class PostBangumiServiceImpl implements PostBangumiService {
     @Override
     public PostBangumi getById(Long id) {
         return postBangumiRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public List<PostBangumi> listByBangumiName(String name) {
+        return postBangumiRepository.findByBangumiNameEquals(name);
     }
 
     @Override

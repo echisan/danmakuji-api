@@ -26,6 +26,12 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
+    public List<Video> listVideoByFileSizeAndVmd5SortByScore(Long fileSize, String md5) {
+        Sort sort = Sort.by(Sort.Direction.DESC,"score");
+        return videoRepository.findVideoByFileSizeEqualsAndVMd5Equals(fileSize, md5,sort);
+    }
+
+    @Override
     public Video getVideoByVideoId(String videoId) {
         return videoRepository.findById(videoId).orElse(null);
     }

@@ -10,6 +10,8 @@ public interface VideoService {
 
     List<Video> getVideoByFileSizeAndVmd5(Long fileSize, String md5);
 
+    List<Video> listVideoByFileSizeAndVmd5SortByScore(Long fileSize,String md5);
+
     Video getVideoByVideoId(String videoId);
 
     VideoPageInfo listVideos();

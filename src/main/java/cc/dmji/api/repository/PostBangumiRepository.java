@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface PostBangumiRepository extends JpaRepository<PostBangumi, Long> {
 
     Page<PostBangumi> findByUserIdEqualsAndStatusEquals(String userId, Status status, Pageable pageable);
@@ -17,5 +19,7 @@ public interface PostBangumiRepository extends JpaRepository<PostBangumi, Long> 
     Page<PostBangumi> findByPostBangumiStatusEqualsAndStatusEquals(PostBangumiStatus postBangumiStatus,Status status,Pageable pageable);
 
     Page<PostBangumi> findByStatusEquals(Status status,Pageable pageable);
+
+    List<PostBangumi> findByBangumiNameEquals(String bangumiName);
 
 }

@@ -25,6 +25,8 @@ public interface BangumiService {
 
     Bangumi getBangumiById(Integer id);
 
+    Bangumi getBangumiByName(String name);
+
     List<Bangumi> getBangumisByIds(List<Integer> ids);
 
     Bangumi insertBangumi(Bangumi bangumi);

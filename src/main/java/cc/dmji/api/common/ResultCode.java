@@ -36,6 +36,7 @@ public enum  ResultCode {
     DATA_ALREADY_EXIST(5003,"数据已存在"),
     DATABASE_NOT_CONNECTED(5004,"无法连接到数据库"),
     DATA_EXPIRATION(5005,"数据已过期"),
+    DATA_ALREADY_EXIST_BUT_ALLOW_REQUEST(5006,"数据已存在"),
 
     /*权限错误6001-6999*/
     PERMISSION_DENY(6001,"无访问权限");

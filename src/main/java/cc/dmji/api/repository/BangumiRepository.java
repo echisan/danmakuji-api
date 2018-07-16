@@ -15,4 +15,6 @@ public interface BangumiRepository extends JpaRepository<Bangumi,Integer> {
 
     Page<Bangumi> findBangumisByBangumiNameLike(String name, Pageable pageable);
 
+    Bangumi findByBangumiNameEquals(String bangumiName);
+
 }

@@ -2,9 +2,11 @@ package cc.dmji.api.web.controller;
 
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
+import cc.dmji.api.entity.Bangumi;
 import cc.dmji.api.entity.PostBangumi;
 import cc.dmji.api.enums.PostBangumiStatus;
 import cc.dmji.api.enums.Status;
+import cc.dmji.api.service.BangumiService;
 import cc.dmji.api.service.PostBangumiService;
 import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.GeneralUtils;
@@ -14,16 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-
+import java.util.List;
 import java.util.Map;
 
-import static cc.dmji.api.constants.PostBangumiConstants.*;
+import static cc.dmji.api.constants.PostBangumiConstants.SHOW;
 
 /**
  * Created by echisan on 2018/7/12
@@ -36,8 +35,11 @@ public class PostBangumiController extends BaseController {
     @Autowired
     private PostBangumiService postBangumiService;
 
+    @Autowired
+    private BangumiService bangumiService;
+
     @PostMapping
-    public ResponseEntity<Result> postBangumi(@RequestBody Map<String,String> requestMap,
+    public ResponseEntity<Result> postBangumi(@RequestBody Map<String, String> requestMap,
                                               HttpServletRequest request) {
         String bangumiName = requestMap.get("bangumiName");
         String episodeTotalString = requestMap.get("episodeTotal");
@@ -52,10 +54,10 @@ public class PostBangumiController extends BaseController {
         if (!StringUtils.hasText(hasZeroIndexString)) {
             return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "到底有没有第0集呢");
         }
-        if (!DmjiUtils.isPositiveNumber(episodeTotalString)){
+        if (!DmjiUtils.isPositiveNumber(episodeTotalString)) {
             return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "总集数不能写奇奇怪怪的东西,只接受正整数");
         }
-        if (!hasZeroIndexString.equals("1") && !hasZeroIndexString.equals("0")){
+        if (!hasZeroIndexString.equals("1") && !hasZeroIndexString.equals("0")) {
             return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "hasZeroIndex 只接受参数'0'或'1'");
         }
 
@@ -69,8 +71,22 @@ public class PostBangumiController extends BaseController {
         PostBangumi pb = new PostBangumi();
 
         bangumiName = GeneralUtils.cleanXSS(bangumiName);
-        if (!StringUtils.hasText(bangumiName)){
+        if (!StringUtils.hasText(bangumiName)) {
             return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "大佬求放过QAQ");
+        }
+
+        Bangumi bangumi = bangumiService.getBangumiByName(bangumiName);
+        if (bangumi != null) {
+            return getErrorResponseEntity(HttpStatus.OK, ResultCode.DATA_ALREADY_EXIST, "该番剧信息已经存在,不用再提交啦");
+        }
+
+        List<PostBangumi> postBangumiList = postBangumiService.listByBangumiName(bangumiName);
+
+        Result result = getSuccessResult();
+        result.setMsg("感谢dalao的提交,后续结果请留意系统通知");
+        if (postBangumiList.size() != 0) {
+            String msg = "该番剧已经有小伙伴提交了,具体采用哪一个请留意后续通知";
+            result.setMsg(msg);
         }
 
         pb.setBangumiName(bangumiName);
@@ -87,6 +103,6 @@ public class PostBangumiController extends BaseController {
         PostBangumi insertPostBangumi = postBangumiService.insertPostBangumi(pb);
         logger.debug("插入postBangumi成功,{}", insertPostBangumi);
 
-        return getResponseEntity(HttpStatus.OK, getSuccessResult());
+        return getResponseEntity(HttpStatus.OK, result);
     }
 }

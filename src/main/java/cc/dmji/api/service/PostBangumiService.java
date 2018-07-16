@@ -16,6 +16,8 @@ public interface PostBangumiService {
 
     PostBangumi insertPostBangumi(PostBangumi postBangumi);
 
+    PostBangumi updatePostBangumi(PostBangumi postBangumi);
+
     List<PostBangumi> insertPostBangumiList(List<PostBangumi> postBangumiList);
 
     void deletePostBangumiById(Long id);
@@ -36,6 +38,8 @@ public interface PostBangumiService {
     Page<PostBangumi> listPostBangumis(Integer pn,Integer ps,Status status);
 
     PostBangumi getById(Long id);
+
+    List<PostBangumi> listByBangumiName(String name);
 
     List<PostBangumiInfo> listPostBangumi(Status status, PostBangumiStatus postBangumiStatus, Timestamp beginTime,
                                           Timestamp endTime, PostBangumiOrderBy orderBy, Direction direction);
