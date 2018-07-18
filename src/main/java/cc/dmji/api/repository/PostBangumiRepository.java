@@ -16,10 +16,16 @@ public interface PostBangumiRepository extends JpaRepository<PostBangumi, Long> 
     Page<PostBangumi> findByUserIdEqualsAndStatusEqualsAndPostBangumiStatusEquals(
             String userId, Status status, PostBangumiStatus postBangumiStatus, Pageable pageable);
 
-    Page<PostBangumi> findByPostBangumiStatusEqualsAndStatusEquals(PostBangumiStatus postBangumiStatus,Status status,Pageable pageable);
+    Page<PostBangumi> findByPostBangumiStatusEqualsAndStatusEquals(PostBangumiStatus postBangumiStatus, Status status, Pageable pageable);
 
-    Page<PostBangumi> findByStatusEquals(Status status,Pageable pageable);
+    Page<PostBangumi> findByStatusEquals(Status status, Pageable pageable);
 
     List<PostBangumi> findByBangumiNameEquals(String bangumiName);
+
+
+    Page<PostBangumi> findByUserIdEqualsAndStatusEqualsAndBangumiNameLike(String userId, Status status, String bangumiName,Pageable pageable);
+
+    Page<PostBangumi> findByUserIdEqualsAndStatusEqualsAndPostBangumiStatusEqualsAndBangumiNameLike(
+            String userId, Status status, PostBangumiStatus postBangumiStatus,String bangumiName, Pageable pageable);
 
 }

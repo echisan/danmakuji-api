@@ -134,4 +134,21 @@ public class PostBangumiServiceImpl implements PostBangumiService {
         return postBangumiMapper.listPostBangumi(status.name(),
                 postBangumiStatusName, beginTime, endTime, orderByColum, directionString);
     }
+
+    @Override
+    public Page<PostBangumi> listPostBangumiByBangumiName(String userId, String bangumiName,
+                                                              Integer pn, Integer ps,
+                                                              PostBangumiStatus postBangumiStatus, Status status, Sort sort) {
+        String queryBangumiName = "%"+bangumiName+"%";
+        return postBangumiRepository
+                .findByUserIdEqualsAndStatusEqualsAndPostBangumiStatusEqualsAndBangumiNameLike(userId,
+                        status,postBangumiStatus,queryBangumiName,PageRequest.of(pn-1,ps,sort));
+    }
+
+    @Override
+    public Page<PostBangumi> listByBangumiName(String userId, Integer pn, Integer ps, String bangumiName, Status status) {
+        String queryBangumiName = "%"+bangumiName+"%";
+        return postBangumiRepository.findByUserIdEqualsAndStatusEqualsAndBangumiNameLike(
+                userId,status,queryBangumiName,PageRequest.of(pn-1,ps,Sort.by(Sort.Direction.DESC, "createTime")));
+    }
 }

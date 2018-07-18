@@ -5,16 +5,33 @@ package cc.dmji.api.enums;
  */
 public enum  PostBangumiOrderBy {
 
-    createTime("create_time"),
-    modifyTime("modify_time");
+    createTime("create_time",0),
+    modifyTime("modify_time",1);
 
     String colum;
+    Integer code;
 
-    PostBangumiOrderBy(String colum) {
+    PostBangumiOrderBy(String colum, Integer code) {
         this.colum = colum;
+        this.code = code;
     }
 
     public String getColum() {
         return colum;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public static PostBangumiOrderBy byCode(Integer code){
+        PostBangumiOrderBy[] values = PostBangumiOrderBy.values();
+        for (PostBangumiOrderBy pbob :
+                values) {
+            if (pbob.code.equals(code)){
+                return pbob;
+            }
+        }
+        return null;
     }
 }

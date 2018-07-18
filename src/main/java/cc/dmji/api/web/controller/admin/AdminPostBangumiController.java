@@ -156,7 +156,7 @@ public class AdminPostBangumiController extends BaseController {
                 }
                 postBangumi.setPostBangumiStatus(PostBangumiStatus.FAILED);
                 postBangumi.setMessage(msg);
-                messageContent = "[" + postBangumi.getBangumiName() +"]，很抱歉，您的提交未能采纳，具体原因:" + msg;
+                messageContent = "[" + postBangumi.getBangumiName() +"]，很抱歉，您的提交未被采纳，具体原因:" + msg;
                 break;
             }
             default: {

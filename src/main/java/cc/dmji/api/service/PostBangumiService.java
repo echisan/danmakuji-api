@@ -44,7 +44,9 @@ public interface PostBangumiService {
     List<PostBangumiInfo> listPostBangumi(Status status, PostBangumiStatus postBangumiStatus, Timestamp beginTime,
                                           Timestamp endTime, PostBangumiOrderBy orderBy, Direction direction);
 
+    Page<PostBangumi> listPostBangumiByBangumiName(String userId, String bangumiName,
+                                                       Integer pn, Integer ps,
+                                                       PostBangumiStatus postBangumiStatus, Status status, Sort sort);
 
-
-
+    Page<PostBangumi> listByBangumiName(String userId, Integer pn,Integer ps,String bangumiName,Status status);
 }
