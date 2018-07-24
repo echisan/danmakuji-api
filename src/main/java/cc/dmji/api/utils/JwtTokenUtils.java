@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -128,8 +129,9 @@ public class JwtTokenUtils {
         return getClaim(token).getIssuer();
     }
 
-    public String getUid(String token){
-        return (String) getClaim(token).get(TOKEN_CLAIM_KEY_UID);
+    public Long getUid(String token){
+        Integer userId = (Integer) getClaim(token).get(TOKEN_CLAIM_KEY_UID);
+        return userId.longValue();
     }
 
     /**
@@ -238,7 +240,7 @@ public class JwtTokenUtils {
         boolean isLock;
         boolean isEmailVerify;
         Claims claims;
-        String uid;
+        Long uid;
 
         public Payload(String token) {
             this.token = token;
@@ -252,7 +254,8 @@ public class JwtTokenUtils {
             int email = (Integer) claims.get(TOKEN_CLAIM_KEY_EMAIL);
             isLock = UserStatus.LOCK.getStatus().equals(lock);
             isEmailVerify = UserStatus.EMAIL_VERIFY.getStatus().equals(email);
-            uid = (String) claims.get(TOKEN_CLAIM_KEY_UID);
+            Integer integer = (Integer) claims.get(TOKEN_CLAIM_KEY_UID);
+            uid = (integer.longValue()) ;
         }
 
         public String getRole() {
@@ -275,7 +278,7 @@ public class JwtTokenUtils {
             return claims.getSubject();
         }
 
-        public String getUid() {
+        public Long getUid() {
             return uid;
         }
     }

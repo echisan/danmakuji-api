@@ -3,6 +3,7 @@ package cc.dmji.api.web.controller.admin;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.entity.User;
+import cc.dmji.api.service.OnlineUserRedisService;
 import cc.dmji.api.service.RedisTokenService;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.utils.JwtTokenUtils;
@@ -30,6 +31,9 @@ public class AdminTokenController extends BaseController {
     private RedisTokenService redisTokenService;
 
     @Autowired
+    private OnlineUserRedisService onlineUserRedisService;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
@@ -47,7 +51,7 @@ public class AdminTokenController extends BaseController {
         tokens.forEach(t -> {
             JwtTokenUtils.Payload payload = jwtTokenUtils.getPayload(t);
             String nick = payload.getUsername();
-            String uid = payload.getUid();
+            Long uid = payload.getUid();
             Date expAt = payload.getClaims().getExpiration();
             Date issuedAt = payload.getClaims().getIssuedAt();
             LoginTokenInfo loginTokenInfo = new LoginTokenInfo(uid, nick, issuedAt, expAt, t);
@@ -59,6 +63,8 @@ public class AdminTokenController extends BaseController {
 
         return getResponseEntity(HttpStatus.OK, getSuccessResult(data));
     }
+
+
 
     @DeleteMapping
     public ResponseEntity<Result> deleteToken(@RequestBody DeleteToken deleteToken) {
@@ -77,7 +83,7 @@ public class AdminTokenController extends BaseController {
     }
 
     @GetMapping("/{uid}")
-    public ResponseEntity<Result> listUserTokens(@PathVariable("uid")String uid){
+    public ResponseEntity<Result> listUserTokens(@PathVariable("uid")Long uid){
         User user = userService.getUserById(uid);
         List<LoginUserToken> loginUserTokens = redisTokenService.listUserTokens(user.getNick());
         return getResponseEntity(HttpStatus.OK, getSuccessResult(loginUserTokens));

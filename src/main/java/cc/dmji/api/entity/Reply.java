@@ -13,11 +13,10 @@ import java.sql.Timestamp;
 @Entity
 @DynamicInsert
 @DynamicUpdate
-@GenericGenerator(name = "jpa-uuid",strategy = "uuid")
 @Table(name = "dm_reply", schema = "dmji", catalog = "")
 public class Reply {
     // 回复id
-    private String replyId;
+    private Long replyId;
     // 回复内容
     private String content;
     // 回复所在的页面
@@ -25,24 +24,24 @@ public class Reply {
     private Timestamp createTime;
     private Timestamp modifyTime;
     // 回复的用户
-    private String userId;
+    private Long userId;
     private String rStatus;
-    private String parentId;
+    private Long parentId;
     private Byte isParent;
     private Integer rLike;
     private Integer rHate;
-    private Integer epId;
+    private Long epId;
     @Column(name = "floor")
     private Long floor;
 
     @Id
-    @GeneratedValue(generator = "jpa-uuid")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reply_id")
-    public String getReplyId() {
+    public Long getReplyId() {
         return replyId;
     }
 
-    public void setReplyId(String replyId) {
+    public void setReplyId(Long replyId) {
         this.replyId = replyId;
     }
 
@@ -88,11 +87,11 @@ public class Reply {
 
     @Basic
     @Column(name = "user_id")
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
@@ -108,11 +107,11 @@ public class Reply {
 
     @Basic
     @Column(name = "parent_id")
-    public String getParentId() {
+    public Long getParentId() {
         return parentId;
     }
 
-    public void setParentId(String parentId) {
+    public void setParentId(Long parentId) {
         this.parentId = parentId;
     }
 
@@ -148,11 +147,11 @@ public class Reply {
 
     @Basic
     @Column(name = "ep_id")
-    public Integer getEpId() {
+    public Long getEpId() {
         return epId;
     }
 
-    public void setEpId(Integer epId) {
+    public void setEpId(Long epId) {
         this.epId = epId;
     }
 

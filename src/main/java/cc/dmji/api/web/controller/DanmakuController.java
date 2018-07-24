@@ -42,7 +42,7 @@ public class DanmakuController {
     @Autowired
     private JwtTokenUtils jwtTokenUtils;
 
-    @CrossOrigin
+//    @CrossOrigin
     @GetMapping
     @UserLog("获取某个视频下的弹幕")
     public DanmakuResponse getDanmakuList(@RequestParam("id") String id,
@@ -67,13 +67,33 @@ public class DanmakuController {
         }
     }
 
-    @CrossOrigin
+//    @CrossOrigin
     @PostMapping
     @UserLog("发送弹幕")
     public DanmakuResponse postDanmaku(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         Danmaku danmaku = new ObjectMapper().readValue(request.getInputStream(), Danmaku.class);
         DanmakuResponse danmakuResponse = new DanmakuResponse();
+
+        // 获取请求域
+        String refererHeader = request.getHeader("referer");
+        String referer = refererHeader == null ? "" : refererHeader;
+        logger.info("referer [{}]", referer);
+
+        String author = danmaku.getAuthor();
+        String color = danmaku.getColor();
+        double time = danmaku.getTime();
+        String player = danmaku.getPlayer();
+        String text = danmaku.getText();
+        String type = danmaku.getType();
+        String ip = GeneralUtils.getIpAddress(request);
+
+        if (player.equals("null") || StringUtils.isEmpty(player)){
+            danmakuResponse.setCode(DanmakuResponseType.ILLEGAL_DATA);
+            danmakuResponse.setMsg("请选择好番剧以及集数后再发送弹幕~");
+            return danmakuResponse;
+        }
+
         // 先验证token
         String header = request.getHeader(SecurityConstants.TOKEN_HEADER_AUTHORIZATION);
         if (StringUtils.isEmpty(header)) {
@@ -92,24 +112,7 @@ public class DanmakuController {
             return danmakuResponse;
         }
 
-        // 获取请求域
-        String refererHeader = request.getHeader("referer");
-        String referer = refererHeader == null ? "" : refererHeader;
-        logger.info("referer [{}]", referer);
-
-        String author = danmaku.getAuthor();
-        String color = danmaku.getColor();
-        double time = danmaku.getTime();
-        String player = danmaku.getPlayer();
-        String text = danmaku.getText();
-        String type = danmaku.getType();
-        String ip = GeneralUtils.getIpAddress(request);
-
         logger.info("请求参数 :{} ip :{}", danmaku, ip);
-
-
-        // 去除黑名单
-
 
         String fequentIpKey = RedisKey.POST_FREQUENT_IP_KEY + ip;
         if (stringRedisTemplate.hasKey(fequentIpKey)) {
@@ -124,7 +127,7 @@ public class DanmakuController {
         if (isEmpty(author) || isEmpty(color) || isEmpty(player)
                 || isEmpty(text) || isEmpty(type)) {
             danmakuResponse.setCode(DanmakuResponseType.ILLEGAL_DATA);
-            danmakuResponse.setMsg("数据异常");
+            danmakuResponse.setMsg("请选择好番剧以及集数后再发送弹幕~");
             return danmakuResponse;
         }
 

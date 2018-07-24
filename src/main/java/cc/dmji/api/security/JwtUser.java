@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -14,15 +15,17 @@ import java.util.Collections;
  */
 public class JwtUser implements UserDetails {
 
-    private String id;
+    private Long id;
     private String nick;
     private String pwd;
     private String email;
     private Collection<? extends GrantedAuthority> authorities;
     private Byte isLock;
     private Byte isEmailVerify;
+    // 单位为分钟
+    private Timestamp lockTime;
 
-    public JwtUser(String id, String nick, String pwd, String email, Collection<? extends GrantedAuthority> authorities, Byte isLock, Byte isEmailVerify) {
+    public JwtUser(Long id, String nick, String pwd, String email, Collection<? extends GrantedAuthority> authorities, Byte isLock, Byte isEmailVerify) {
         this.id = id;
         this.nick = nick;
         this.pwd = pwd;
@@ -40,6 +43,7 @@ public class JwtUser implements UserDetails {
         authorities = Collections.singletonList(new SimpleGrantedAuthority(user.getRole()));
         isLock = user.getIsLock();
         isEmailVerify = user.getEmailVerified();
+        lockTime = user.getLockTime();
     }
 
     @Override
@@ -64,7 +68,12 @@ public class JwtUser implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return isLock.equals(UserStatus.UN_LOCK.getStatus());
+        // 如果已锁定
+        if (isLock.equals(UserStatus.LOCK.getStatus())){
+            Long lockTimeMillis = lockTime.getTime();
+            return System.currentTimeMillis() > lockTimeMillis;
+        }
+        return true;
     }
 
     @Override
@@ -89,7 +98,7 @@ public class JwtUser implements UserDetails {
         return isEmailVerify;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 

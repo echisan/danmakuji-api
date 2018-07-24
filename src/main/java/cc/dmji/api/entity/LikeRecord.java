@@ -22,7 +22,7 @@ public class LikeRecord {
     private Long id;
 
     @Column(name = "user_id", length = 50)
-    private String userId;
+    private Long userId;
 
     @Column(name = "create_time")
     private Date createTime;
@@ -31,7 +31,7 @@ public class LikeRecord {
     private Date modifyTime;
 
     @Column(name = "reply_id", length = 50)
-    private String replyId;
+    private Long replyId;
 
     @Column(name = "status")
     private Byte status;
@@ -44,11 +44,11 @@ public class LikeRecord {
         this.id = id;
     }
 
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
@@ -68,11 +68,11 @@ public class LikeRecord {
         this.modifyTime = modifyTime;
     }
 
-    public String getReplyId() {
+    public Long getReplyId() {
         return replyId;
     }
 
-    public void setReplyId(String replyId) {
+    public void setReplyId(Long replyId) {
         this.replyId = replyId;
     }
 

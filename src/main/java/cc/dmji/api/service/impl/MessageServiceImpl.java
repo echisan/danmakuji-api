@@ -39,7 +39,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void deleteMessageById(String id) {
+    public void deleteMessageById(Long id) {
         messageRepository.deleteById(id);
     }
 
@@ -49,12 +49,12 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public Message getMessageById(String id) {
+    public Message getMessageById(Long id) {
         return messageRepository.findById(id).orElse(null);
     }
 
     @Override
-    public Page<Message> listMessageByUserIdAndType(String userId, MessageType messageType, Integer pn, Integer ps) {
+    public Page<Message> listMessageByUserIdAndType(Long userId, MessageType messageType, Integer pn, Integer ps) {
         PageRequest pageRequest = PageRequest.of(pn, ps, new Sort(Sort.Direction.DESC, "createTime"));
         if (messageType.equals(MessageType.SYSTEM)){
             User user = userService.getUserById(userId);
@@ -64,13 +64,13 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public Long countByUserIdAndTypeAndIsRead(String userId, MessageType messageType, boolean isRead) {
+    public Long countByUserIdAndTypeAndIsRead(Long userId, MessageType messageType, boolean isRead) {
         Byte isReadByte = isRead ? READ : UN_READ;
         return messageRepository.countByUserIdEqualsAndTypeEqualsAndIsRead(userId, messageType.name(), isReadByte);
     }
 
     @Override
-    public Page<Message> listMessageByUserId(String userId, Integer page, Integer size, Sort sort) {
+    public Page<Message> listMessageByUserId(Long userId, Integer page, Integer size, Sort sort) {
         Sort mSort = null;
         if (sort == null) {
             mSort = new Sort(Sort.Direction.DESC, "createTime");
@@ -92,17 +92,17 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public List<Message> listUserUnReadMessages(String userId,MessageType messageType) {
+    public List<Message> listUserUnReadMessages(Long userId,MessageType messageType) {
         return messageRepository.findByUserIdEqualsAndIsReadEqualsAndTypeEquals(userId,MessageConstants.NOT_READ,messageType.name());
     }
 
     @Override
-    public List<Map<String, Long>> countUnReadMessageById(String userId) {
+    public List<Map<String, Long>> countUnReadMessageById(Long userId) {
         return null;
     }
 
     @Override
-    public void deleteMessageByIds(List<String> ids) {
+    public void deleteMessageByIds(List<Long> ids) {
         messageRepository.deleteByIdIn(ids);
     }
 

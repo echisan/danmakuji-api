@@ -28,11 +28,16 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public List<Video> listVideoByFileSizeAndVmd5SortByScore(Long fileSize, String md5) {
         Sort sort = Sort.by(Sort.Direction.DESC,"score");
-        return videoRepository.findVideoByFileSizeEqualsAndVMd5Equals(fileSize, md5,sort);
+        return videoRepository.findVideoByFileSizeEqualsAndVMd5Equals(fileSize, md5,PageRequest.of(0,10,sort));
     }
 
     @Override
-    public Video getVideoByVideoId(String videoId) {
+    public Video getMatchVideoByFileSizeAndMd5(Long fileSize, String md5) {
+        return videoRepository.findByFileSizeEqualsAndVMd5EqualsAndIsMatchEquals(fileSize, md5, (byte)1);
+    }
+
+    @Override
+    public Video getVideoByVideoId(Long videoId) {
         return videoRepository.findById(videoId).orElse(null);
     }
 
@@ -55,24 +60,24 @@ public class VideoServiceImpl implements VideoService {
 
 
     @Override
-    public VideoPageInfo listVideosByEpId(Integer epId) {
+    public VideoPageInfo listVideosByEpId(Long epId) {
         return this.listVideosByEpId(epId, 1, 20);
     }
 
     @Override
-    public VideoPageInfo listVideosByEpId(Integer epId, int pageNum) {
+    public VideoPageInfo listVideosByEpId(Long epId, int pageNum) {
         return this.listVideosByEpId(epId, pageNum, 20);
     }
 
     @Override
-    public VideoPageInfo listVideosByEpId(Integer epId, int pageNum, int pageSize) {
+    public VideoPageInfo listVideosByEpId(Long epId, int pageNum, int pageSize) {
         Page<Video> result = videoRepository.findVideosByEpId(epId, PageRequest.of(pageNum - 1, pageSize));
         PageInfo pageInfo = new PageInfo(pageNum, pageSize, result.getTotalElements());
         return new VideoPageInfo(result.getContent(), pageInfo);
     }
 
     @Override
-    public List<Video> listVideosByEpIds(List<String> ids) {
+    public List<Video> listVideosByEpIds(List<Long> ids) {
         return videoRepository.findAllById(ids);
     }
 
@@ -91,7 +96,7 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public void deleteVideoById(String videoId) {
+    public void deleteVideoById(Long videoId) {
         videoRepository.deleteById(videoId);
     }
 
@@ -106,7 +111,7 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public VideoPageInfo listVideoByEpIdAndIsMatch(Integer epId, Byte isMatch, int pn, int ps) {
+    public VideoPageInfo listVideoByEpIdAndIsMatch(Long epId, Byte isMatch, int pn, int ps) {
         PageRequest pageRequest = PageRequest.of(pn - 1, ps, Sort.by(Sort.Direction.DESC, "createTime"));
         Page<Video> videoPage = videoRepository.findByEpIdEqualsAndIsMatchEquals(epId, isMatch, pageRequest);
         VideoPageInfo vpi = new VideoPageInfo();

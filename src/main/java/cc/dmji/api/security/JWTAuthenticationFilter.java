@@ -2,15 +2,20 @@ package cc.dmji.api.security;
 
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
+import cc.dmji.api.entity.LoginRecord;
 import cc.dmji.api.entity.User;
+import cc.dmji.api.enums.UserStatus;
+import cc.dmji.api.service.LoginRecordService;
 import cc.dmji.api.service.RedisTokenService;
 import cc.dmji.api.service.UserService;
+import cc.dmji.api.utils.GeneralUtils;
 import cc.dmji.api.utils.JwtTokenUtils;
 import cc.dmji.api.web.model.AuthUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -45,6 +50,9 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private LoginRecordService loginRecordService;
 
     @Autowired
     @Override
@@ -95,6 +103,14 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         Integer rememberMe = (Integer) request.getAttribute("remember_me");
         JwtUser user = (JwtUser) authResult.getPrincipal();
+
+        // 更新用户封禁状态
+        if (user.isAccountNonLocked() && user.getIsLock().equals(UserStatus.LOCK.getStatus())){
+            User userById = userService.getUserById(user.getId());
+            userById.setIsLock(UserStatus.UN_LOCK.getStatus());
+            userService.updateUser(userById);
+        }
+
         logger.info("jwtUser : {}", user.toString());
         JwtTokenUtils jwtTokenUtils = new JwtTokenUtils();
         String token;
@@ -115,7 +131,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             redisTokenService.deleteUserLock(user.getId());
         }
 
-        Map<String, String> userMap = new HashMap<>();
+        Map<String, Object> userMap = new HashMap<>();
         userMap.put("uid", user1.getUserId());
         userMap.put("face", user1.getFace());
         userMap.put("role", user1.getRole());
@@ -128,6 +144,14 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         map.put("token", TOKEN_PREFIX + token);
         map.put("user", userMap);
         result.setData(map);
+
+        // 记录用户登陆日志
+        LoginRecord loginRecord = new LoginRecord();
+        loginRecord.setUserId(user1.getUserId());
+        loginRecord.setIp(GeneralUtils.getIpAddress(request));
+        loginRecord.setUserAgent(request.getHeader("user-agent") == null ? "" : request.getHeader("user-agent"));
+        loginRecordService.insertLoginRecord(loginRecord);
+
         response.getWriter().write(objectMapper.writeValueAsString(result));
     }
 

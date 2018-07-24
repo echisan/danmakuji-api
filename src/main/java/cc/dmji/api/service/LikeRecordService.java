@@ -10,8 +10,8 @@ public interface LikeRecordService {
 
     LikeRecord updateLikeRecord(LikeRecord likeRecord);
 
-    LikeRecord getByReplyIdAndUserId(String replyId, String userId);
+    LikeRecord getByReplyIdAndUserId(Long replyId, Long userId);
 
-    List<LikeRecord> listByReplyIdsAndUserId(List<String> replyList, String userId);
+    List<LikeRecord> listByReplyIdsAndUserId(List<Long> replyList, Long userId);
 
 }

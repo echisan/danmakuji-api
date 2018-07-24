@@ -11,10 +11,10 @@ import java.util.List;
 
 public interface PostBangumiRepository extends JpaRepository<PostBangumi, Long> {
 
-    Page<PostBangumi> findByUserIdEqualsAndStatusEquals(String userId, Status status, Pageable pageable);
+    Page<PostBangumi> findByUserIdEqualsAndStatusEquals(Long userId, Status status, Pageable pageable);
 
     Page<PostBangumi> findByUserIdEqualsAndStatusEqualsAndPostBangumiStatusEquals(
-            String userId, Status status, PostBangumiStatus postBangumiStatus, Pageable pageable);
+            Long userId, Status status, PostBangumiStatus postBangumiStatus, Pageable pageable);
 
     Page<PostBangumi> findByPostBangumiStatusEqualsAndStatusEquals(PostBangumiStatus postBangumiStatus, Status status, Pageable pageable);
 
@@ -23,9 +23,9 @@ public interface PostBangumiRepository extends JpaRepository<PostBangumi, Long> 
     List<PostBangumi> findByBangumiNameEquals(String bangumiName);
 
 
-    Page<PostBangumi> findByUserIdEqualsAndStatusEqualsAndBangumiNameLike(String userId, Status status, String bangumiName,Pageable pageable);
+    Page<PostBangumi> findByUserIdEqualsAndStatusEqualsAndBangumiNameLike(Long userId, Status status, String bangumiName,Pageable pageable);
 
     Page<PostBangumi> findByUserIdEqualsAndStatusEqualsAndPostBangumiStatusEqualsAndBangumiNameLike(
-            String userId, Status status, PostBangumiStatus postBangumiStatus,String bangumiName, Pageable pageable);
+            Long userId, Status status, PostBangumiStatus postBangumiStatus,String bangumiName, Pageable pageable);
 
 }

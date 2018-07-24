@@ -24,12 +24,12 @@ public interface PostBangumiService {
 
     void deleteByPostBangumiList(List<PostBangumi> postBangumiList);
 
-    Page<PostBangumi> listByUserId(String userId, Integer pn, Integer ps, PostBangumiStatus postBangumiStatus, Status status, Sort sort);
+    Page<PostBangumi> listByUserId(Long userId, Integer pn, Integer ps, PostBangumiStatus postBangumiStatus, Status status, Sort sort);
 
-    Page<PostBangumi> listByUserId(String userId, Integer pn, Integer ps, Status status, Sort sort);
+    Page<PostBangumi> listByUserId(Long userId, Integer pn, Integer ps, Status status, Sort sort);
 
     // 默认根据创建时间的倒叙进行排序
-    Page<PostBangumi> listByUserId(String userId, Integer pn, Integer ps, Status status);
+    Page<PostBangumi> listByUserId(Long userId, Integer pn, Integer ps, Status status);
 
     Page<PostBangumi> listPostBangumis(Integer pn,Integer ps,PostBangumiStatus postBangumiStatus,Status status,Sort sort);
 
@@ -44,9 +44,9 @@ public interface PostBangumiService {
     List<PostBangumiInfo> listPostBangumi(Status status, PostBangumiStatus postBangumiStatus, Timestamp beginTime,
                                           Timestamp endTime, PostBangumiOrderBy orderBy, Direction direction);
 
-    Page<PostBangumi> listPostBangumiByBangumiName(String userId, String bangumiName,
+    Page<PostBangumi> listPostBangumiByBangumiName(Long userId, String bangumiName,
                                                        Integer pn, Integer ps,
                                                        PostBangumiStatus postBangumiStatus, Status status, Sort sort);
 
-    Page<PostBangumi> listByBangumiName(String userId, Integer pn,Integer ps,String bangumiName,Status status);
+    Page<PostBangumi> listByBangumiName(Long userId, Integer pn,Integer ps,String bangumiName,Status status);
 }

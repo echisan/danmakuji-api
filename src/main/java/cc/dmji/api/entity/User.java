@@ -13,10 +13,9 @@ import java.sql.Timestamp;
 @Entity
 @DynamicInsert
 @DynamicUpdate
-@GenericGenerator(name = "jpa-uuid",strategy = "uuid")
 @Table(name = "dm_user", schema = "dmji", catalog = "")
 public class User {
-    private String userId;
+    private Long userId;
     private String email;
     private String pwd;
     private String phone;
@@ -30,18 +29,18 @@ public class User {
     private Timestamp createTime;
     private Timestamp modifyTime;
     private Byte isLock;
-    private Integer lockTime;
+    private Timestamp lockTime;
     // 个性签名
     private String sign;
 
     @Id
-    @GeneratedValue(generator = "jpa-uuid")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
@@ -177,11 +176,11 @@ public class User {
 
     @Basic
     @Column(name = "lock_time")
-    public Integer getLockTime() {
+    public Timestamp getLockTime() {
         return lockTime;
     }
 
-    public void setLockTime(Integer lockTime) {
+    public void setLockTime(Timestamp lockTime) {
         this.lockTime = lockTime;
     }
 

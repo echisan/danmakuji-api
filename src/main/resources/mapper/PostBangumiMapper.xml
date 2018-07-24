@@ -34,13 +34,13 @@
         <result column="post_bangumi_status" property="postBangumiStatus" javaType="java.lang.String"/>
         <result column="message" property="message" javaType="java.lang.String"/>
         <association column="manager_user_id" property="managerUserInfo" javaType="cc.dmji.api.web.model.UserInfo">
-            <id column="m_user_id" property="uid" javaType="java.lang.String"/>
+            <id column="m_user_id" property="uid" javaType="java.lang.Long"/>
             <result column="m_nick" property="nick" javaType="java.lang.String"/>
             <result column="m_sex" property="sex" javaType="java.lang.String"/>
             <result column="m_face" property="face" javaType="java.lang.String"/>
         </association>
         <association property="postUserInfo" column="user_id" javaType="cc.dmji.api.web.model.UserInfo">
-            <id column="p_user_id" property="uid" javaType="java.lang.String"/>
+            <id column="p_user_id" property="uid" javaType="java.lang.Long"/>
             <result column="p_nick" property="nick" javaType="java.lang.String"/>
             <result column="p_sex" property="sex" javaType="java.lang.String"/>
             <result column="p_face" property="face" javaType="java.lang.String"/>
@@ -66,7 +66,7 @@
             and dpb.status = #{status}
         </if>
         <if test="postBangumiStatus != null">
-            and dpb.post_bangumi_status = 'PENDING'
+            and dpb.post_bangumi_status = #{postBangumiStatus}
         </if>
         <if test="beginTime != null and endTime !=null">
             and dpb.create_time between #{beginTime} and #{endTime}

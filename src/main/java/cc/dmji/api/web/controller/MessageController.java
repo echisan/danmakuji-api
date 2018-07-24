@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,9 +48,8 @@ public class MessageController extends BaseController {
     private UserService userService;
 
     @GetMapping("/{userId}/countInfo")
-    public ResponseEntity<Result> getUserMessageInfo(@PathVariable("userId") String userId) {
-
-        String currentUserId = getUidFromToken(request);
+    public ResponseEntity<Result> getUserMessageInfo(@PathVariable(value = "userId", required = false) Long userId) {
+        Long currentUserId = getUidFromRequest(request);
         if (!currentUserId.equals(userId)) {
             return getResponseEntity(HttpStatus.FORBIDDEN, getErrorResult(ResultCode.PERMISSION_DENY));
         }
@@ -74,7 +74,7 @@ public class MessageController extends BaseController {
 
     @GetMapping("/{userId}/type/{type}")
     @UserLog("获取用户消息列表")
-    public ResponseEntity<Result> listUserMessages(@PathVariable("userId") String userId,
+    public ResponseEntity<Result> listUserMessages(@PathVariable("userId") Long userId,
                                                    @PathVariable("type") String type,
                                                    @RequestParam(value = "pn", required = false, defaultValue = "1") Integer pn,
                                                    @RequestParam(value = "ps", required = false, defaultValue = "20") Integer ps) {
@@ -106,10 +106,10 @@ public class MessageController extends BaseController {
         pageInfo.setTotalSize(messagePage.getTotalElements());
         List<Message> replyMessages = messagePage.getContent();
         // 获取用户id列表
-        List<String> userIds = new ArrayList<>();
+        List<Long> userIds = new ArrayList<>();
         replyMessages.forEach(message -> userIds.add(message.getPublisherUserId()));
         List<User> users = userService.listUserByIdsIn(userIds);
-        Map<String, User> userMap = new HashMap<>();
+        Map<Long, User> userMap = new HashMap<>();
         users.forEach(user -> userMap.put(user.getUserId(), user));
 
         List<MessageInfo> messageInfos = new ArrayList<>();
@@ -147,7 +147,7 @@ public class MessageController extends BaseController {
     }
 
     @Async
-    public void cleanUnReadMessage(String userId, MessageType type) {
+    public void cleanUnReadMessage(Long userId, MessageType type) {
         List<Message> messages = messageService.listUserUnReadMessages(userId, type);
         if (messages.size() != 0) {
             messages.forEach(message -> message.setIsRead(MessageConstants.IS_READ));

@@ -13,20 +13,20 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MessageInfo {
 
-    private String id;
+    private Long id;
 
     private String type;
     @JsonProperty("is_read")
     private Byte isRead;
     @JsonProperty("u_id")
-    private String userId;
+    private Long userId;
     @JsonProperty("create_time")
     private Date createTime;
     @JsonProperty("modify_time")
     private Date modifyTime;
 
     @JsonProperty("ep_id")
-    private Integer epId;
+    private Long epId;
     // 消息的内容
     @JsonProperty("content")
     private String content;
@@ -34,7 +34,7 @@ public class MessageInfo {
     private String title;
 
     @JsonProperty("reply_id")
-    private String replyId;
+    private Long replyId;
 
     @JsonProperty("publisher")
     private UserInfo userInfo;
@@ -49,11 +49,11 @@ public class MessageInfo {
         this.epId  = message.getEpId();
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -73,11 +73,11 @@ public class MessageInfo {
         this.isRead = isRead;
     }
 
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
@@ -97,11 +97,11 @@ public class MessageInfo {
         this.modifyTime = modifyTime;
     }
 
-    public Integer getEpId() {
+    public Long getEpId() {
         return epId;
     }
 
-    public void setEpId(Integer epId) {
+    public void setEpId(Long epId) {
         this.epId = epId;
     }
 
@@ -113,11 +113,11 @@ public class MessageInfo {
         this.content = content;
     }
 
-    public String getReplyId() {
+    public Long getReplyId() {
         return replyId;
     }
 
-    public void setReplyId(String replyId) {
+    public void setReplyId(Long replyId) {
         this.replyId = replyId;
     }
 

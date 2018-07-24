@@ -67,19 +67,19 @@ public class PostBangumiServiceImpl implements PostBangumiService {
     }
 
     @Override
-    public Page<PostBangumi> listByUserId(String userId, Integer pn, Integer ps, PostBangumiStatus postBangumiStatus, Status status, Sort sort) {
+    public Page<PostBangumi> listByUserId(Long userId, Integer pn, Integer ps, PostBangumiStatus postBangumiStatus, Status status, Sort sort) {
         PageRequest pr = PageRequest.of(pn - 1, ps, sort);
         return postBangumiRepository.findByUserIdEqualsAndStatusEqualsAndPostBangumiStatusEquals(userId, status, postBangumiStatus, pr);
     }
 
     @Override
-    public Page<PostBangumi> listByUserId(String userId, Integer pn, Integer ps, Status status) {
+    public Page<PostBangumi> listByUserId(Long userId, Integer pn, Integer ps, Status status) {
         PageRequest pr = PageRequest.of(pn - 1, ps, Sort.by(Sort.Direction.DESC, "createTime"));
         return postBangumiRepository.findByUserIdEqualsAndStatusEquals(userId, status, pr);
     }
 
     @Override
-    public Page<PostBangumi> listByUserId(String userId, Integer pn, Integer ps, Status status, Sort sort) {
+    public Page<PostBangumi> listByUserId(Long userId, Integer pn, Integer ps, Status status, Sort sort) {
         PageRequest pr = PageRequest.of(pn - 1, ps, sort);
         return postBangumiRepository.findByUserIdEqualsAndStatusEquals(userId, status, pr);
     }
@@ -136,7 +136,7 @@ public class PostBangumiServiceImpl implements PostBangumiService {
     }
 
     @Override
-    public Page<PostBangumi> listPostBangumiByBangumiName(String userId, String bangumiName,
+    public Page<PostBangumi> listPostBangumiByBangumiName(Long userId, String bangumiName,
                                                               Integer pn, Integer ps,
                                                               PostBangumiStatus postBangumiStatus, Status status, Sort sort) {
         String queryBangumiName = "%"+bangumiName+"%";
@@ -146,7 +146,7 @@ public class PostBangumiServiceImpl implements PostBangumiService {
     }
 
     @Override
-    public Page<PostBangumi> listByBangumiName(String userId, Integer pn, Integer ps, String bangumiName, Status status) {
+    public Page<PostBangumi> listByBangumiName(Long userId, Integer pn, Integer ps, String bangumiName, Status status) {
         String queryBangumiName = "%"+bangumiName+"%";
         return postBangumiRepository.findByUserIdEqualsAndStatusEqualsAndBangumiNameLike(
                 userId,status,queryBangumiName,PageRequest.of(pn-1,ps,Sort.by(Sort.Direction.DESC, "createTime")));

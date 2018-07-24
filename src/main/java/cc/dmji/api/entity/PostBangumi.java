@@ -84,13 +84,13 @@ public class PostBangumi {
      * 提交番剧信息的用户id
      */
     @Column(name = "user_id")
-    private String userId;
+    private Long userId;
 
     /**
      * 处理该请求的管理员id
      */
     @Column(name = "manager_user_id")
-    private String managerUserId;
+    private Long managerUserId;
 
     /**
      * 是否将个人信息展示到播放页面,默认显示
@@ -170,19 +170,19 @@ public class PostBangumi {
         this.message = message;
     }
 
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
-    public String getManagerUserId() {
+    public Long getManagerUserId() {
         return managerUserId;
     }
 
-    public void setManagerUserId(String managerUserId) {
+    public void setManagerUserId(Long managerUserId) {
         this.managerUserId = managerUserId;
     }
 

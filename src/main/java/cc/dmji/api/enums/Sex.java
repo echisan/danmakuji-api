@@ -5,8 +5,8 @@ package cc.dmji.api.enums;
  */
 public enum  Sex {
 
-    MALE("男性"),
-    FEMALE("女性"),
+    MALE("男"),
+    FEMALE("女"),
     OTHER("不明");
 
     String value;

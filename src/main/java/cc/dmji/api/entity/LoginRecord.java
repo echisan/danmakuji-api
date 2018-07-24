@@ -13,11 +13,10 @@ import java.sql.Timestamp;
 @Entity
 @DynamicInsert
 @DynamicUpdate
-@GenericGenerator(name = "jpa-uuid",strategy = "uuid")
 @Table(name = "dm_login_record", schema = "dmji", catalog = "")
 public class LoginRecord {
-    private String recordId;
-    private String userId;
+    private Long recordId;
+    private Long userId;
     private String userAgent;
     private String ip;
     private String address;
@@ -26,23 +25,23 @@ public class LoginRecord {
     private Timestamp modifyTime;
 
     @Id
-    @GeneratedValue(generator = "jpa-uuid")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "record_id")
-    public String getRecordId() {
+    public Long getRecordId() {
         return recordId;
     }
 
-    public void setRecordId(String recordId) {
+    public void setRecordId(Long recordId) {
         this.recordId = recordId;
     }
 
     @Basic
     @Column(name = "user_id")
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

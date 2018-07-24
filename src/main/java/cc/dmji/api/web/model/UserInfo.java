@@ -6,7 +6,7 @@ package cc.dmji.api.web.model;
 public class UserInfo {
 
     // 用户id
-    private String uid = "";
+    private Long uid;
 
     // 用户名
     private String nick = "";
@@ -17,11 +17,11 @@ public class UserInfo {
     // 用户性别
     private String sex = "";
 
-    public String getUid() {
+    public Long getUid() {
         return uid;
     }
 
-    public void setUid(String uid) {
+    public void setUid(Long uid) {
         this.uid = uid;
     }
 

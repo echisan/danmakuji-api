@@ -1,6 +1,7 @@
 package cc.dmji.api.service;
 
 import java.util.List;
+import java.util.Set;
 
 public interface OnlineUserRedisService {
 
@@ -50,6 +51,8 @@ public interface OnlineUserRedisService {
 
     void deleteExpirationUsers();
 
-    List<String> listAuthOnlineUserIds();
+    Set<String> listAuthOnlineUserIds();
+
+    Set<String> listTodayOnlineUserIds();
 
 }

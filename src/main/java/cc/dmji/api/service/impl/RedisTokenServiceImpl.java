@@ -65,20 +65,20 @@ public class RedisTokenServiceImpl implements RedisTokenService {
     }
 
     @Override
-    public void addUserLock(String uid) {
+    public void addUserLock(Long uid) {
         BoundSetOperations<String, String> boundSetOps = stringRedisTemplate.boundSetOps(RedisKey.LOGIN_LOCK_USER_KEY);
-        boundSetOps.add(uid);
+        boundSetOps.add(String.valueOf(uid));
     }
 
     @Override
-    public Long deleteUserLock(String uid) {
+    public Long deleteUserLock(Long uid) {
         BoundSetOperations<String, String> boundSetOps = stringRedisTemplate.boundSetOps(RedisKey.LOGIN_LOCK_USER_KEY);
-        return boundSetOps.remove(uid);
+        return boundSetOps.remove(String.valueOf(uid));
     }
 
     @Override
-    public boolean isUserLock(String uid) {
+    public boolean isUserLock(Long uid) {
         BoundSetOperations<String, String> boundSetOps = stringRedisTemplate.boundSetOps(RedisKey.LOGIN_LOCK_USER_KEY);
-        return boundSetOps.isMember(uid);
+        return boundSetOps.isMember(String.valueOf(uid));
     }
 }

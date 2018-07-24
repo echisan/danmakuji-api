@@ -23,19 +23,23 @@ public interface BangumiService {
 
     List<Bangumi> listBangumisAmbiguous(String name);
 
-    Bangumi getBangumiById(Integer id);
+    Bangumi getBangumiById(Long id);
 
     Bangumi getBangumiByName(String name);
 
-    List<Bangumi> getBangumisByIds(List<Integer> ids);
+    List<Bangumi> getBangumisByIds(List<Long> ids);
 
     Bangumi insertBangumi(Bangumi bangumi);
 
     Bangumi updateBangumi(Bangumi bangumi);
 
-    void deleteBangumiById(Integer id);
+    void deleteBangumiById(Long id);
 
     void deleteBangumis(List<Bangumi> bangumis);
 
-    Integer getEposideTotalByBangumiId(Integer bangumiId);
+    Integer getEposideTotalByBangumiId(Long bangumiId);
+
+    List<Bangumi> listBangumiByIds(List<Long> ids);
+
+    Page<Bangumi> listBangumiOrderByViewCount(Integer pn, Integer ps);
 }

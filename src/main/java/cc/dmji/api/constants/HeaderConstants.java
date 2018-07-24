@@ -5,5 +5,5 @@ package cc.dmji.api.constants;
  */
 public class HeaderConstants {
 
-    public static final String CLIENT_ID = "client_id";
+    public static final String CLIENT_ID = "clientId";
 }

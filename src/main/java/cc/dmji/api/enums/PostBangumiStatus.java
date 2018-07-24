@@ -2,15 +2,17 @@ package cc.dmji.api.enums;
 
 public enum PostBangumiStatus {
 
-    CANCLE("已取消",0),
+    CANCLE("已取消", 0),
 
-    PENDING("待处理",1),
+    PENDING("待处理", 1),
 
-    SUCCESS("已采纳",2),
+    SUCCESS("已采纳", 2),
 
-    NEED_PERFECT("待完善",3),
+    NEED_PERFECT("待完善", 3),
 
-    FAILED("未被采纳",4);
+    FAILED("未被采纳", 4),
+
+    AUDITING("待审核", 5);
 
     String statusName;
     Integer code;
@@ -28,11 +30,11 @@ public enum PostBangumiStatus {
         return code;
     }
 
-    public static PostBangumiStatus byCode(Integer code){
+    public static PostBangumiStatus byCode(Integer code) {
         PostBangumiStatus[] values = PostBangumiStatus.values();
         for (PostBangumiStatus pbs :
                 values) {
-            if (pbs.code.equals(code)){
+            if (pbs.code.equals(code)) {
                 return pbs;
             }
         }

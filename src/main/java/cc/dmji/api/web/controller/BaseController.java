@@ -75,7 +75,7 @@ public class BaseController {
         return header.replace(SecurityConstants.TOKEN_PREFIX, "");
     }
 
-    public String getUidFromToken(HttpServletRequest request) {
+    public Long getUidFromRequest(HttpServletRequest request) {
         String token = getToken(request);
         if (token != null) {
             JwtTokenUtils jwtTokenUtils = new JwtTokenUtils();
@@ -96,7 +96,7 @@ public class BaseController {
      * @return User
      */
     public User getCurrentUser(HttpServletRequest request, UserService userService){
-        String uid = getUidFromToken(request);
+        Long uid = getUidFromRequest(request);
         return userService.getUserById(uid);
     }
 
@@ -108,5 +108,8 @@ public class BaseController {
         return getResponseEntity(httpStatus,getErrorResult(resultCode));
     }
 
+    public ResponseEntity<Result> getSuccessResponseEntity(Result result){
+        return getResponseEntity(HttpStatus.OK,result);
+    }
 
 }

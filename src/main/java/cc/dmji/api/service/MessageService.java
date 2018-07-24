@@ -20,28 +20,28 @@ public interface MessageService {
 
     Message insertMessage(Message message);
 
-    void deleteMessageById(String id);
+    void deleteMessageById(Long id);
 
     Message updateMessage(Message message);
 
-    Message getMessageById(String id);
+    Message getMessageById(Long id);
 
-    Page<Message> listMessageByUserIdAndType(String userId, MessageType messageType, Integer pn, Integer ps);
+    Page<Message> listMessageByUserIdAndType(Long userId, MessageType messageType, Integer pn, Integer ps);
 
-    Page<Message> listMessageByUserId(String userId, Integer page,
+    Page<Message> listMessageByUserId(Long userId, Integer page,
                                       Integer size, @Nullable Sort sort);
 
-    Long countByUserIdAndTypeAndIsRead(String userId, MessageType messageType, boolean isRead);
+    Long countByUserIdAndTypeAndIsRead(Long userId, MessageType messageType, boolean isRead);
 
     List<Message> updateMessages(List<Message> messageList);
 
-    List<Message> listUserUnReadMessages(String userId,MessageType messageType);
+    List<Message> listUserUnReadMessages(Long userId,MessageType messageType);
 
     List<Message> listMessages();
 
-    List<Map<String,Long>> countUnReadMessageById(String userId);
+    List<Map<String,Long>> countUnReadMessageById(Long userId);
 
-    void deleteMessageByIds(List<String> ids);
+    void deleteMessageByIds(List<Long> ids);
 
     void deleteMessage(List<Message> messageList);
 

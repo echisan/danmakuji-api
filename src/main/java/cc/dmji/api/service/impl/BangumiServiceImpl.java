@@ -8,11 +8,11 @@ import cc.dmji.api.utils.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.List;
 
 
@@ -24,7 +24,7 @@ public class BangumiServiceImpl implements BangumiService {
 
     @Override
     public BangumiPageInfo listBangumis() {
-        return listBangumis(1,20);
+        return listBangumis(1, 20);
     }
 
     @Override
@@ -34,27 +34,27 @@ public class BangumiServiceImpl implements BangumiService {
 
     @Override
     public BangumiPageInfo listBangumis(Integer pageNum, Integer pageSize) {
-        Page<Bangumi> result = bangumiRepository.findAll(PageRequest.of(pageNum-1,pageSize));
-        PageInfo pageInfo = new PageInfo(pageNum,pageSize,result.getTotalElements());
-        return new BangumiPageInfo(result.getContent(),pageInfo);
+        Page<Bangumi> result = bangumiRepository.findAll(PageRequest.of(pageNum - 1, pageSize,Sort.Direction.DESC,"viewCount"));
+        PageInfo pageInfo = new PageInfo(pageNum, pageSize, result.getTotalElements());
+        return new BangumiPageInfo(result.getContent(), pageInfo);
     }
 
     @Override
     public BangumiPageInfo listBangumisByName(String name) {
-        return listBangumisByName(name,1,20);
+        return listBangumisByName(name, 1, 20);
     }
 
     @Override
     public BangumiPageInfo listBangumisByName(String name, Integer pageNum) {
-        return listBangumisByName(name,pageNum,20);
+        return listBangumisByName(name, pageNum, 20);
     }
 
     @Override
     public BangumiPageInfo listBangumisByName(String name, Integer pageNum, Integer pageSize) {
         Page<Bangumi> result = null;
-        result = bangumiRepository.findBangumisByBangumiNameLike(name,PageRequest.of(pageNum-1,pageSize));
-        PageInfo pageInfo = new PageInfo(pageNum,pageSize,result.getTotalElements());
-        return new BangumiPageInfo(result.getContent(),pageInfo);
+        result = bangumiRepository.findBangumisByBangumiNameLike(name, PageRequest.of(pageNum - 1, pageSize));
+        PageInfo pageInfo = new PageInfo(pageNum, pageSize, result.getTotalElements());
+        return new BangumiPageInfo(result.getContent(), pageInfo);
     }
 
 
@@ -64,7 +64,7 @@ public class BangumiServiceImpl implements BangumiService {
     }
 
     @Override
-    public Bangumi getBangumiById(Integer id) {
+    public Bangumi getBangumiById(Long id) {
         return bangumiRepository.findById(id).orElse(null);
     }
 
@@ -74,12 +74,13 @@ public class BangumiServiceImpl implements BangumiService {
     }
 
     @Override
-    public List<Bangumi> getBangumisByIds(List<Integer> ids) {
+    public List<Bangumi> getBangumisByIds(List<Long> ids) {
         return bangumiRepository.findAllById(ids);
     }
 
     @Override
     public Bangumi insertBangumi(Bangumi bangumi) {
+        bangumi.setViewCount(0L);
         setCreateAndModifyTime(bangumi);
         return bangumiRepository.save(bangumi);
     }
@@ -91,7 +92,7 @@ public class BangumiServiceImpl implements BangumiService {
     }
 
     @Override
-    public void deleteBangumiById(Integer id) {
+    public void deleteBangumiById(Long id) {
         bangumiRepository.deleteById(id);
     }
 
@@ -101,17 +102,27 @@ public class BangumiServiceImpl implements BangumiService {
     }
 
     @Override
-    public Integer getEposideTotalByBangumiId(Integer bangumiId) {
+    public Integer getEposideTotalByBangumiId(Long bangumiId) {
         Bangumi bangumi = bangumiRepository.findById(bangumiId).orElse(null);
-        return bangumi==null?null:bangumi.getEpisodeTotal();
+        return bangumi == null ? null : bangumi.getEpisodeTotal();
     }
 
-    private void setModifyTime(Bangumi bangumi){
+    @Override
+    public List<Bangumi> listBangumiByIds(List<Long> ids) {
+        return bangumiRepository.findByBangumiIdIn(ids);
+    }
+
+    @Override
+    public Page<Bangumi> listBangumiOrderByViewCount(Integer pn, Integer ps) {
+        return bangumiRepository.findAll(PageRequest.of(pn - 1, ps, Sort.Direction.DESC, "viewCount"));
+    }
+
+    private void setModifyTime(Bangumi bangumi) {
         Timestamp date = new Timestamp(System.currentTimeMillis());
         bangumi.setModifyTime(date);
     }
 
-    private void setCreateAndModifyTime(Bangumi bangumi){
+    private void setCreateAndModifyTime(Bangumi bangumi) {
         Timestamp date = new Timestamp(System.currentTimeMillis());
         bangumi.setModifyTime(date);
         bangumi.setCreateTime(date);

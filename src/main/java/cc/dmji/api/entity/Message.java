@@ -14,19 +14,18 @@ import java.sql.Timestamp;
 @Entity
 @DynamicInsert
 @DynamicUpdate
-@GenericGenerator(name = "jpa-uuid", strategy = "uuid")
 @Table(name = "dm_message", schema = "dmji", catalog = "")
 public class Message {
     @Id
-    @GeneratedValue(generator = "jpa-uuid")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "message_id")
-    private String id;
+    private Long id;
     @Column
     private String type;
     @Column(name = "is_read")
     private Byte isRead;
     @Column(name = "user_id")
-    private String userId;
+    private Long userId;
     @Column(name = "create_time")
     private Timestamp createTime;
     @Column(name = "modify_time")
@@ -34,23 +33,23 @@ public class Message {
     @Column(name = "m_status")
     private String mStatus;
     @Column(name = "ep_id")
-    private Integer epId;
+    private Long epId;
     @Column(name = "title")
     private String title;
     @Column(name = "content")
     private String content;
     @Column(name = "publisher_uid")
-    private String publisherUserId;
+    private Long publisherUserId;
 
     @OneToOne(targetEntity = Reply.class)
     @JoinColumn(name = "replyId")
     private Reply reply;
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -70,11 +69,11 @@ public class Message {
         this.isRead = isRead;
     }
 
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
@@ -102,11 +101,11 @@ public class Message {
         this.mStatus = mStatus;
     }
 
-    public Integer getEpId() {
+    public Long getEpId() {
         return epId;
     }
 
-    public void setEpId(Integer epId) {
+    public void setEpId(Long epId) {
         this.epId = epId;
     }
 
@@ -134,11 +133,11 @@ public class Message {
         this.title = title;
     }
 
-    public String getPublisherUserId() {
+    public Long getPublisherUserId() {
         return publisherUserId;
     }
 
-    public void setPublisherUserId(String publisherUserId) {
+    public void setPublisherUserId(Long publisherUserId) {
         this.publisherUserId = publisherUserId;
     }
 

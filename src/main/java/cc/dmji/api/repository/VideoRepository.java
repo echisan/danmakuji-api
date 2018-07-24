@@ -8,15 +8,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface VideoRepository extends JpaRepository<Video, String> {
+public interface VideoRepository extends JpaRepository<Video, Long> {
 
     List<Video> findVideoByFileSizeEqualsAndVMd5Equals(Long fileSize, String vMD5);
 
-    List<Video> findVideoByFileSizeEqualsAndVMd5Equals(Long fileSize, String vMD5, Sort sort);
+    List<Video> findVideoByFileSizeEqualsAndVMd5Equals(Long fileSize, String vMD5, Pageable pageable);
 
-    Page<Video> findVideosByEpId(Integer epId, Pageable pageable);
+    Video findByFileSizeEqualsAndVMd5EqualsAndIsMatchEquals(Long fileSize, String vMD5, Byte isMatch);
 
-    Page<Video> findByEpIdEqualsAndIsMatchEquals(Integer epId, Byte isMatch, Pageable pageable);
+    Page<Video> findVideosByEpId(Long epId, Pageable pageable);
+
+    Page<Video> findByEpIdEqualsAndIsMatchEquals(Long epId, Byte isMatch, Pageable pageable);
 
     Page<Video> findByIsMatchEquals(Byte isMatch,Pageable pageable);
 }

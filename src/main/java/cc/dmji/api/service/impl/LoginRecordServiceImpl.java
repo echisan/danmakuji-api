@@ -16,7 +16,7 @@ public class LoginRecordServiceImpl implements LoginRecordService {
     private LoginRecordRepository loginRecordRepository;
 
     @Override
-    public List<LoginRecord> listLoginRecordsByUserId(String userId) {
+    public List<LoginRecord> listLoginRecordsByUserId(Long userId) {
         return loginRecordRepository.findLoginRecordsByUserIdEquals(userId);
     }
 
@@ -26,7 +26,7 @@ public class LoginRecordServiceImpl implements LoginRecordService {
     }
 
     @Override
-    public List<LoginRecord> listLoginRecordsByUserIdAndIp(String userId, String ip) {
+    public List<LoginRecord> listLoginRecordsByUserIdAndIp(Long userId, String ip) {
         List<LoginRecord> result = null;
         result = loginRecordRepository.findLoginRecordsByUserIdEqualsAndIpEquals(userId,ip);
         return result;
@@ -38,7 +38,7 @@ public class LoginRecordServiceImpl implements LoginRecordService {
     }
 
     @Override
-    public LoginRecord getLoginRecordByRecordId(String recordId) {
+    public LoginRecord getLoginRecordByRecordId(Long recordId) {
         return loginRecordRepository.findById(recordId).orElse(null);
     }
 
@@ -55,7 +55,7 @@ public class LoginRecordServiceImpl implements LoginRecordService {
     }
 
     @Override
-    public void deleteLoginRecordByRecordId(String recordId) {
+    public void deleteLoginRecordByRecordId(Long recordId) {
         loginRecordRepository.deleteById(recordId);
     }
 

@@ -7,10 +7,10 @@ package cc.dmji.api.web.model;
 public class ReplyRequest {
 
     // 回复的用户的id
-    private String uid;
+    private Long uid;
 
     // 集数id
-    private Integer ep_id;
+    private Long ep_id;
 
     // 回复正文
     private String content;
@@ -22,43 +22,43 @@ public class ReplyRequest {
     private Byte is_parent;
 
     // 父级评论的用户的id
-    private String p_uid;
+    private Long p_uid;
 
     // 父级评论id
-    private String p_rid;
+    private Long p_rid;
 
     public ReplyRequest() {
     }
 
-    public String getUid() {
+    public Long getUid() {
         return uid;
     }
 
-    public void setUid(String uid) {
+    public void setUid(Long uid) {
         this.uid = uid;
     }
 
-    public String getP_uid() {
+    public Long getP_uid() {
         return p_uid;
     }
 
-    public void setP_uid(String p_uid) {
+    public void setP_uid(Long p_uid) {
         this.p_uid = p_uid;
     }
 
-    public String getP_rid() {
+    public Long getP_rid() {
         return p_rid;
     }
 
-    public void setP_rid(String p_rid) {
+    public void setP_rid(Long p_rid) {
         this.p_rid = p_rid;
     }
 
-    public Integer getEp_id() {
+    public Long getEp_id() {
         return ep_id;
     }
 
-    public void setEp_id(Integer ep_id) {
+    public void setEp_id(Long ep_id) {
         this.ep_id = ep_id;
     }
 

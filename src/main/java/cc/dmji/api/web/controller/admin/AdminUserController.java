@@ -22,6 +22,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +77,7 @@ public class AdminUserController extends BaseController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Result> deleteUser(@PathVariable String userId) {
+    public ResponseEntity<Result> deleteUser(@PathVariable Long userId) {
         User user = userService.getUserById(userId);
         if (user == null) {
             return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND));
@@ -89,7 +92,7 @@ public class AdminUserController extends BaseController {
     }
 
     @GetMapping("/{uid}")
-    public ResponseEntity<Result> getUser(@PathVariable("uid") String uid) {
+    public ResponseEntity<Result> getUser(@PathVariable("uid") Long uid) {
         User user = userService.getUserById(uid);
         return getResponseEntity(HttpStatus.OK, getSuccessResult(user));
     }
@@ -116,7 +119,7 @@ public class AdminUserController extends BaseController {
 
 
     @PutMapping("/{uid}/role/{action}")
-    public ResponseEntity<Result> updateUserRole(@PathVariable("uid") String uid,
+    public ResponseEntity<Result> updateUserRole(@PathVariable("uid") Long uid,
                                                  @PathVariable("action") Integer action,
                                                  @RequestBody(required = false) Map<String, String> requestMap,
                                                  HttpServletRequest request) {
@@ -200,7 +203,7 @@ public class AdminUserController extends BaseController {
         return getResponseEntity(HttpStatus.OK, getSuccessResult(updateUser, message));
     }
 
-    public boolean isCurrMangerTarMangerOrAdmin(String currentUserRole, String targetUserRole) {
+    private boolean isCurrMangerTarMangerOrAdmin(String currentUserRole, String targetUserRole) {
         // 如果当前用户是[管理员] 目标用户是[管理员]或[系统管理员]
         // 则抛出403
         if (currentUserRole.equals(Role.MANAGER.getName())) {
@@ -211,7 +214,7 @@ public class AdminUserController extends BaseController {
     }
 
     @PutMapping(value = {"/{uid}/lock/{action}/{time}", "/{uid}/lock/{action}"})
-    public ResponseEntity<Result> lockUser(@PathVariable("uid") String uid,
+    public ResponseEntity<Result> lockUser(@PathVariable("uid") Long uid,
                                            @PathVariable("action") Integer action,
                                            @PathVariable(value = "time", required = false) Integer time,
                                            HttpServletRequest request) {
@@ -232,18 +235,19 @@ public class AdminUserController extends BaseController {
         String message;
         switch (action) {
             case LOCK_USER:
-                // time 以秒为单位
+                // time 以分钟为单位
                 if (time == 0) {
                     return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "封禁时间不能为0"));
                 }
                 user.setIsLock(UserStatus.LOCK.getStatus());
-                user.setLockTime(time);
-                message = "已封禁账号[" + user.getNick() + "],锁定时长为[" + time + "]";
+                Long lockTime = System.currentTimeMillis() + (long)(time * 60 * 1000);
+                user.setLockTime(new Timestamp(lockTime));
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                message = "已封禁账号【" + user.getNick() + "】,解封时间为：【" +sdf.format(user.getLockTime()) + "】";
                 break;
             case UNLOCK_USER:
                 user.setIsLock(UserStatus.UN_LOCK.getStatus());
                 // 若解封则将时间设置为0
-                user.setLockTime(0);
                 message = "已解封账号[" + user.getNick() + "]";
                 break;
             default:
@@ -282,7 +286,7 @@ public class AdminUserController extends BaseController {
      * @return 当前用户
      */
     private User getCurrentUser(HttpServletRequest request) {
-        String uid = getUidFromToken(request);
+        Long uid = getUidFromRequest(request);
         return userService.getUserById(uid);
     }
 
@@ -291,6 +295,5 @@ public class AdminUserController extends BaseController {
         Message message1 = messageService.insertMessage(message);
         logger.debug("发送的系统通知:{}",message1);
     }
-
 
 }

@@ -8,4 +8,6 @@ import java.util.List;
 public interface DanmakuRespository extends JpaRepository<Danmaku, Long> {
 
     List<Danmaku> findDanmakusByPlayerEquals(String player);
+
+    Long countByPlayerEquals(String player);
 }

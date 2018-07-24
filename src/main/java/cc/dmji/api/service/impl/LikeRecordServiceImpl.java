@@ -32,12 +32,12 @@ public class LikeRecordServiceImpl implements LikeRecordService {
     }
 
     @Override
-    public LikeRecord getByReplyIdAndUserId(String replyId, String userId) {
+    public LikeRecord getByReplyIdAndUserId(Long replyId, Long userId) {
         return likeRecordRepository.getByReplyIdAndUserId(replyId, userId);
     }
 
     @Override
-    public List<LikeRecord> listByReplyIdsAndUserId(List<String> replyList, String userId) {
+    public List<LikeRecord> listByReplyIdsAndUserId(List<Long> replyList, Long userId) {
         return likeRecordRepository.getByUserIdAndReplyIdIn(userId, replyList);
     }
 }

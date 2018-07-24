@@ -1,5 +1,6 @@
 package cc.dmji.api.web.controller;
 
+import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.entity.Bangumi;
@@ -48,6 +49,7 @@ public class PostBangumiController extends BaseController {
     private BangumiService bangumiService;
 
     @GetMapping()
+    @UserLog("获取个人提交番剧列表")
     public ResponseEntity<Result> listUserPostBangumis(HttpServletRequest request,
                                                        @RequestParam(value = "pn", required = false, defaultValue = "1") Integer pn,
                                                        @RequestParam(value = "ps", required = false, defaultValue = "20") Integer ps,
@@ -101,7 +103,7 @@ public class PostBangumiController extends BaseController {
             direction = Sort.Direction.DESC;
         }
 
-        String userId = getUidFromToken(request);
+        Long userId = getUidFromRequest(request);
         Page<PostBangumi> postBangumiPage = null;
 
         if (postBangumiStatus == null){
@@ -136,11 +138,13 @@ public class PostBangumiController extends BaseController {
     }
 
     @PostMapping
+    @UserLog("提交番剧信息")
     public ResponseEntity<Result> postBangumi(@RequestBody Map<String, String> requestMap,
                                               HttpServletRequest request) {
         String bangumiName = requestMap.get("bangumiName");
         String episodeTotalString = requestMap.get("episodeTotal");
         String hasZeroIndexString = requestMap.get("hasZeroIndex");
+        String thumb = requestMap.get("thumb");
 
         if (!StringUtils.hasText(bangumiName)) {
             return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "番剧名不能为空");
@@ -160,7 +164,7 @@ public class PostBangumiController extends BaseController {
 
         Integer episodeTotal = Integer.valueOf(episodeTotalString);
         Byte hasZeroIndex = Byte.valueOf(hasZeroIndexString);
-        String userId = getUidFromToken(request);
+        Long userId = getUidFromRequest(request);
 //        if (episodeTotal < 0) {
 //            return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "总集数不能小于0");
 //        }
@@ -179,31 +183,31 @@ public class PostBangumiController extends BaseController {
 
         List<PostBangumi> postBangumiList = postBangumiService.listByBangumiName(bangumiName);
 
-        Result result = getSuccessResult();
-        result.setMsg("感谢dalao的提交,后续结果请留意系统通知");
         if (postBangumiList.size() != 0) {
-            String msg = "该番剧已经有小伙伴提交了,具体采用哪一个请留意后续通知";
-            result.setMsg(msg);
+            return getErrorResponseEntity(HttpStatus.OK, ResultCode.DATA_ALREADY_EXIST, "该番剧已经有小伙伴提交了,不用再提交啦");
         }
+
+       String msg = "感谢dalao的提交,后续结果请留意系统通知";
+
 
         pb.setBangumiName(bangumiName);
         pb.setHasZeroIndex(hasZeroIndex);
         pb.setEpisodeTotal(episodeTotal);
         pb.setUserId(userId);
         pb.setStatus(Status.NORMAL);
-        pb.setManagerUserId("");
+        pb.setManagerUserId(null);
         pb.setIsShow(SHOW);
         pb.setPostBangumiStatus(PostBangumiStatus.PENDING);
         pb.setMessage("");
-        pb.setThumb("");
+        pb.setThumb(GeneralUtils.cleanXSS(thumb));
 
         PostBangumi insertPostBangumi = postBangumiService.insertPostBangumi(pb);
         logger.debug("插入postBangumi成功,{}", insertPostBangumi);
-
-        return getResponseEntity(HttpStatus.OK, result);
+        return getResponseEntity(HttpStatus.OK, getSuccessResult(new UserPostBangumi(insertPostBangumi),msg));
     }
 
     @PutMapping
+    @UserLog("更新番剧信息")
     public ResponseEntity<Result> updatePostBangumi(HttpServletRequest request,
                                                     @RequestBody Map<String,String> requestMap){
 
@@ -211,9 +215,10 @@ public class PostBangumiController extends BaseController {
         String bangumiNameString = requestMap.get("bn");
         String episodeTotalString = requestMap.get("et");
         String hasZeroIndexString = requestMap.get("hzi");
+        String thumb = requestMap.get("thumb");
 
 
-        String userId = getUidFromToken(request);
+        Long userId = getUidFromRequest(request);
         if (userId == null){
             return getErrorResponseEntity(HttpStatus.FORBIDDEN,ResultCode.PERMISSION_DENY,"请先登陆");
         }
@@ -258,10 +263,68 @@ public class PostBangumiController extends BaseController {
         postBangumi.setBangumiName(bangumiName);
         postBangumi.setHasZeroIndex(hasZeroIndex.byteValue());
         postBangumi.setEpisodeTotal(episodeTotal);
+        postBangumi.setThumb(GeneralUtils.cleanXSS(thumb));
         postBangumi.setModifyTime(new Timestamp(System.currentTimeMillis()));
 
         PostBangumi updatePostBangumi = postBangumiService.updatePostBangumi(postBangumi);
         return getResponseEntity(HttpStatus.OK,getSuccessResult(new UserPostBangumi(updatePostBangumi)));
 
+    }
+
+    @PutMapping("/thumb")
+    @UserLog("更新番剧封面")
+    public ResponseEntity<Result> updatePostBangumiThumb(HttpServletRequest request,
+                                                         @RequestBody Map<String,String> requestMap){
+
+        String idString = requestMap.get("id");
+        String thumb = requestMap.get("thumb");
+
+        if (!StringUtils.hasText(idString)){
+            return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.PARAM_IS_INVALID,"id不能为空");
+        }
+        if (!StringUtils.hasText(thumb)){
+            return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.PARAM_IS_INVALID,"thumb不能为空");
+        }
+        Long id = Long.valueOf(idString);
+        Long userId = getUidFromRequest(request);
+        if (userId == null){
+            return getErrorResponseEntity(HttpStatus.FORBIDDEN,ResultCode.PERMISSION_DENY);
+        }
+
+        PostBangumi postBangumi = postBangumiService.getById(id);
+        if (postBangumi == null){
+            return getErrorResponseEntity(HttpStatus.NOT_FOUND,ResultCode.RESULT_DATA_NOT_FOUND);
+        }
+        if (!postBangumi.getUserId().equals(userId)){
+            return getErrorResponseEntity(HttpStatus.FORBIDDEN,ResultCode.PERMISSION_DENY);
+        }
+
+        postBangumi.setThumb(thumb);
+        postBangumi.setPostBangumiStatus(PostBangumiStatus.AUDITING);
+        postBangumi.setModifyTime(new Timestamp(System.currentTimeMillis()));
+        PostBangumi updatePostBangumi = postBangumiService.updatePostBangumi(postBangumi);
+        return getSuccessResponseEntity(getSuccessResult(new UserPostBangumi(updatePostBangumi)));
+    }
+
+    @DeleteMapping("/{pbId}")
+    @UserLog("删除番剧信息")
+    public ResponseEntity<Result> deletePostBangumi(HttpServletRequest request,
+                                                    @PathVariable("pbId")Long pbId){
+        if (pbId == null || pbId < 0){
+            return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.PARAM_IS_INVALID,"pbid不能为空");
+        }
+
+        PostBangumi postBangumi = postBangumiService.getById(pbId);
+        if (postBangumi == null){
+            return getErrorResponseEntity(HttpStatus.NOT_FOUND,ResultCode.RESULT_DATA_NOT_FOUND);
+        }
+        Long userId = getUidFromRequest(request);
+        if (!postBangumi.getUserId().equals(userId)){
+            return getErrorResponseEntity(HttpStatus.FORBIDDEN,ResultCode.PERMISSION_DENY);
+        }
+        postBangumi.setStatus(Status.DELETE);
+        postBangumi.setModifyTime(new Timestamp(System.currentTimeMillis()));
+        PostBangumi updatePostBangumi = postBangumiService.updatePostBangumi(postBangumi);
+        return getSuccessResponseEntity(getSuccessResult(new UserPostBangumi(updatePostBangumi)));
     }
 }

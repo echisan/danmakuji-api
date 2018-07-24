@@ -1,6 +1,7 @@
 package cc.dmji.api.service;
 
 import cc.dmji.api.entity.Reply;
+import cc.dmji.api.enums.ReplyOrderBy;
 import cc.dmji.api.enums.Status;
 import cc.dmji.api.web.model.Replies;
 import cc.dmji.api.web.model.ReplyInfo;
@@ -18,17 +19,17 @@ public interface ReplyService {
 
     Reply deleteReply(Reply reply);
 
-    List<Reply> listReplyByEpId(Integer epId);
+    List<Reply> listReplyByEpId(Long epId);
 
-    Reply getReplyById(String id);
+    Reply getReplyById(Long id);
 
-    Long countReplyByEpId(Integer epId);
+    Long countReplyByEpId(Long epId);
 
-    Long countParentReplyByEpId(Integer epId);
+    Long countParentReplyByEpId(Long epId);
 
-    Page<Reply> listReplyByEpId(Integer epId, Integer page, Integer size);
+    Page<Reply> listReplyByEpId(Long epId, Integer page, Integer size);
 
-    List<ReplyInfo> listSonRepliesByParentId(String parentId, String userId, Integer pn, Integer ps);
+    List<ReplyInfo> listSonRepliesByParentId(Long parentId, Long userId, Integer pn, Integer ps);
 
 
     /**
@@ -39,40 +40,40 @@ public interface ReplyService {
      * @param ps   每页获取的大小
      * @return
      */
-    List<Replies> listEpisodeReplies(Integer epId, String userId, Integer pn, Integer ps);
+    List<Replies> listEpisodeReplies(Long epId, ReplyOrderBy orderBy, Long userId, Integer pn, Integer ps);
 
-    Map<String, Object> listEpisodeReplies(String userId, Integer epId, Integer pn);
+    Map<String, Object> listEpisodeRepliesToMap(Long userId, ReplyOrderBy orderBy, Long epId, Integer pn,Integer ps);
 
-    ReplyInfo getReplyInfoById(String replyId);
+    ReplyInfo getReplyInfoById(Long replyId);
 
-    Map<String, Object> listPageSonRepliesByParentId(String parentId, String userId, Integer pn, Integer ps);
+    Map<String, Object> listPageSonRepliesByParentId(Long parentId, Long userId, Integer pn, Integer ps);
 
     Long countReplysBetween(Date begin, Date end);
 
-    List<Replies> listEpisodeRepliesByEpIdAndUserId(Integer epId,String userId,Integer pn, Integer ps);
+    List<Replies> listEpisodeRepliesByEpIdAndUserId(Long epId,Long userId,Integer pn, Integer ps);
 
-    Map<String,Long> countByReplyIds(List<String> replyIds);
+    Map<Long,Long> countByReplyIds(List<Long> replyIds);
 
-    Long countFloorByEpId(Integer epId);
+    Long countFloorByEpId(Long epId);
 
-    Long countFloorBetweenByEpId(Integer epId, Long begin,Long end);
+    Long countFloorBetweenByEpId(Long epId, Long begin,Long end);
 
-    Long countSonRepliesByParentId(String parentId);
+    Long countSonRepliesByParentId(Long parentId);
 
-    Long countByParentIdAndCreateTimeBetween(String parentId, Date begin, Date end);
+    Long countByParentIdAndCreateTimeBetween(Long parentId, Date begin, Date end);
 
-    Reply getLatestSonReplyByParentId(String parentId);
+    Reply getLatestSonReplyByParentId(Long parentId);
 
-    Reply getFirstSonReplyByParentId(String parentId);
+    Reply getFirstSonReplyByParentId(Long parentId);
 
-    Reply getLatestReplyByEpId(Integer epId);
+    Reply getLatestReplyByEpId(Long epId);
 
-    Reply getFirstReplyByEpid(Integer epId);
+    Reply getFirstReplyByEpid(Long epId);
 
-    Long countByEpIdAndCreateTimeBetween(Integer epId, Date begin, Date end);
+    Long countByEpIdAndCreateTimeBetween(Long epId, Date begin, Date end);
 
-    List<ReplyInfo> listSonReplyInfoByParentIds(List<String> parentIds);
+    List<ReplyInfo> listSonReplyInfoByParentIds(List<Long> parentIds);
 
-    List<ReplyInfo> addReplyInfoLikeStatus(List<ReplyInfo> replyInfos, String userId);
+    List<ReplyInfo> addReplyInfoLikeStatus(List<ReplyInfo> replyInfos, Long userId);
 
 }

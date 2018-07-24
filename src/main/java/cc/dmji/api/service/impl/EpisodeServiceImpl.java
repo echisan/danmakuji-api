@@ -12,6 +12,7 @@ import cc.dmji.api.web.model.VideoInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -47,42 +48,42 @@ public class EpisodeServiceImpl implements EpisodeService {
     }
 
     @Override
-    public EpisodePageInfo listEpisodesByBangumiId(Integer bangumiId) {
+    public EpisodePageInfo listEpisodesByBangumiId(Long bangumiId) {
         return this.listEpisodesByBangumiId(bangumiId,1,20);
     }
 
     @Override
-    public EpisodePageInfo listEpisodesByBangumiId(Integer bangumiId, int pn) {
+    public EpisodePageInfo listEpisodesByBangumiId(Long bangumiId, int pn) {
         return this.listEpisodesByBangumiId(bangumiId,pn,20);
     }
 
     @Override
-    public EpisodePageInfo listEpisodesByBangumiId(Integer bangumiId, int pn, int ps) {
+    public EpisodePageInfo listEpisodesByBangumiId(Long bangumiId, int pn, int ps) {
         Page<Episode> result = null;
         result = episodeRepository.findEpisodesByBangumiIdEquals(bangumiId,
-                PageRequest.of(pn-1,ps));
+                PageRequest.of(pn-1,ps,Sort.Direction.ASC,"epIndex"));
         PageInfo pageInfo = new PageInfo(pn,ps,result.getTotalElements());
         return new EpisodePageInfo(result.getContent(),pageInfo);
     }
 
     @Override
-    public List<Episode> listAllEpisodesByBangumiId(Integer bangumiId) {
+    public List<Episode> listAllEpisodesByBangumiId(Long bangumiId) {
         return episodeRepository.findEpisodesByBangumiIdEquals(bangumiId);
     }
 
     @Override
-    public List<Episode> listEpisodesByEpIds(List<Integer> epIds) {
+    public List<Episode> listEpisodesByEpIds(List<Long> epIds) {
         return episodeRepository.findAllById(epIds);
     }
 
 
     @Override
-    public Episode getEpisodeByBangumiIdAndEpIndex(Integer bangumiId, Integer epIndex) {
+    public Episode getEpisodeByBangumiIdAndEpIndex(Long bangumiId, Integer epIndex) {
         return episodeRepository.findEpisodeByBangumiIdEqualsAndEpIndexEquals(bangumiId,epIndex);
     }
 
     @Override
-    public Episode getEpisodeByEpId(Integer epId) {
+    public Episode getEpisodeByEpId(Long epId) {
         return episodeRepository.findById(epId).orElse(null);
     }
 
@@ -90,6 +91,7 @@ public class EpisodeServiceImpl implements EpisodeService {
     public Episode insertEpisode(Episode episode) {
         setCreateAndModifyTime(episode);
         episode.setDanmakuId(DmjiUtils.getUUID32());
+        episode.setViewCount(0L);
         return episodeRepository.save(episode);
     }
 
@@ -98,6 +100,7 @@ public class EpisodeServiceImpl implements EpisodeService {
         episodes.forEach(e->{
             setCreateAndModifyTime(e);
             e.setDanmakuId(DmjiUtils.getUUID32());
+            e.setViewCount(0L);
         });
         return episodeRepository.saveAll(episodes);
     }
@@ -109,7 +112,7 @@ public class EpisodeServiceImpl implements EpisodeService {
     }
 
     @Override
-    public void deleteEpisode(Integer id) {
+    public void deleteEpisode(Long id) {
         episodeRepository.deleteById(id);
     }
 
@@ -124,9 +127,14 @@ public class EpisodeServiceImpl implements EpisodeService {
     }
 
     @Override
-    public long countEpisodeByBangumiId(int bangumiId){
+    public long countEpisodeByBangumiId(Long bangumiId){
 
         return episodeRepository.countEpisodesByBangumiIdEquals(bangumiId);
+    }
+
+    @Override
+    public Page<Episode> listEpisodeByViewCount(Integer pn, Integer ps) {
+        return episodeRepository.findAll(PageRequest.of(pn-1,ps,Sort.Direction.DESC,"viewCount"));
     }
 
     private void setModifyTime(Episode episode){

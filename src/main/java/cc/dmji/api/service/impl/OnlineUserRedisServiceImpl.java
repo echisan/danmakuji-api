@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by echisan on 2018/6/20
@@ -92,10 +93,15 @@ public class OnlineUserRedisServiceImpl implements OnlineUserRedisService {
     }
 
     @Override
-    public List<String> listAuthOnlineUserIds() {
-        return new ArrayList<>();
+    public Set<String> listAuthOnlineUserIds() {
+        double min = System.currentTimeMillis() - onlineExpiration * 1000;
+        return getAuthZSet().rangeByScore(min, System.currentTimeMillis());
     }
 
+    @Override
+    public Set<String> listTodayOnlineUserIds() {
+        return getAuthZSet().rangeByScore(0, System.currentTimeMillis());
+    }
 
     @Override
     public Long countTodayMaxOnlineUser() {

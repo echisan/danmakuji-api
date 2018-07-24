@@ -67,7 +67,7 @@ public class AdminVideoController extends BaseController {
     }
 
     @GetMapping("/eid/{epId}")
-    public Result listVideosByEpId(@PathVariable(value = "epId") Integer epId,
+    public Result listVideosByEpId(@PathVariable(value = "epId") Long epId,
                                    @RequestParam(value = "isMatch",required = false) Byte isMatch,
                                    @RequestParam(required = false, defaultValue = "1") Integer pageNum,
                                    @RequestParam(required = false, defaultValue = "20") Integer pageSize) {
@@ -141,7 +141,7 @@ public class AdminVideoController extends BaseController {
     }
 
     @PutMapping("/{videoId}")
-    public Result editVideo(@PathVariable String videoId, @RequestBody Video video) {
+    public Result editVideo(@PathVariable Long videoId, @RequestBody Video video) {
         Video editedVideo = videoService.getVideoByVideoId(videoId);
         if (null == editedVideo) {
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND, "videoId不存在");
@@ -180,7 +180,7 @@ public class AdminVideoController extends BaseController {
     }
 
     @DeleteMapping("/{videoId}")
-    public Result deleteVideo(@PathVariable String videoId) {
+    public Result deleteVideo(@PathVariable Long videoId) {
         Video video = videoService.getVideoByVideoId(videoId);
         if (null == video) {
             return getErrorResult(ResultCode.DATA_IS_WRONG, "video删除失败");
@@ -193,7 +193,7 @@ public class AdminVideoController extends BaseController {
     @DeleteMapping
     public Result deleteVideos(@RequestBody Map<String, List<Video>> vds) {
         List<Video> videos = vds.get("videos");
-        List<String> ids = new ArrayList<>();
+        List<Long> ids = new ArrayList<>();
         for (Video v : videos) {
             if (null == v.getVideoId()) {
                 return getErrorResult(ResultCode.DATA_IS_WRONG, "批量删除失败，videoId不能为空");

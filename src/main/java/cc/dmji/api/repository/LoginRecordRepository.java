@@ -5,11 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface LoginRecordRepository extends JpaRepository<LoginRecord,String> {
+public interface LoginRecordRepository extends JpaRepository<LoginRecord,Long> {
 
     List<LoginRecord> findLoginRecordsByIpEquals(String ip);
 
-    List<LoginRecord> findLoginRecordsByUserIdEquals(String userId);
+    List<LoginRecord> findLoginRecordsByUserIdEquals(Long userId);
 
-    List<LoginRecord> findLoginRecordsByUserIdEqualsAndIpEquals(String userId, String ip);
+    List<LoginRecord> findLoginRecordsByUserIdEqualsAndIpEquals(Long userId, String ip);
 }

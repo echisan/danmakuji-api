@@ -13,7 +13,7 @@ public interface UserService {
 
     User insertUser(User user);
 
-    void deleteUserById(String id);
+    void deleteUserById(Long id);
 
     User deleteUserByNick(String nick);
 
@@ -21,7 +21,7 @@ public interface UserService {
 
     User updateUser(User user);
 
-    User getUserById(String id);
+    User getUserById(Long id);
 
     User getUserByNick(String nick);
 
@@ -39,7 +39,7 @@ public interface UserService {
 
     Long countUsersByCreateTime(Date begin, Date end);
 
-    List<User> listUserByIdsIn(List<String> userId);
+    List<User> listUserByIdsIn(List<Long> userId);
 
     List<User> listUserByNickIn(List<String> usernameList);
 

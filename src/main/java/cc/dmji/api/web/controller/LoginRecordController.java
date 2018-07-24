@@ -17,7 +17,7 @@ public class LoginRecordController extends BaseController {
     LoginRecordService loginRecordService;
 
     @GetMapping
-    public Result listLoginRecords(@RequestParam(required = false) String userId,
+    public Result listLoginRecords(@RequestParam(required = false) Long userId,
                                    @RequestParam(required = false) String ip){
         List<LoginRecord> result = null;
         if(null == userId && null ==ip){
@@ -44,7 +44,7 @@ public class LoginRecordController extends BaseController {
     }
 
     @GetMapping("/{recordId}")
-    public Result getLoginRecordById(@PathVariable String recordId){
+    public Result getLoginRecordById(@PathVariable Long recordId){
         LoginRecord loginRecord = loginRecordService.getLoginRecordByRecordId(recordId);
         if(null == loginRecord){
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND);
@@ -66,7 +66,7 @@ public class LoginRecordController extends BaseController {
     }
 
     @DeleteMapping("/{recordId}")
-    public Result deleteRecordId(@PathVariable String recordId){
+    public Result deleteRecordId(@PathVariable Long recordId){
         LoginRecord loginRecord = loginRecordService.getLoginRecordByRecordId(recordId);
         if(null == loginRecord){
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND,"删除登陆记录失败");

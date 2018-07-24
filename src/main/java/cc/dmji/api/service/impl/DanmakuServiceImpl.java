@@ -44,20 +44,25 @@ public class DanmakuServiceImpl implements DanmakuService {
 
     @Override
     public List<Danmaku> listDanmakuById(String id, Integer max) {
-        List<Danmaku> danmakuEntityList = null;
-        String danmakuIdKey = RedisKey.DANMAKU_KEY + id;
-        if (redisTemplate.hasKey(danmakuIdKey)) {
-            logger.info("redis danmake_id_key is [{}] and limit [{}]", danmakuIdKey, max);
-            danmakuEntityList = (List<Danmaku>) redisTemplate.opsForValue().get(danmakuIdKey);
-        } else {
-            danmakuEntityList = danmakuRespository.findDanmakusByPlayerEquals(id);
-            redisTemplate.opsForValue().set(danmakuIdKey, danmakuEntityList, KEY_TIME_OUT, TimeUnit.HOURS);
-        }
-
-        if (danmakuEntityList.size() > max && danmakuEntityList.size() != 0) {
-            danmakuEntityList.subList(0, max);
-        }
-        return danmakuEntityList;
+//        List<Danmaku> danmakuEntityList = null;
+//        String danmakuIdKey = RedisKey.DANMAKU_KEY + id;
+//        if (redisTemplate.hasKey(danmakuIdKey)) {
+//            logger.info("redis danmake_id_key is [{}] and limit [{}]", danmakuIdKey, max);
+//            danmakuEntityList = (List<Danmaku>) redisTemplate.opsForValue().get(danmakuIdKey);
+//        } else {
+//            danmakuEntityList = danmakuRespository.findDanmakusByPlayerEquals(id);
+//            redisTemplate.opsForValue().set(danmakuIdKey, danmakuEntityList, KEY_TIME_OUT, TimeUnit.HOURS);
+//        }
+//
+//        if (danmakuEntityList.size() > max && danmakuEntityList.size() != 0) {
+//            danmakuEntityList.subList(0, max);
+//        }
+//        List<Danmaku> danmakusByPlayerEquals =
+        return danmakuRespository.findDanmakusByPlayerEquals(id);
     }
 
+    @Override
+    public Long countDanmakuByPlayer(String player) {
+        return danmakuRespository.countByPlayerEquals(player);
+    }
 }

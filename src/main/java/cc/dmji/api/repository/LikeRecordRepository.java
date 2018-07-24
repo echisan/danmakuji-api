@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface LikeRecordRepository extends JpaRepository<LikeRecord, Long> {
 
-    LikeRecord getByReplyIdAndUserId(String replyId, String userId);
+    LikeRecord getByReplyIdAndUserId(Long replyId, Long userId);
 
-    List<LikeRecord> getByUserIdAndReplyIdIn(String userId, Collection<String> replyIds);
+    List<LikeRecord> getByUserIdAndReplyIdIn(Long userId, Collection<Long> replyIds);
 }

@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-public interface UserRepository extends JpaRepository<User, String> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
     User getUserByNick(String nick);
 
@@ -25,7 +25,7 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     Long countByCreateTimeBetween(Date begin, Date end);
 
-    List<User> findByUserIdIn(Collection<String> userIds);
+    List<User> findByUserIdIn(Collection<Long> userIds);
 
     List<User> findByNickIn(Collection<String> nick);
 

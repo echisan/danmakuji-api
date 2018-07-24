@@ -13,27 +13,26 @@ import java.sql.Timestamp;
 @Entity
 @DynamicInsert
 @DynamicUpdate
-@GenericGenerator(name = "jpa-uuid",strategy = "uuid")
 @Table(name = "dm_video", schema = "dmji", catalog = "")
 public class Video {
-    private String videoId;
+    private Long videoId;
     private String vMd5;
     private Long fileSize;
     private Timestamp createTime;
     private Timestamp modifyTime;
-    private Integer epId;
+    private Long epId;
     @Column(name = "is_match")
     private Byte isMatch;
     private Integer score;
 
     @Id
-    @GeneratedValue(generator = "jpa-uuid")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "video_id")
-    public String getVideoId() {
+    public Long getVideoId() {
         return videoId;
     }
 
-    public void setVideoId(String videoId) {
+    public void setVideoId(Long videoId) {
         this.videoId = videoId;
     }
 
@@ -79,11 +78,11 @@ public class Video {
 
     @Basic
     @Column(name = "ep_id")
-    public Integer getEpId() {
+    public Long getEpId() {
         return epId;
     }
 
-    public void setEpId(Integer epId) {
+    public void setEpId(Long epId) {
         this.epId = epId;
     }
 

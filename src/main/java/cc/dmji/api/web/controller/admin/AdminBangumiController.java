@@ -83,7 +83,7 @@ public class AdminBangumiController extends BaseController {
     }
 
     @GetMapping("/{id}")
-    public Result getBangumiById(@PathVariable Integer id){
+    public Result getBangumiById(@PathVariable Long id){
         Bangumi bangumi = bangumiService.getBangumiById(id);
         if(null == bangumi){
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND);
@@ -124,7 +124,7 @@ public class AdminBangumiController extends BaseController {
     }
 
     @PutMapping("/{bangumiId}")
-    public Result editBangumi(@PathVariable("bangumiId") Integer bangumiId, @RequestBody Bangumi bangumi){
+    public Result editBangumi(@PathVariable("bangumiId") Long bangumiId, @RequestBody Bangumi bangumi){
 
         Bangumi editedBangumi = bangumiService.getBangumiById(bangumiId);
         if(editedBangumi == null){
@@ -162,7 +162,7 @@ public class AdminBangumiController extends BaseController {
     }
 
     @DeleteMapping("/{bangumiId}")
-    public Result deleteBangumi(@PathVariable Integer bangumiId){
+    public Result deleteBangumi(@PathVariable Long bangumiId){
         Bangumi deletedBangumi = bangumiService.getBangumiById(bangumiId);
         if(null == deletedBangumi){
             return getErrorResult(ResultCode.PARAM_IS_INVALID,"删除番剧失败");
@@ -176,7 +176,7 @@ public class AdminBangumiController extends BaseController {
     @DeleteMapping
     public Result deleteBangumis(@RequestBody Map<String,List<Bangumi>> bgs) throws IOException {
         List<Bangumi> bangumis = bgs.get("bangumis");
-        List<Integer> ids = new ArrayList<>();
+        List<Long> ids = new ArrayList<>();
         for(Bangumi b:bangumis){
             if(b.getBangumiId() == null){
                 return getErrorResult(ResultCode.DATA_IS_WRONG,"番剧id不能为空");

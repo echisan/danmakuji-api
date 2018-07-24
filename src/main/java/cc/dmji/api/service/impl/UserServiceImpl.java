@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUserById(String id) {
+    public void deleteUserById(Long id) {
         userRepository.deleteById(id);
     }
 
@@ -64,7 +64,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserById(String id) {
+    public User getUserById(Long id) {
         Optional<User> user = userRepository.findById(id);
         return user.orElse(null);
     }
@@ -114,7 +114,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> listUserByIdsIn(List<String> userId) {
+    public List<User> listUserByIdsIn(List<Long> userId) {
         return userRepository.findByUserIdIn(userId);
     }
 
@@ -130,7 +130,7 @@ public class UserServiceImpl implements UserService {
             user.setPwd(rs.getString("pwd"));
             user.setFace(rs.getString("face"));
             user.setEmail(rs.getString("email"));
-            user.setLockTime(rs.getInt("lock_time"));
+            user.setLockTime(rs.getTimestamp("lock_time"));
             user.setSex(rs.getString("sex"));
             user.setPhone(rs.getString("phone"));
             user.setPhoneVerified(rs.getByte("phone_verified"));
@@ -140,7 +140,7 @@ public class UserServiceImpl implements UserService {
             user.setAge(rs.getInt("age"));
             user.setEmailVerified(rs.getByte("email_verified"));
             user.setRole(rs.getString("role"));
-            user.setUserId(rs.getString("user_id"));
+            user.setUserId(rs.getLong("user_id"));
             user.setIsLock(rs.getByte("is_lock"));
             return user;
         }

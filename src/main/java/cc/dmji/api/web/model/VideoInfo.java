@@ -3,11 +3,15 @@ package cc.dmji.api.web.model;
 public class VideoInfo {
 
     private String danmakuId;
-    private Integer episodeId;
+    private Long episodeId;
     private String bangumiName;
-    private Integer bangumiId;
+    private Long bangumiId;
     private Integer episodeIndex;
     private Byte replyable;
+    private Long videoId;
+    private String thumb;
+    private Long viewCount;
+    private Long danmakuCount;
 
     public Integer getEpisodeIndex() {
         return episodeIndex;
@@ -25,11 +29,11 @@ public class VideoInfo {
         this.danmakuId = danmakuId;
     }
 
-    public Integer getEpisodeId() {
+    public Long getEpisodeId() {
         return episodeId;
     }
 
-    public void setEpisodeId(Integer episodeId) {
+    public void setEpisodeId(Long episodeId) {
         this.episodeId = episodeId;
     }
 
@@ -41,11 +45,11 @@ public class VideoInfo {
         this.bangumiName = bangumiName;
     }
 
-    public Integer getBangumiId() {
+    public Long getBangumiId() {
         return bangumiId;
     }
 
-    public void setBangumiId(Integer bangumiId) {
+    public void setBangumiId(Long bangumiId) {
         this.bangumiId = bangumiId;
     }
 
@@ -55,6 +59,38 @@ public class VideoInfo {
 
     public void setReplyable(Byte replyable) {
         this.replyable = replyable;
+    }
+
+    public Long getVideoId() {
+        return videoId;
+    }
+
+    public void setVideoId(Long videoId) {
+        this.videoId = videoId;
+    }
+
+    public String getThumb() {
+        return thumb;
+    }
+
+    public void setThumb(String thumb) {
+        this.thumb = thumb;
+    }
+
+    public Long getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(Long viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public Long getDanmakuCount() {
+        return danmakuCount;
+    }
+
+    public void setDanmakuCount(Long danmakuCount) {
+        this.danmakuCount = danmakuCount;
     }
 
     @Override

@@ -31,4 +31,12 @@ public class Replies {
     public void setReplies(List<ReplyInfo> replies) {
         this.replies = replies;
     }
+
+    @Override
+    public String toString() {
+        return "Replies{" +
+                "reply=" + reply +
+                ", replies=" + replies +
+                '}';
+    }
 }

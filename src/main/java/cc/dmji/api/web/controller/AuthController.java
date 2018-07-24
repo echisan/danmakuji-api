@@ -56,24 +56,21 @@ public class AuthController extends BaseController {
     @UserLog("登出")
     public ResponseEntity<Result> logout(HttpServletRequest request) {
         String header = request.getHeader(SecurityConstants.TOKEN_HEADER_AUTHORIZATION);
-        if (!StringUtils.isEmpty(header)){
+        if (!StringUtils.isEmpty(header)) {
             String token = header.replace(SecurityConstants.TOKEN_PREFIX, "");
             if (redisTokenService.hasToken(token)) {
                 Long tokenIndex = redisTokenService.invalidToken(token);
                 redisTokenService.deleteUserLock(jwtTokenUtils.getUid(token));
                 logger.info("登出成功, 该tokenIndex为：{}", tokenIndex);
                 return getResponseEntity(HttpStatus.OK, getSuccessResult("登出成功"));
-            } else {
-                return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_INVALID));
             }
-        }else {
-            return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_INVALID));
         }
+        return getResponseEntity(HttpStatus.OK,getSuccessResult("登出成功"));
     }
 
     @GetMapping("/verify/uid/{uid}/key/{key}")
     @UserLog("邮箱验证")
-    public ResponseEntity<Result> verifyEmail(@PathVariable("uid") String uid,
+    public ResponseEntity<Result> verifyEmail(@PathVariable("uid") Long uid,
                                               @PathVariable("key") String uuid) {
 
         String key = RedisKey.VERIFY_EMAIL_KEY + uid;
@@ -98,7 +95,7 @@ public class AuthController extends BaseController {
     @UserLog("发送邮箱认证请求")
     public ResponseEntity<Result> sendReVerifyEmail(HttpServletRequest request) {
 
-        String userId = getUidFromToken(request);
+        Long userId = getUidFromRequest(request);
         if (userId == null) {
             return getResponseEntity(HttpStatus.FORBIDDEN, getErrorResult(ResultCode.PERMISSION_DENY, "用户尚未登录，不能申请邮箱认证"));
         }

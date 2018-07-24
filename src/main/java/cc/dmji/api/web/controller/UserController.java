@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  * Created by echisan on 2018/5/16
  */
 @RestController
-@RequestMapping(value = "users")
+@RequestMapping(value = "/users")
 public class UserController extends BaseController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -103,7 +103,7 @@ public class UserController extends BaseController {
         newUser.setPhoneVerified(UserStatus.PHONE_UN_VERIFY.getStatus());
         newUser.setFace("");
         newUser.setIsLock(UserStatus.UN_LOCK.getStatus());
-        newUser.setLockTime(0);
+        newUser.setLockTime(null);
 
 
         try {
@@ -133,9 +133,9 @@ public class UserController extends BaseController {
 
     @GetMapping("/{userId}")
     @UserLog("获取单个用户信息")
-    public ResponseEntity getUser(@PathVariable String userId, HttpServletRequest request) {
+    public ResponseEntity getUser(@PathVariable Long userId, HttpServletRequest request) {
         User user = userService.getUserById(userId);
-        String currentUserId = getUidFromToken(request);
+        Long currentUserId = getUidFromRequest(request);
 
         if (user != null) {
             // 如果不是本人的话只能获取一些奇怪的东西了
@@ -148,7 +148,7 @@ public class UserController extends BaseController {
                 Map<String,String> userInfo = new HashMap<>();
                 userInfo.put("sex",user.getSex());
                 userInfo.put("face",user.getFace());
-                userInfo.put("uid",user.getUserId());
+                userInfo.put("uid", String.valueOf(user.getUserId()));
                 userInfo.put("nick",user.getNick());
                 userInfo.put("sign",user.getSign());
                 return getResponseEntity(HttpStatus.OK, getSuccessResult(userInfo));
@@ -159,42 +159,69 @@ public class UserController extends BaseController {
         return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND));
     }
 
-    @DeleteMapping("/{userId}")
+//    @DeleteMapping("/{userId}")
     @UserLog("注销账号")
-    public ResponseEntity<Result> deleteUser(@PathVariable String userId, HttpServletRequest request) {
-        String uid = getUidFromToken(request);
+    public ResponseEntity<Result> deleteUser(@PathVariable Long userId, HttpServletRequest request) {
+        Long uid = getUidFromRequest(request);
         User user = userService.getUserById(userId);
         if (user == null) {
             return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND));
         }
-        if (!user.getUserId().equalsIgnoreCase(uid)) {
+        if (!user.getUserId().equals(uid)) {
             return getResponseEntity(HttpStatus.FORBIDDEN, getErrorResult(ResultCode.PERMISSION_DENY));
         }
         userService.deleteUserById(userId);
         return getResponseEntity(HttpStatus.OK, getSuccessResult());
     }
 
+    @PutMapping("/{userId}/pwd")
+    public ResponseEntity<Result> updatePassword(@PathVariable Long userId,
+                                                 @RequestBody Map<String,String> requestMap,
+                                                 HttpServletRequest request){
+        // ----- 修改密码 -----
+        Long uid = getUidFromRequest(request);
+        User dbUser = userService.getUserById(userId);
+        if (!dbUser.getUserId().equals(uid)) {
+            return getResponseEntity(HttpStatus.FORBIDDEN, getErrorResult(ResultCode.PERMISSION_DENY));
+        }
+        String oldPassword = requestMap.get("opwd");
+        String newPassword = requestMap.get("cpwd");
+
+        if (!bCryptPasswordEncoder.matches(oldPassword, dbUser.getPwd())){
+            return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.PARAM_IS_INVALID,"原密码错误，无法修改");
+        }
+        if(oldPassword.equals(newPassword)){
+            return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.DATA_IS_WRONG,"新密码不能与旧密码相同");
+        }
+        if (StringUtils.hasText(newPassword) && DmjiUtils.validPassword(newPassword)){
+            dbUser.setPwd(bCryptPasswordEncoder.encode(newPassword));
+        }
+        else {
+            return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.DATA_IS_WRONG,"密码格式有误");
+        }
+        User updateUser = userService.updateUser(dbUser);
+        updateUser.setPwd("");
+        return getSuccessResponseEntity(getSuccessResult(updateUser));
+    }
+
     @PutMapping("/{userId}")
     @UserLog("更新用户信息")
-    public ResponseEntity<Result> updateUser(@PathVariable String userId, @RequestBody User user,
+    public ResponseEntity<Result> updateUser(@PathVariable Long userId, @RequestBody User user,
                                              HttpServletRequest request) throws MessagingException {
 
         logger.info("修改用户信息[PUT] user:[{}]", user.toString());
-        String uid = getUidFromToken(request);
+        Long uid = getUidFromRequest(request);
         User dbUser = userService.getUserById(userId);
-        if (!dbUser.getUserId().equalsIgnoreCase(uid)) {
+        if (!dbUser.getUserId().equals(uid)) {
             return getResponseEntity(HttpStatus.FORBIDDEN, getErrorResult(ResultCode.PERMISSION_DENY));
         }
 
         boolean isEmailChange = false;
         boolean isPhoneChange = false;
-        // 修改密码
-        if (!StringUtils.isEmpty(user.getPwd())) {
-            if (!DmjiUtils.validPassword(user.getPwd())) {
-                return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "密码格式不正确"));
-            }
-            dbUser.setPwd(bCryptPasswordEncoder.encode(user.getPwd()));
-        }
+
+
+        // -----------------
+
 
         // 修改邮箱
         if (!StringUtils.isEmpty(user.getEmail())) {
@@ -242,6 +269,7 @@ public class UserController extends BaseController {
             dbUser.setSign(user.getSign());
         }
 
+        // 修改性别
         if (!StringUtils.isEmpty(user.getSex())){
             String sex = user.getSex();
             Sex[] values = Sex.values();
@@ -269,8 +297,4 @@ public class UserController extends BaseController {
         // todo 验证手机号码 先不干
     }
 
-    @Async
-    public void sendVerifyEmail() {
-
-    }
 }

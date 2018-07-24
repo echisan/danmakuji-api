@@ -9,17 +9,17 @@ import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 
-public interface MessageRepository extends JpaRepository<Message, String> {
+public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    Page<Message> findByUserIdEquals(String userId, Pageable pageable);
+    Page<Message> findByUserIdEquals(Long userId, Pageable pageable);
 
-    Long countByUserIdEqualsAndTypeEqualsAndIsRead(String userId, String type, Byte isRead);
+    Long countByUserIdEqualsAndTypeEqualsAndIsRead(Long userId, String type, Byte isRead);
 
-    Page<Message> findByUserIdEqualsAndTypeEquals(String userId, String type, Pageable pageable);
+    Page<Message> findByUserIdEqualsAndTypeEquals(Long userId, String type, Pageable pageable);
 
-    Page<Message> findByUserIdEqualsAndTypeEqualsOrUserIdIsNullAndCreateTimeAfter(String userId, String type, Timestamp createTime,Pageable pageable);
+    Page<Message> findByUserIdEqualsAndTypeEqualsOrUserIdIsNullAndCreateTimeAfter(Long userId, String type, Timestamp createTime,Pageable pageable);
 
-    List<Message> findByUserIdEqualsAndIsReadEqualsAndTypeEquals(String userId, Byte isRead,String type);
+    List<Message> findByUserIdEqualsAndIsReadEqualsAndTypeEquals(Long userId, Byte isRead,String type);
 
-    void deleteByIdIn(Collection<String> ids);
+    void deleteByIdIn(Collection<Long> ids);
 }

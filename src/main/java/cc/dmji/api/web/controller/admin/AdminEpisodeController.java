@@ -57,7 +57,7 @@ public class AdminEpisodeController extends BaseController {
     }
 
     @GetMapping("/{epId}")
-    public Result getEpisodeByEpId(@PathVariable Integer epId){
+    public Result getEpisodeByEpId(@PathVariable Long epId){
         Episode episode = episodeService.getEpisodeByEpId(epId);
         if(null == episode){
            return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND,"epId不存在");
@@ -66,7 +66,7 @@ public class AdminEpisodeController extends BaseController {
     }
 
     @GetMapping("/bid/{bangumiId}")
-    public Result listEpisodesByBangumiId(@PathVariable Integer bangumiId,
+    public Result listEpisodesByBangumiId(@PathVariable Long bangumiId,
                                           @RequestParam(required = false) Integer pageNum,
                                           @RequestParam(required = false) Integer pageSize){
         int validateResult = validatePageParam(pageNum,pageSize);
@@ -158,7 +158,7 @@ public class AdminEpisodeController extends BaseController {
     }
 
     @PutMapping("/{epId}")
-    public Result editEpisode(@PathVariable Integer epId, @RequestBody Episode episode){
+    public Result editEpisode(@PathVariable Long epId, @RequestBody Episode episode){
 
         //根据path中的epId查询是否有对应的数据
         Episode editedEpisode = episodeService.getEpisodeByEpId(epId);
@@ -226,7 +226,7 @@ public class AdminEpisodeController extends BaseController {
     }
 
     @DeleteMapping("/{epId}")
-    public Result deleteEpisode(@PathVariable Integer epId){
+    public Result deleteEpisode(@PathVariable Long epId){
         Episode episode = episodeService.getEpisodeByEpId(epId);
         if(null == episode){
             return getErrorResult(ResultCode.DATA_IS_WRONG,"删除episode失败");
@@ -240,7 +240,7 @@ public class AdminEpisodeController extends BaseController {
     @DeleteMapping
     public Result deleteEpisodes(@RequestBody Map<String,List<Episode>> eps){
         List<Episode> episodes = eps.get("episodes");
-        List<Integer> ids = new ArrayList<>();
+        List<Long> ids = new ArrayList<>();
         for(Episode ep:episodes){
             if(null == ep.getEpId()){
                 return getErrorResult(ResultCode.DATA_IS_WRONG,"epId不能为空");

@@ -7,9 +7,12 @@ import cc.dmji.api.constants.MessageConstants;
 import cc.dmji.api.constants.ReplyConstants;
 import cc.dmji.api.entity.*;
 import cc.dmji.api.enums.MessageType;
+import cc.dmji.api.enums.ReplyOrderBy;
+import cc.dmji.api.enums.Role;
 import cc.dmji.api.enums.Status;
 import cc.dmji.api.service.*;
 import cc.dmji.api.utils.DmjiUtils;
+import cc.dmji.api.utils.JwtTokenUtils;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.utils.ReplyPageInfo;
 import cc.dmji.api.web.model.Replies;
@@ -57,18 +60,27 @@ public class ReplyController extends BaseController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JwtTokenUtils jwtTokenUtils;
+
     @GetMapping
     @UserLog("获取回复")
-    public ResponseEntity<Result> listEpReplies(@RequestParam(required = false) Integer epId,
-                                                @RequestParam(name = "rid", required = false) String replyId,
+    public ResponseEntity<Result> listEpReplies(@RequestParam(required = false) Long epId,
+                                                @RequestParam(name = "rid", required = false) Long replyId,
                                                 @RequestParam(value = "pn", defaultValue = "1", required = false) Integer pn,
+                                                @RequestParam(value = "ps", defaultValue = "20", required = false) Integer ps,
                                                 HttpServletRequest request) {
 
-        String userId = getUidFromToken(request);
+        Long userId = getUidFromRequest(request);
         Map<String, Object> data = null;
         if (epId != null) {
-            data = replyService.listEpisodeReplies(userId, epId, pn);
+            data = replyService.listEpisodeRepliesToMap(userId, ReplyOrderBy.CREATE_TIME, epId, pn, ps);
 //            return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_BLANK, "epId不能为空"));
+            if (pn == 1){
+                // 获取热门评论
+                List<Replies> repliesList = replyService.listEpisodeReplies(epId, ReplyOrderBy.LIKE, userId, pn, 3);
+                data.put("hot",repliesList);
+            }
         }
         if (replyId != null) {
             Reply reply = replyService.getReplyById(replyId);
@@ -78,14 +90,14 @@ public class ReplyController extends BaseController {
 
             // 如果是父级评论的话
             if (reply.getIsParent().equals(ReplyConstants.IS_PARENT)) {
-                data = replyService.listEpisodeReplies(userId, reply.getEpId(), findParentReplyPage(reply));
+                data = replyService.listEpisodeRepliesToMap(userId, ReplyOrderBy.CREATE_TIME, reply.getEpId(), findParentReplyPage(reply), ps);
             } else {
 
                 // 如果不是父集评论就把他父集评论所在的页面查出来
-                String parentId = reply.getParentId();
+                Long parentId = reply.getParentId();
                 Reply parentReply = replyService.getReplyById(parentId);
                 // 当前评论的父集评论所在的页数
-                data = replyService.listEpisodeReplies(userId, parentReply.getEpId(), findParentReplyPage(parentReply));
+                data = replyService.listEpisodeRepliesToMap(userId, ReplyOrderBy.CREATE_TIME, parentReply.getEpId(), findParentReplyPage(parentReply), ps);
 
                 // 找出子评论的页码
                 Long sonCount = replyService.countSonRepliesByParentId(parentId);
@@ -100,11 +112,11 @@ public class ReplyController extends BaseController {
                     if (sonPage > 1) {
                         List<ReplyInfo> sonReplyList = replyService.listSonRepliesByParentId(parentId, userId, sonPage, sonPageSize);
 
-                        List<String> replyIds = new ArrayList<>();
+                        List<Long> replyIds = new ArrayList<>();
                         sonReplyList.forEach(replyInfo -> replyIds.add(replyInfo.getReply().getReplyId()));
                         if (userId != null) {
                             List<LikeRecord> likeRecords = likeRecordService.listByReplyIdsAndUserId(replyIds, userId);
-                            Map<String, Byte> isLikeMap = new HashMap<>();
+                            Map<Long, Byte> isLikeMap = new HashMap<>();
                             likeRecords.forEach(likeRecord -> isLikeMap.put(likeRecord.getReplyId(), likeRecord.getStatus()));
                             sonReplyList.forEach(replyInfo -> {
                                 if (isLikeMap.containsKey(replyInfo.getReply().getReplyId())) {
@@ -146,6 +158,8 @@ public class ReplyController extends BaseController {
                     data.put("replies", replies);
                 }
             }
+            List<Replies> repliesList = replyService.listEpisodeReplies(epId, ReplyOrderBy.LIKE, userId, 1, 3);
+            data.put("hot",repliesList);
         }
         return getResponseEntity(HttpStatus.OK, getSuccessResult(data));
     }
@@ -155,7 +169,7 @@ public class ReplyController extends BaseController {
     public ResponseEntity<Result> addReply(@RequestBody ReplyRequest replyRequest, HttpServletRequest request) {
 
         // 数据校验
-        String userId = getUidFromToken(request);
+        Long userId = getUidFromRequest(request);
         String nick = getNickFormRequest(request);
 
         if (StringUtils.isEmpty(replyRequest.getContent())) {
@@ -184,7 +198,7 @@ public class ReplyController extends BaseController {
 
 
         Reply reply = new Reply();
-        String targetUserId = null;
+        Long targetUserId = null;
 
 //        String content = replyRequest.getContent().replaceAll("\n","<br/>");
 //        content = GeneralUtils.htmlEncode(content);
@@ -204,7 +218,7 @@ public class ReplyController extends BaseController {
         // 判断是否是父级评论，如果是父级评论, 则没有parentId
         if (replyRequest.getIs_parent().equals(ReplyConstants.IS_PARENT)) {
             reply.setIsParent(ReplyConstants.IS_PARENT);
-            reply.setParentId("");
+            reply.setParentId(null);
         } else {
             // 如果是子评论的话就查一下targetUser
             if (!replyRequest.getP_uid().equals(replyRequest.getUid())) {
@@ -234,7 +248,7 @@ public class ReplyController extends BaseController {
             Replies replies = new Replies();
             replies.setReplies(new ArrayList<>());
             replies.setReply(replyInfo);
-            if (nickList.size()==0){
+            if (nickList.size() == 0) {
                 return getResponseEntity(HttpStatus.OK, getSuccessResult(replies));
             } else {
                 sendMessage(newReply, nick, targetUserId, nickList);
@@ -249,14 +263,23 @@ public class ReplyController extends BaseController {
 
     @DeleteMapping("/{replyId}")
     @UserLog("删除回复")
-    public ResponseEntity<Result> deleteReplyById(@PathVariable String replyId, HttpServletRequest request) {
+    public ResponseEntity<Result> deleteReplyById(@PathVariable Long replyId, HttpServletRequest request) {
         Reply reply = replyService.getReplyById(replyId);
-        String replyUserId = reply.getUserId();
-        String uid = getUidFromToken(request);
+        Long replyUserId = reply.getUserId();
+        Long uid = getUidFromRequest(request);
+        String token = getToken(request);
         if (uid == null) {
             return getResponseEntity(HttpStatus.FORBIDDEN, getErrorResult(ResultCode.PERMISSION_DENY, "未登录，请先登录"));
         }
 
+        String role = jwtTokenUtils.getPayload(token).getRole();
+        // 如果是管理员的话就能删
+        if (role.equals("ROLE_ADMIN") || role.equals("ROLE_MANAGER")){
+            Reply reply1 = replyService.deleteReply(reply);
+
+            sendDeleteReplyMessage(reply1);
+            return getResponseEntity(HttpStatus.OK, getSuccessResult("删除成功"));
+        }
         if (!uid.equals(replyUserId)) {
             return getResponseEntity(HttpStatus.FORBIDDEN, getErrorResult(ResultCode.PERMISSION_DENY, "无权删除别人的评论呢，别搞事情"));
         }
@@ -267,7 +290,7 @@ public class ReplyController extends BaseController {
     }
 
     @GetMapping("/son")
-    public ResponseEntity<Result> listSonReplies(@RequestParam("prid") String prid,
+    public ResponseEntity<Result> listSonReplies(@RequestParam("prid") Long prid,
                                                  @RequestParam(value = "pn", required = false, defaultValue = "1") Integer pn,
                                                  HttpServletRequest request) {
 
@@ -275,7 +298,7 @@ public class ReplyController extends BaseController {
             return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_INVALID, "p_rid不能为空"));
         }
 
-        String userId = getToken(request);
+        Long userId = getUidFromRequest(request);
         Map<String, Object> data = replyService.listPageSonRepliesByParentId(prid, userId, pn, ReplyPageInfo.DEFAULT_SON_PAGE_SIZE);
         return getResponseEntity(HttpStatus.OK, getSuccessResult(data));
     }
@@ -285,11 +308,11 @@ public class ReplyController extends BaseController {
      */
     @PostMapping("/like/{replyId}/{action}")
     @UserLog("点赞")
-    public ResponseEntity<Result> doActionAtReply(@PathVariable("replyId") String replyId,
+    public ResponseEntity<Result> doActionAtReply(@PathVariable("replyId") Long replyId,
                                                   @PathVariable("action") Integer action,
                                                   HttpServletRequest request) {
 
-        if (replyId == null || replyId.equals("")) {
+        if (replyId == null) {
             return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_INVALID, "评论id不能为空"));
         }
 
@@ -302,7 +325,7 @@ public class ReplyController extends BaseController {
             return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_INVALID, "action不能为空，要干嘛你说清楚"));
         }
 
-        String userId = getUidFromToken(request);
+        Long userId = getUidFromRequest(request);
         if (userId == null) {
             return getResponseEntity(HttpStatus.FORBIDDEN, getErrorResult(ResultCode.PERMISSION_DENY, "先登录再点赞吧"));
         }
@@ -359,9 +382,9 @@ public class ReplyController extends BaseController {
             return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.PARAM_IS_INVALID, "别发些奇奇怪怪的参数，只接受0或1"));
         }
 
-        logger.debug("like record:{}",likeRecord);
+        logger.debug("like record:{}", likeRecord);
 
-        if (requireSendMessage){
+        if (requireSendMessage) {
             // 发送消息
             Message message = new Message();
             message.setType(MessageType.LIKE.name());
@@ -408,7 +431,7 @@ public class ReplyController extends BaseController {
 
 
     @Async
-    public void sendMessage(Reply newReply, String nick, String targetUserId, List<String> nickList) {
+    public void sendMessage(Reply newReply, String nick, Long targetUserId, List<String> nickList) {
 
         // 初始化完毕
         // 移除发评论的人的名字
@@ -460,12 +483,37 @@ public class ReplyController extends BaseController {
         message.setPublisherUserId(newReply.getUserId());
         Episode episodeByEpId = episodeService.getEpisodeByEpId(newReply.getEpId());
         Bangumi bangumi = bangumiService.getBangumiById(episodeByEpId.getBangumiId());
-        message.setTitle(bangumi.getBangumiName()+" "+episodeByEpId.getEpIndex());
+        message.setTitle(bangumi.getBangumiName() + " " + episodeByEpId.getEpIndex());
         message.setContent(DmjiUtils.formatReplyContent(newReply.getContent()));
         Timestamp ts = new Timestamp(System.currentTimeMillis());
         message.setCreateTime(ts);
         message.setModifyTime(ts);
         return message;
+    }
+
+    @Async
+    public void sendDeleteReplyMessage(Reply reply){
+        Message message = new Message();
+        message.setmStatus(Status.NORMAL.name());
+        message.setIsRead(MessageConstants.NOT_READ);
+        message.setType(MessageType.SYSTEM.name());
+        message.setReply(null);
+        message.setTitle("评论删除通知");
+        message.setUserId(reply.getUserId());
+        Timestamp ts = new Timestamp(System.currentTimeMillis());
+        message.setCreateTime(ts);
+        message.setModifyTime(ts);
+        Episode episode = episodeService.getEpisodeByEpId(reply.getEpId());
+        Bangumi bangumi = bangumiService.getBangumiById(episode.getBangumiId());
+
+        String replyContent = "";
+        if (reply.getContent().length()>30){
+             replyContent = reply.getContent().substring(0,30)+"...";
+        } else {
+            replyContent = reply.getContent();
+        }
+        message.setContent("您在【"+bangumi.getBangumiName()+" "+episode.getEpIndex()+"】下的评论【"+replyContent+"】因举报已被删除，请遵守相关法律法规。");
+        messageService.insertMessage(message);
     }
 
 }

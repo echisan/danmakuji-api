@@ -11,10 +11,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 
-public interface BangumiRepository extends JpaRepository<Bangumi,Integer> {
+public interface BangumiRepository extends JpaRepository<Bangumi,Long> {
 
     Page<Bangumi> findBangumisByBangumiNameLike(String name, Pageable pageable);
 
     Bangumi findByBangumiNameEquals(String bangumiName);
+
+    List<Bangumi> findByBangumiIdIn(List<Long> ids);
 
 }

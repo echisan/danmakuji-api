@@ -33,9 +33,9 @@ public interface RedisTokenService {
 
     Long countTokens();
 
-    void addUserLock(String uid);
+    void addUserLock(Long uid);
 
-    Long deleteUserLock(String uid);
+    Long deleteUserLock(Long uid);
 
-    boolean isUserLock(String uid);
+    boolean isUserLock(Long uid);
 }

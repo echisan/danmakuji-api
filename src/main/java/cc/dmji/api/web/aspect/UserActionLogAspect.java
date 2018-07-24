@@ -59,13 +59,13 @@ public class UserActionLogAspect {
             String token = tokenHeader.replace(SecurityConstants.TOKEN_PREFIX, "");
             JwtTokenUtils.Payload payload = jwtTokenUtils.getPayload(token);
             String username = payload.getUsername();
-            String uid = payload.getUid();
+            Long uid = payload.getUid();
             String role = payload.getRole();
             ulr.setUserId(uid);
             ulr.setNick(username);
             ulr.setUserRole(role);
         } else {
-            ulr.setUserId("");
+            ulr.setUserId(null);
             ulr.setNick("");
             ulr.setUserRole("");
         }

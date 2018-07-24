@@ -3,9 +3,13 @@ package cc.dmji.api.web.controller.admin;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.constants.MessageConstants;
+import cc.dmji.api.entity.Bangumi;
+import cc.dmji.api.entity.Episode;
 import cc.dmji.api.entity.Message;
 import cc.dmji.api.entity.PostBangumi;
 import cc.dmji.api.enums.*;
+import cc.dmji.api.service.BangumiService;
+import cc.dmji.api.service.EpisodeService;
 import cc.dmji.api.service.MessageService;
 import cc.dmji.api.service.PostBangumiService;
 import cc.dmji.api.utils.DmjiUtils;
@@ -25,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,11 +48,17 @@ public class AdminPostBangumiController extends BaseController {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private BangumiService bangumiService;
+
+    @Autowired
+    private EpisodeService episodeService;
+
     @GetMapping
     public ResponseEntity<Result> listPostBangumis(@RequestParam(value = "pn", required = false, defaultValue = "1") Integer pn,
                                                    @RequestParam(value = "ps", required = false, defaultValue = "20") Integer ps,
                                                    // 该参数全程是postBangumiStatus
-                                                   @RequestParam(value = "pbs", required = false) String pbs,
+                                                   @RequestParam(value = "pbsc", required = false) Integer pbsc,
                                                    // status
                                                    @RequestParam(value = "s", required = false) String s,
                                                    @RequestParam(value = "bt", required = false) Long beginTime,
@@ -58,7 +69,6 @@ public class AdminPostBangumiController extends BaseController {
         }
 
         Status status = Status.NORMAL;
-        PostBangumiStatus postBangumiStatus = null;
         Timestamp bt = null;
         Timestamp et = null;
 
@@ -71,9 +81,15 @@ public class AdminPostBangumiController extends BaseController {
             return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "参数s错误");
         }
 
+        PostBangumiStatus postBangumiStatus = null;
         try {
-            if (pbs != null) {
-                postBangumiStatus = PostBangumiStatus.valueOf(pbs.toUpperCase());
+            if (pbsc != null) {
+                try {
+                    postBangumiStatus = PostBangumiStatus.byCode(pbsc);
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                    return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "pbs参数不正确:" + pbsc);
+                }
             }
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -129,34 +145,86 @@ public class AdminPostBangumiController extends BaseController {
         if (postBangumi == null) {
             return getErrorResponseEntity(HttpStatus.NOT_FOUND, ResultCode.RESULT_DATA_NOT_FOUND, "找不到id为" + pbId + "的数据");
         }
-        String managerUserId = getUidFromToken(request);
+        Long managerUserId = getUidFromRequest(request);
         String type = requestMap.get("type");
-        String messageContent;
+        String messageContent = "";
         switch (type) {
-            case "1":
+            case "1": {
+                Bangumi dbBangumi = bangumiService.getBangumiByName(postBangumi.getBangumiName());
+                // 先判断存不存在
+                if (dbBangumi == null) {
+                    if (postBangumi.getPostBangumiStatus().equals(PostBangumiStatus.PENDING) ||
+                            postBangumi.getPostBangumiStatus().equals(PostBangumiStatus.NEED_PERFECT)) {
+                        // 插入新的bangumi
+                        Bangumi bangumi = new Bangumi();
+                        bangumi.setBangumiName(postBangumi.getBangumiName());
+                        bangumi.setEpisodeTotal(postBangumi.getEpisodeTotal());
+                        bangumi.setThumb(postBangumi.getThumb());
+                        Bangumi insertBangumi = bangumiService.insertBangumi(bangumi);
+                        if (insertBangumi == null) {
+                            return getSuccessResponseEntity(getErrorResult(ResultCode.DATA_IS_WRONG, "添加番剧信息失败"));
+                        }
+
+                        // 如果有第0集,index就从0开始数，没有就从1开始数
+                        int index = postBangumi.getHasZeroIndex() == (byte) 1 ? 0 : 1;
+                        List<Episode> episodes = new ArrayList<>();
+                        for (int i = index; i <= insertBangumi.getEpisodeTotal(); i++) {
+                            Episode episode = new Episode();
+                            episode.setBangumiId(insertBangumi.getBangumiId());
+                            episode.setEpIndex(i);
+                            episode.setReplyable((byte) 1);
+                            episodes.add(episode);
+                        }
+                        episodeService.insertEpisodes(episodes);
+                        messageContent = "恭喜！你提交的番剧" + "【" + postBangumi.getBangumiName() + "】" + "已被采纳~";
+                    }
+                } else {
+                    dbBangumi.setThumb(postBangumi.getThumb());
+                    messageContent = "恭喜! 你更换的【" + postBangumi.getBangumiName() + "】新封面已审核通过~";
+                    bangumiService.updateBangumi(dbBangumi);
+                }
+                postBangumi.setMessage("");
                 postBangumi.setPostBangumiStatus(PostBangumiStatus.SUCCESS);
-                messageContent = "[" + postBangumi.getBangumiName() + "]，恭喜！你提交的番剧信息已被采纳,可以给番剧设置封面啦~";
                 break;
+            }
             case "2": {
                 String msg = requestMap.get("msg");
-                // 如果为空
-                if (!StringUtils.hasText(msg)) {
-                    return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "到底哪里不行得告诉用户吧,帮助用户修改");
+                // 如果是未审核状态
+                if (postBangumi.getPostBangumiStatus().equals(PostBangumiStatus.AUDITING)) {
+                    if (StringUtils.hasText(msg)) {
+                        // 如果是待审核状态
+                        postBangumi.setMessage(msg);
+                        messageContent = "提交的【" + postBangumi.getBangumiName() + "】新封面未通过审核，原因：" + msg;
+                    } else {
+                        String tempMsg = msg == null ? "" : msg;
+                        postBangumi.setMessage(tempMsg);
+                        messageContent = "很抱歉，您的提交的【" + postBangumi.getBangumiName() + "】未被采纳，具体细节可联系管理员。";
+                    }
+                } else {
+                    postBangumi.setPostBangumiStatus(PostBangumiStatus.NEED_PERFECT);
+                    if (StringUtils.hasText(msg)) {
+                        // 如果是待审核状态
+                        postBangumi.setMessage(msg);
+                        messageContent = "提交的【" + postBangumi.getBangumiName() + "】番剧信息未通过审核，原因:" + msg;
+                    } else {
+                        postBangumi.setPostBangumiStatus(PostBangumiStatus.FAILED);
+                        String tempMsg = msg == null ? "" : msg;
+                        postBangumi.setMessage(tempMsg);
+                        messageContent = "很抱歉，您的提交的【" + postBangumi.getBangumiName() + "】未被采纳，具体细节可联系管理员。";
+                    }
                 }
-                postBangumi.setPostBangumiStatus(PostBangumiStatus.NEED_PERFECT);
-                postBangumi.setMessage(msg);
-                messageContent = "[" + postBangumi.getBangumiName() +"]，残念！还差一丢丢就可以了，马上完善一下再次提交吧！";
                 break;
             }
             case "3": {
                 String msg = requestMap.get("msg");
                 // 如果为空
-                if (!StringUtils.hasText(msg)) {
-                    return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "到底哪里不行得告诉用户吧");
-                }
+//                if (!StringUtils.hasText(msg)) {
+//                    return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "到底哪里不行得告诉用户吧");
+//                }
                 postBangumi.setPostBangumiStatus(PostBangumiStatus.FAILED);
-                postBangumi.setMessage(msg);
-                messageContent = "[" + postBangumi.getBangumiName() +"]，很抱歉，您的提交未被采纳，具体原因:" + msg;
+                String tempMsg = msg == null ? "" : msg;
+                postBangumi.setMessage(tempMsg);
+                messageContent = "[" + postBangumi.getBangumiName() + "]，很抱歉，您的提交未被采纳，具体原因:" + tempMsg;
                 break;
             }
             default: {
@@ -174,7 +242,7 @@ public class AdminPostBangumiController extends BaseController {
     }
 
     @Async
-    public void sendMessage(String userId, String content) {
+    public void sendMessage(Long userId, String content) {
         Message message = new Message();
         message.setUserId(userId);
         message.setTitle("番剧提交结果通知");

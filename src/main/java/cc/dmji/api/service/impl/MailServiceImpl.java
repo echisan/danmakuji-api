@@ -21,7 +21,7 @@ import javax.mail.internet.MimeMessage;
 public class MailServiceImpl implements MailService {
     private static final Logger logger = LoggerFactory.getLogger(MailServiceImpl.class);
 
-    private static final String MAIL_CONTENT = "<html><body><a href='http://10.0.46.28:8080/#/vemail?userId=%s&uuid=%s' target='_blank'>单击此处完成注册</a><br><p>有效期30分钟</p></body></html>";
+    private static final String MAIL_CONTENT = "<html><body><a href='http://darker.online/#/vemail?userId=%s&uuid=%s' target='_blank'>单击此处完成注册</a><br><p>有效期20分钟</p></body></html>";
 
     @Value("${spring.mail.username}")
     private String from;
@@ -31,7 +31,7 @@ public class MailServiceImpl implements MailService {
 
     @Override
     @Async
-    public void sendVerifyEmail(String toEmail, String userId, String uuid) throws MessagingException {
+    public void sendVerifyEmail(String toEmail, Long userId, String uuid) throws MessagingException {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
         helper.setFrom("Darker <" + from + ">");

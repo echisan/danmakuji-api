@@ -15,19 +15,19 @@ public interface EpisodeService {
 
     EpisodePageInfo listEpisodes(Integer pageNum, Integer pageSize);
 
-    EpisodePageInfo listEpisodesByBangumiId(Integer bangumiId);
+    EpisodePageInfo listEpisodesByBangumiId(Long bangumiId);
 
-    EpisodePageInfo listEpisodesByBangumiId(Integer bangumiId, int pn);
+    EpisodePageInfo listEpisodesByBangumiId(Long bangumiId, int pn);
 
-    EpisodePageInfo listEpisodesByBangumiId(Integer bangumiId, int pn, int ps);
+    EpisodePageInfo listEpisodesByBangumiId(Long bangumiId, int pn, int ps);
 
-    List<Episode> listAllEpisodesByBangumiId(Integer bangumiId);
+    List<Episode> listAllEpisodesByBangumiId(Long bangumiId);
 
-    List<Episode> listEpisodesByEpIds(List<Integer> epIds);
+    List<Episode> listEpisodesByEpIds(List<Long> epIds);
 
-    Episode getEpisodeByBangumiIdAndEpIndex(Integer bangumiId, Integer epIndex);
+    Episode getEpisodeByBangumiIdAndEpIndex(Long bangumiId, Integer epIndex);
 
-    Episode getEpisodeByEpId(Integer epId);
+    Episode getEpisodeByEpId(Long epId);
 
     Episode insertEpisode(Episode episode);
 
@@ -35,12 +35,14 @@ public interface EpisodeService {
 
     Episode updateEpisode(Episode episode);
 
-    void deleteEpisode(Integer id);
+    void deleteEpisode(Long id);
 
     void deleteEpisodes(List<Episode> episodes);
 
     long countEpisode();
 
-    long countEpisodeByBangumiId(int bangumiId);
+    long countEpisodeByBangumiId(Long bangumiId);
+
+    Page<Episode> listEpisodeByViewCount(Integer pn, Integer ps);
 
 }

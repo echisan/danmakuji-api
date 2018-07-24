@@ -1,19 +1,13 @@
-package cc.dmji.api.entity;
+package cc.dmji.api.web.model;
 
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
+import cc.dmji.api.entity.Bangumi;
 
-import javax.persistence.*;
 import java.sql.Timestamp;
 
 /**
- * Created by echisan on 2018/5/14
+ * Created by echisan on 2018/7/22
  */
-@Entity
-@DynamicInsert
-@DynamicUpdate
-@Table(name = "dm_bangumi", schema = "dmji", catalog = "")
-public class Bangumi {
+public class BangumiInfo {
     private Long bangumiId;
     private String bangumiName;
     private Integer episodeTotal;
@@ -21,10 +15,21 @@ public class Bangumi {
     private Timestamp modifyTime;
     private String thumb;
     private Long viewCount;
+    private Long danmaukuCount;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "bangumi_id")
+    public BangumiInfo() {
+    }
+
+    public BangumiInfo(Bangumi bangumi) {
+        this.bangumiId = bangumi.getBangumiId();
+        this.bangumiName = bangumi.getBangumiName();
+        this.episodeTotal = bangumi.getEpisodeTotal();
+        this.modifyTime = bangumi.getModifyTime();
+        this.createTime = bangumi.getCreateTime();
+        this.thumb = bangumi.getThumb();
+        this.viewCount = bangumi.getViewCount();
+    }
+
     public Long getBangumiId() {
         return bangumiId;
     }
@@ -33,8 +38,6 @@ public class Bangumi {
         this.bangumiId = bangumiId;
     }
 
-    @Basic
-    @Column(name = "bangumi_name")
     public String getBangumiName() {
         return bangumiName;
     }
@@ -43,8 +46,6 @@ public class Bangumi {
         this.bangumiName = bangumiName;
     }
 
-    @Basic
-    @Column(name = "episode_total")
     public Integer getEpisodeTotal() {
         return episodeTotal;
     }
@@ -53,8 +54,6 @@ public class Bangumi {
         this.episodeTotal = episodeTotal;
     }
 
-    @Basic
-    @Column(name = "create_time")
     public Timestamp getCreateTime() {
         return createTime;
     }
@@ -63,8 +62,6 @@ public class Bangumi {
         this.createTime = createTime;
     }
 
-    @Basic
-    @Column(name = "modify_time")
     public Timestamp getModifyTime() {
         return modifyTime;
     }
@@ -73,8 +70,6 @@ public class Bangumi {
         this.modifyTime = modifyTime;
     }
 
-    @Basic
-    @Column(name = "thumb")
     public String getThumb() {
         return thumb;
     }
@@ -91,15 +86,25 @@ public class Bangumi {
         this.viewCount = viewCount;
     }
 
+    public Long getDanmaukuCount() {
+        return danmaukuCount;
+    }
+
+    public void setDanmaukuCount(Long danmaukuCount) {
+        this.danmaukuCount = danmaukuCount;
+    }
+
     @Override
     public String toString() {
-        return "Bangumi{" +
+        return "BangumiInfo{" +
                 "bangumiId=" + bangumiId +
                 ", bangumiName='" + bangumiName + '\'' +
                 ", episodeTotal=" + episodeTotal +
                 ", createTime=" + createTime +
                 ", modifyTime=" + modifyTime +
                 ", thumb='" + thumb + '\'' +
+                ", viewCount=" + viewCount +
+                ", danmaukuCount=" + danmaukuCount +
                 '}';
     }
 }

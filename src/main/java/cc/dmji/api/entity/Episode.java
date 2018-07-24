@@ -14,22 +14,24 @@ import java.sql.Timestamp;
 @DynamicUpdate
 @Table(name = "dm_episode", schema = "dmji", catalog = "")
 public class Episode {
-    private Integer epId;
+    private Long epId;
     private Integer epIndex;
-    private Integer bangumiId;
+    private Long bangumiId;
     private Byte replyable;
     private Timestamp createTime;
     private Timestamp modifyTime;
     private String danmakuId;
+    @Column(name = "view_count")
+    private Long viewCount;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ep_id")
-    public Integer getEpId() {
+    public Long getEpId() {
         return epId;
     }
 
-    public void setEpId(Integer epId) {
+    public void setEpId(Long epId) {
         this.epId = epId;
     }
 
@@ -45,11 +47,11 @@ public class Episode {
 
     @Basic
     @Column(name = "bangumi_id")
-    public Integer getBangumiId() {
+    public Long getBangumiId() {
         return bangumiId;
     }
 
-    public void setBangumiId(Integer bangumiId) {
+    public void setBangumiId(Long bangumiId) {
         this.bangumiId = bangumiId;
     }
 
@@ -93,4 +95,11 @@ public class Episode {
         this.danmakuId = danmakuId;
     }
 
+    public Long getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(Long viewCount) {
+        this.viewCount = viewCount;
+    }
 }

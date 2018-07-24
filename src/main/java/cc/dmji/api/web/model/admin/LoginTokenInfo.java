@@ -9,7 +9,7 @@ import java.util.Date;
 public class LoginTokenInfo implements Serializable {
 
     // 用户id
-    private String uid;
+    private Long uid;
     // 用户名
     private String nick;
     // 颁发时间
@@ -19,7 +19,7 @@ public class LoginTokenInfo implements Serializable {
     // token
     private String token;
 
-    public LoginTokenInfo(String uid, String nick, Date issAt, Date expAt, String token) {
+    public LoginTokenInfo(Long uid, String nick, Date issAt, Date expAt, String token) {
         this.uid = uid;
         this.nick = nick;
         this.issAt = issAt;
@@ -27,11 +27,11 @@ public class LoginTokenInfo implements Serializable {
         this.token = token;
     }
 
-    public String getUid() {
+    public Long getUid() {
         return uid;
     }
 
-    public void setUid(String uid) {
+    public void setUid(Long uid) {
         this.uid = uid;
     }
 

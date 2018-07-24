@@ -77,4 +77,13 @@ public enum  ResultCode {
         }
         return null;
     }
+
+    public static ResultCode byCode(Integer code){
+        for (ResultCode rc : ResultCode.values()){
+            if (rc.getCode().equals(code)){
+                return rc;
+            }
+        }
+        return null;
+    }
 }
