@@ -1,7 +1,9 @@
 package cc.dmji.api.enums;
 
+/**
+ * !!!! 严禁改动以下变量顺序 !!!!
+ */
 public enum Status {
-
     // 正常
     NORMAL(0),
 
@@ -9,6 +11,9 @@ public enum Status {
     DELETE(1);
 
     private Integer code;
+
+    Status() {
+    }
 
     Status(Integer code) {
         this.code = code;

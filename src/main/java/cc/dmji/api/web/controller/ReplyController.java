@@ -117,7 +117,7 @@ public class ReplyController extends BaseController {
                         if (userId != null) {
                             List<LikeRecord> likeRecords = likeRecordService.listByReplyIdsAndUserId(replyIds, userId);
                             Map<Long, Byte> isLikeMap = new HashMap<>();
-                            likeRecords.forEach(likeRecord -> isLikeMap.put(likeRecord.getReplyId(), likeRecord.getStatus()));
+                            likeRecords.forEach(likeRecord -> isLikeMap.put(likeRecord.getReplyId(), likeRecord.isLike()?(byte)1:(byte)0));
                             sonReplyList.forEach(replyInfo -> {
                                 if (isLikeMap.containsKey(replyInfo.getReply().getReplyId())) {
                                     replyInfo.setLikeStatus((byte) 1);
@@ -237,7 +237,7 @@ public class ReplyController extends BaseController {
         Long floor = replyService.countParentReplyByEpId(replyRequest.getEp_id());
         reply.setFloor(floor + 1);
         Reply newReply = replyService.insertReply(reply);
-        logger.info("new Reply:{}", newReply.toString());
+        logger.info("new ReplyV2:{}", newReply.toString());
 
         ReplyInfo replyInfo = replyService.getReplyInfoById(newReply.getReplyId());
 
@@ -346,11 +346,11 @@ public class ReplyController extends BaseController {
                 return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND, "根本就没点过赞呢，别取消了"));
             }
 
-            if (record.getStatus() == (byte) 0) {
+            if (!record.isLike()) {
                 return getResponseEntity(HttpStatus.OK, getSuccessResult("赞还没点，自然不能取消点赞了"));
             }
             // 如果有该数据, 0则取消
-            record.setStatus((byte) 0);
+            record.setLike(false);
             record.setModifyTime(new Date());
             likeRecord = likeRecordService.updateLikeRecord(record);
 
@@ -362,17 +362,17 @@ public class ReplyController extends BaseController {
             LikeRecord record = likeRecordService.getByReplyIdAndUserId(replyId, userId);
             if (record == null) {
                 record = new LikeRecord();
-                record.setStatus((byte) 1);
+                record.setLike(true);
                 record.setReplyId(replyId);
                 record.setUserId(userId);
                 likeRecord = likeRecordService.insertLikeRecord(record);
             } else {
                 requireSendMessage = false;
                 // 已经点过赞了
-                if (record.getStatus() == (byte) 1) {
+                if (record.isLike()) {
                     return getResponseEntity(HttpStatus.OK, getSuccessResult("已经点过赞了，就不给评论继续加了"));
                 }
-                record.setStatus((byte) 1);
+                record.setLike(true);
                 likeRecord = likeRecordService.updateLikeRecord(record);
             }
             reply.setrLike(reply.getrLike() + 1);

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.dmji.api.mapper.v2.ReplyMapper">
+
+    <!--
+        private Long id;
+        // 子评论数量
+        private Long replyCount;
+        // 父级评论id
+        private Long root;
+        // 点赞数
+        private Long like;
+        // 评论内容
+        private String content;
+         // 楼层
+        private Long floor;
+        // 状态
+        private Byte status;
+        // 创建时间
+        private Timestamp createTime;
+        // 子评论列表
+        private List<ReplyDetail> replies;
+        // 对象id
+        private Long objectId;
+        // 回复的类型
+        private Integer replyType;
+        // 发送回复的用户信息
+        private ReplyUser user;
+    -->
+
+    <resultMap id="replyDetailResultMap" type="cc.dmji.api.web.model.v2.reply.ReplyDetail">
+        <id column="id" property="id"/>
+        <result column="content" property="content" javaType="String"/>
+        <result column="create_time" property="createTime"/>
+        <result column="floor" property="floor" javaType="Long"/>
+        <result column="reply_status" property="status" javaType="Byte"/>
+        <result column="object_id" property="oid" javaType="Long"/>
+        <result column="reply_type" property="replyType" javaType="Integer"/>
+        <result column="like_status" property="likeStatus" javaType="Byte"/>
+        <result column="like_count" property="like" javaType="Long"/>
+        <result column="root" property="root" javaType="Long"/>
+        <result column="user_id" property="uid" javaType="Long"/>
+        <association property="user" javaType="cc.dmji.api.web.model.v2.reply.ReplyUser">
+            <id column="uid" property="uid" javaType="Long"/>
+            <result column="nick" property="nick" javaType="String"/>
+            <result column="sign" property="sign" javaType="String"/>
+            <result column="face" property="avatar" javaType="String"/>
+        </association>
+    </resultMap>
+
+    <select id="listReplyDetailByOidAndType" resultMap="replyDetailResultMap">
+        select
+        drv2.*,
+        du.user_id uid,
+        du.nick nick,
+        du.sign sign,
+        du.face face,
+        <choose>
+            <when test="uid != null">
+                (case when dlr.status is not null then dlr.status else 0 end ) like_status
+            </when>
+            <otherwise>
+                0 like_status
+            </otherwise>
+        </choose>
+        from dm_reply_v2 drv2
+        left join dm_user du on drv2.user_id = du.user_id
+        <if test="uid != null">
+        left join dm_like_record dlr on drv2.id = dlr.reply_id and dlr.user_id = #{uid}
+        </if>
+        where drv2.object_id = #{oid}
+        and drv2.reply_type = #{type}
+        and drv2.root = #{root}
+        <if test="status != null">
+        and drv2.reply_status = #{status}
+        </if>
+        <if test="top != null">
+        and drv2.is_top = #{top}
+        </if>
+        <if test="orderBy != null and direction != null">
+        order by ${orderBy} ${direction}
+        </if>
+    </select>
+</mapper>

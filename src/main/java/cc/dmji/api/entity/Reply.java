@@ -165,7 +165,7 @@ public class Reply {
 
     @Override
     public String toString() {
-        return "Reply{" +
+        return "ReplyV2{" +
                 "replyId='" + replyId + '\'' +
                 ", content='" + content + '\'' +
                 ", rPage=" + rPage +

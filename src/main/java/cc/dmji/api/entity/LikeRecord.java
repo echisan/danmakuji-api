@@ -33,8 +33,8 @@ public class LikeRecord {
     @Column(name = "reply_id", length = 50)
     private Long replyId;
 
-    @Column(name = "status")
-    private Byte status;
+    @Column(name = "status", columnDefinition = "tinyint(1)")
+    private boolean like;
 
     public Long getId() {
         return id;
@@ -76,11 +76,11 @@ public class LikeRecord {
         this.replyId = replyId;
     }
 
-    public Byte getStatus() {
-        return status;
+    public boolean isLike() {
+        return like;
     }
 
-    public void setStatus(Byte status) {
-        this.status = status;
+    public void setLike(boolean like) {
+        this.like = like;
     }
 }

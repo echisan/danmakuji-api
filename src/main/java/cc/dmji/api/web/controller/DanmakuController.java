@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @RestController
-@RequestMapping("/dplayer/v2")
+@RequestMapping("/dplayer/v3")
 public class DanmakuController {
 
     private static final Logger logger = LoggerFactory.getLogger(DanmakuController.class);

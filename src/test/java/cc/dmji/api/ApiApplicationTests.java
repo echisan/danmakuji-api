@@ -4,14 +4,18 @@ import cc.dmji.api.entity.Reply;
 import cc.dmji.api.enums.Direction;
 import cc.dmji.api.enums.PostBangumiOrderBy;
 import cc.dmji.api.enums.Status;
+import cc.dmji.api.enums.v2.ReplyOrderBy;
+import cc.dmji.api.enums.v2.ReplyType;
 import cc.dmji.api.mapper.PostBangumiMapper;
 import cc.dmji.api.repository.ReplyRepository;
 import cc.dmji.api.service.PostBangumiService;
 import cc.dmji.api.service.ReplyService;
+import cc.dmji.api.service.v2.ReplyV2Service;
 import cc.dmji.api.utils.BangumiPageInfo;
 import cc.dmji.api.web.model.Replies;
 import cc.dmji.api.web.model.ReplyInfo;
 import cc.dmji.api.web.model.admin.PostBangumiInfo;
+import cc.dmji.api.web.model.v2.reply.ReplyDetail;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import org.junit.Test;
@@ -30,12 +34,12 @@ import java.util.Map;
 public class ApiApplicationTests {
 
     @Autowired
-    private ReplyRepository replyRepository;
+    private ReplyV2Service replyV2Service;
 
-    @Autowired
-    private ReplyService replyService;
-
-    @Autowired
-    private PostBangumiService postBangumiService;
+    @Test
+    public void test(){
+        List<ReplyDetail> replyDetails = replyV2Service.listByObjectIdAndType(66L, ReplyType.BANGUMI_EPISODE, 0L, ReplyOrderBy.floor, Direction.ASC);
+        System.out.println(replyDetails);
+    }
 
 }

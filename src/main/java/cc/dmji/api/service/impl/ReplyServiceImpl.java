@@ -121,7 +121,7 @@ public class ReplyServiceImpl implements ReplyService {
         Map<Long, Byte> isLikeMap = new HashMap<>();
         if (userId != null) {
             List<LikeRecord> likeRecords = likeRecordService.listByReplyIdsAndUserId(parentReplyIds, userId);
-            likeRecords.forEach(likeRecord -> isLikeMap.put(likeRecord.getReplyId(), likeRecord.getStatus()));
+            likeRecords.forEach(likeRecord -> isLikeMap.put(likeRecord.getReplyId(), likeRecord.isLike()?(byte)1:(byte)0));
         }
 
         Map<Long, Long> parentSonCountMap = countByReplyIds(parentReplyIds);
@@ -278,7 +278,7 @@ public class ReplyServiceImpl implements ReplyService {
         replyInfos.forEach(replyInfo -> replyIds.add(replyInfo.getReply().getReplyId()));
         List<LikeRecord> likeRecords = likeRecordService.listByReplyIdsAndUserId(replyIds, userId);
         Map<Long, Byte> isLikeMap = new HashMap<>();
-        likeRecords.forEach(likeRecord -> isLikeMap.put(likeRecord.getReplyId(), likeRecord.getStatus()));
+        likeRecords.forEach(likeRecord -> isLikeMap.put(likeRecord.getReplyId(), likeRecord.isLike()?(byte)1:(byte)0));
 
         replyInfos.forEach(replyInfo -> {
             if (isLikeMap.containsKey(replyInfo.getReply().getReplyId())) {
