@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.dmji.api.mapper.v2.MessageMapper">
+
+    <!--
+        private Long id;
+        private String title;
+        private String content;
+        private Integer type;
+        // 需要发通知的对象
+        private Long uid;
+        // 发送该通知的人
+        private UserInfo publisher;
+        private Timestamp createTime;
+    -->
+
+    <resultMap id="messageDetailResultMap" type="cc.dmji.api.web.model.v2.message.MessageDetail">
+        <id column="id" property="id" javaType="Long"/>
+        <result column="content" property="content" javaType="String"/>
+        <result column="create_time" property="createTime"/>
+        <result column="type" property="type"/>
+        <result column="uid" property="uid"/>
+        <result column="title" property="title"/>
+        <association property="publisher" javaType="cc.dmji.api.web.model.UserInfo">
+            <id column="publisher_uid" property="uid"/>
+            <result column="nick" property="nick"/>
+            <result column="face" property="face"/>
+        </association>
+    </resultMap>
+
+    <select id="listMessages" resultMap="messageDetailResultMap">
+        select dmv2.*, du.user_id publisher_uid, du.nick nick, du.face face
+        from dm_message_v2 dmv2
+        left join dm_user du on du.user_id = dmv2.uid
+        where dmv2.uid = #{uid}
+        and dmv2.`status` = #{status}
+        and dmv2.`type` = #{type};
+    </select>
+
+
+</mapper>

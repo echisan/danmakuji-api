@@ -11,6 +11,8 @@ public interface ReplyV2Repository extends JpaRepository<ReplyV2, Long> {
 
     Long countByRootEqualsAndReplyTypeEquals(Long root,Integer replyType);
 
+    Long countByObjectIdEqualsAndReplyTypeEqualsAndStatusEquals(Long oid, Integer replyType, Status status);
+
     Long countByRootEqualsAndReplyTypeEqualsAndFloorBetweenAndStatusEquals(
             Long root, Integer replyType, Long beginFloor, Long endFloor, Status status,Sort sort);
 

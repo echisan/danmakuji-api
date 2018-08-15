@@ -1,6 +1,7 @@
 package cc.dmji.api.entity.v2;
 
 import cc.dmji.api.enums.MessageType;
+import cc.dmji.api.enums.Status;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -25,16 +26,18 @@ public class MessageV2 {
     private String content;
     @Column(name = "type")
     private Integer type;
-    // 需要发通知的对象
     @Column(name = "uid")
     private Long uid;
-    // 发送该通知的人
-    @Column(name = "puid")
-    private Long publisherUid;
     @Column(name = "create_time")
     private Timestamp createTime;
     @Column(name = "is_read", columnDefinition = "tinyint(1)")
-    private boolean isRead;
+    private boolean read;
+    @Column(name = "sys_msg_id")
+    private Long sysMessageId;
+    @Column(name = "puid")
+    private Long publisherUid;
+    @Column(name = "status")
+    private Status status;
 
     public Long getId() {
         return id;
@@ -85,11 +88,19 @@ public class MessageV2 {
     }
 
     public boolean isRead() {
-        return isRead;
+        return read;
     }
 
     public void setRead(boolean read) {
-        isRead = read;
+        this.read = read;
+    }
+
+    public Long getSysMessageId() {
+        return sysMessageId;
+    }
+
+    public void setSysMessageId(Long sysMessageId) {
+        this.sysMessageId = sysMessageId;
     }
 
     public Long getPublisherUid() {
@@ -100,6 +111,14 @@ public class MessageV2 {
         this.publisherUid = publisherUid;
     }
 
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         return "MessageV2{" +
@@ -108,9 +127,11 @@ public class MessageV2 {
                 ", content='" + content + '\'' +
                 ", type=" + type +
                 ", uid=" + uid +
-                ", publisherUid=" + publisherUid +
                 ", createTime=" + createTime +
-                ", isRead=" + isRead +
+                ", read=" + read +
+                ", sysMessageId=" + sysMessageId +
+                ", publisherUid=" + publisherUid +
+                ", status=" + status +
                 '}';
     }
 }

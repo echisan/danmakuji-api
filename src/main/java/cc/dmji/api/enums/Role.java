@@ -20,4 +20,14 @@ public enum Role {
     public String getName() {
         return name;
     }
+
+    public static Role byRoleName(String roleName){
+        Role[] values = Role.values();
+        for (Role role:values) {
+            if (role.name.equals(roleName)){
+                return role;
+            }
+        }
+        return null;
+    }
 }

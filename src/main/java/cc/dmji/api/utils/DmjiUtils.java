@@ -35,15 +35,15 @@ public class DmjiUtils {
      */
     private static final String AT_REGEX = "@([a-z0-9A-Z\\u4e00-\\u9fa5_]+)\\s";
 
-    public static boolean validUsername(String username){
+    public static boolean validUsername(String username) {
         return username.matches(USERNAME_REGEX);
     }
 
-    public static boolean validPassword(String password){
+    public static boolean validPassword(String password) {
         return password.matches(PASSWORD_REGEX);
     }
 
-    public static boolean validEmail(String email){
+    public static boolean validEmail(String email) {
         return email.matches(EMAIL_REGEX);
     }
 
@@ -53,6 +53,7 @@ public class DmjiUtils {
 
     /**
      * 清除html代码
+     *
      * @param html
      * @return
      */
@@ -69,7 +70,7 @@ public class DmjiUtils {
         return "";
     }
 
-    public static String commentHtmlEncode(String html){
+    public static String commentHtmlEncode(String html) {
         if (StringUtils.hasText(html)) {
             html = html
                     .replaceAll("eval\\((.*)\\)", "")
@@ -80,23 +81,19 @@ public class DmjiUtils {
         return "";
     }
 
-    public static int validatePageParam(Integer pageNum, Integer pageSize){
-        if(null == pageNum){
+    public static int validatePageParam(Integer pageNum, Integer pageSize) {
+        if (null == pageNum) {
             return 1;//1表示pageNum为空
-        }
-        else {
-            if(pageNum < 1){
+        } else {
+            if (pageNum < 1) {
                 return 2;//2表示pageNum不合法（小于1)
-            }
-            else {
-                if(pageSize == null){
+            } else {
+                if (pageSize == null) {
                     return 3;//3表示pageNum不为空，pageSize为空
-                }
-                else {
-                    if(pageSize < 1){
+                } else {
+                    if (pageSize < 1) {
                         return 4;//4表示pageSize不合法（小于1）
-                    }
-                    else {
+                    } else {
                         return 5;//5表示pageNum和pageSize均为有效参数
                     }
                 }
@@ -104,19 +101,24 @@ public class DmjiUtils {
         }
     }
 
+    public static boolean validPageParam(Integer pn, Integer ps) {
+        return validatePageParam(pn, ps) == 5;
+    }
+
 
     /**
      * 查找出该段字符串中是否存在 "@用户名 "格式的
+     *
      * @param text 需要查找的字符串
-     * @return 用户名列表,或者是一个size=0的列表
+     * @return 用户名列表, 或者是一个size=0的列表
      */
-    public static List<String> findAtUsername(String text){
+    public static List<String> findAtUsername(String text) {
         List<String> usernameList = new ArrayList<>();
         Pattern pattern = Pattern.compile(AT_REGEX);
         Matcher matcher = pattern.matcher(text);
-        while (matcher.find()){
+        while (matcher.find()) {
             String group = matcher.group();
-            String username = group.substring(1,group.length()-1);
+            String username = group.substring(1, group.length() - 1);
             usernameList.add(username);
         }
         return usernameList;
@@ -124,6 +126,7 @@ public class DmjiUtils {
 
     /**
      * 将需要限制长度的回复限制在75个字符内
+     *
      * @param content
      * @return
      */
@@ -136,6 +139,7 @@ public class DmjiUtils {
 
     /**
      * 判断字符串是不是正整数
+     *
      * @param string
      * @return
      */
@@ -149,5 +153,20 @@ public class DmjiUtils {
         p = Pattern.compile(regEx1);
         m = p.matcher(string);
         return m.matches();
+    }
+
+    /**
+     * 获取6位数的验证码
+     *
+     * @return 6位数的验证码，字符串格式
+     */
+    public static String generateVerifyCode() {
+        String chars = "0123456789";
+        char[] rands = new char[6];
+        for (int i = 0; i < rands.length; i++) {
+            int rand = (int) (Math.random() * 10);
+            rands[i] = chars.charAt(rand);
+        }
+        return String.valueOf(rands);
     }
 }

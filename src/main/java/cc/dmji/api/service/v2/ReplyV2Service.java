@@ -2,6 +2,7 @@ package cc.dmji.api.service.v2;
 
 import cc.dmji.api.entity.v2.ReplyV2;
 import cc.dmji.api.enums.Direction;
+import cc.dmji.api.enums.Status;
 import cc.dmji.api.enums.v2.ReplyOrderBy;
 import cc.dmji.api.enums.v2.ReplyType;
 import cc.dmji.api.web.model.v2.reply.ReplyDTO;
@@ -21,7 +22,9 @@ public interface ReplyV2Service {
 
     List<ReplyDetail> listByObjectIdAndType(Long oid, ReplyType rt, Long root, ReplyOrderBy orderBy, Direction direction);
 
-    Long countByObjectIdAndType(Long oid, ReplyType rt, Long root);
+    Long countByObjectIdAndTypeAndRoot(Long oid, ReplyType rt, Long root);
+
+    Long countAllRepliesByObjectIdAndReplyType(Long oid, ReplyType rt, Status status);
 
     Long countNowFloorByObjectAndType(Long oid, ReplyType rt);
 

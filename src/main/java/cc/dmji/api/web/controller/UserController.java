@@ -209,6 +209,8 @@ public class UserController extends BaseController {
     public ResponseEntity<Result> updateUser(@PathVariable Long userId, @RequestBody User user,
                                              HttpServletRequest request) throws MessagingException {
 
+        // 这里只允许修改的参数有：昵称，年龄，头像，个性签名，性别
+
         logger.info("修改用户信息[PUT] user:[{}]", user.toString());
         Long uid = getUidFromRequest(request);
         User dbUser = userService.getUserById(userId);
@@ -216,26 +218,8 @@ public class UserController extends BaseController {
             return getResponseEntity(HttpStatus.FORBIDDEN, getErrorResult(ResultCode.PERMISSION_DENY));
         }
 
-        boolean isEmailChange = false;
-        boolean isPhoneChange = false;
-
 
         // -----------------
-
-
-        // 修改邮箱
-        if (!StringUtils.isEmpty(user.getEmail())) {
-            if (!DmjiUtils.validEmail(user.getEmail())) {
-                return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "邮箱格式不正确"));
-            }
-            if (userService.getUserByEmail(user.getEmail()) != null) {
-                return getResponseEntity(HttpStatus.OK, getErrorResult(ResultCode.PARAM_IS_INVALID, "该邮箱地址已被使用"));
-            }
-            dbUser.setEmail(user.getEmail());
-            // 将邮箱验证设置成未验证，需要重新验证
-            dbUser.setEmailVerified(UserStatus.EMAIL_UN_VERIFY.getStatus());
-            isEmailChange = true;
-        }
 
         // 修改昵称
         if (!StringUtils.isEmpty(user.getNick())) {
@@ -250,9 +234,8 @@ public class UserController extends BaseController {
 
         // 修改电话号码
         if (!StringUtils.isEmpty(user.getPhone())) {
-            dbUser.setPhone(user.getPhone());
-            dbUser.setPhoneVerified(UserStatus.PHONE_UN_VERIFY.getStatus());
-            isPhoneChange = true;
+//            dbUser.setPhone(user.getPhone());
+//            dbUser.setPhoneVerified(UserStatus.PHONE_UN_VERIFY.getStatus());
         }
         // 修改年龄
         if (!StringUtils.isEmpty(user.getAge())) {
@@ -281,20 +264,60 @@ public class UserController extends BaseController {
         }
 
         User updatedUser = userService.updateUser(dbUser);
+        updatedUser.setPwd("");
+        logger.debug("更新后的用户数据{}",updatedUser.toString());
+        return getSuccessResponseEntity(getSuccessResult(updatedUser,"修改成功"));
+    }
 
-        // 如果修改了邮箱则验证
-        if (isEmailChange) {
-            String uuid = DmjiUtils.getUUID32();
-            stringRedisTemplate.opsForValue().set(RedisKey.VERIFY_EMAIL_KEY + updatedUser.getUserId(),
-                    uuid, VERIFY_UUID_EXPIRATION, TimeUnit.SECONDS);
-            mailService.sendVerifyEmail(updatedUser.getEmail(), updatedUser.getUserId(), uuid);
-            return getResponseEntity(HttpStatus.OK, getSuccessResult("修改邮箱成功，请前往邮箱进行确认"));
-        } else {
-            updatedUser.setPwd("_(:3」∠)_");
-            return getResponseEntity(HttpStatus.OK, getSuccessResult(updatedUser, "修改成功"));
+    @PutMapping("/{uid}/email")
+    @UserLog("更换邮箱")
+    public Result updateUserEmail(@PathVariable("uid")Long uid,
+                                                  @RequestBody Map<String,String> requestMap,
+                                                  HttpServletRequest request){
+
+        if (!uid.equals(getUidFromRequest(request))){
+            return getErrorResult(ResultCode.PERMISSION_DENY);
         }
 
-        // todo 验证手机号码 先不干
+        String email = requestMap.get("email");
+        String rcode = requestMap.get("rcode");
+        if (!StringUtils.hasText(email)){
+            return getErrorResult(ResultCode.PARAM_IS_INVALID,"邮箱地址不能为空");
+        }
+        if (!DmjiUtils.validEmail(email)){
+            return getErrorResult(ResultCode.PARAM_IS_INVALID,"邮箱地址格式不正确，请确保是正确的邮箱地址");
+        }
+
+        User user = userService.getUserById(uid);
+
+        // 如果该邮箱已经验证过了，则需要发邮箱去验证
+        if (user.getEmailVerified().equals(UserStatus.EMAIL_VERIFY.getStatus())){
+            if (!StringUtils.hasText(rcode)){
+                return getErrorResult(ResultCode.PARAM_IS_INVALID,"验证码不能为空");
+            }
+            String s = stringRedisTemplate.opsForValue().get(RedisKey.RESET_EMAIL_VERIFY_CODE + uid);
+            if (s == null){
+                return getErrorResult(ResultCode.DATA_EXPIRATION,"验证码已过期，请重新获取");
+            }
+            // 如果验证码不正确
+            if (!rcode.equals(s)){
+                return getErrorResult(ResultCode.DATA_IS_WRONG,"验证码不正确");
+            }
+
+        }
+        // 如果邮箱地址未验证的话，允许直接修改 || 验证码正确，则修改验证码，并发送验证邮件
+        user.setEmail(email);
+        user.setEmailVerified(UserStatus.EMAIL_UN_VERIFY.getStatus());
+        User updateUser = userService.updateUser(user);
+
+        try {
+            mailService.sendVerifyEmail(updateUser.getEmail(),updateUser.getUserId(),GeneralUtils.getUUID());
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return getErrorResult(ResultCode.SYSTEM_INTERNAL_ERROR,"服务器繁忙，请稍后再试");
+        }
+        return getSuccessResult("修改成功，验证邮箱已发往目标dalao的新邮箱，进及时处理");
+
     }
 
 }

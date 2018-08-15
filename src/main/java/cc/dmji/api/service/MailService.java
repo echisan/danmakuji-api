@@ -8,4 +8,6 @@ import javax.mail.MessagingException;
 public interface MailService {
 
     void sendVerifyEmail(String toEmail, Long userId, String uuid) throws MessagingException;
+
+    void sendVerifyCodeEmail(String toEmail,String content) throws MessagingException;
 }

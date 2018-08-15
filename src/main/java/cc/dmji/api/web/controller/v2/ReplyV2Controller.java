@@ -6,6 +6,7 @@ import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.entity.LikeRecord;
 import cc.dmji.api.entity.v2.ReplyV2;
 import cc.dmji.api.enums.Direction;
+import cc.dmji.api.enums.Status;
 import cc.dmji.api.enums.v2.ReplyOrderBy;
 import cc.dmji.api.enums.v2.ReplyType;
 import cc.dmji.api.service.LikeRecordService;
@@ -20,6 +21,7 @@ import cc.dmji.api.web.listener.ReplyMessageEvent;
 import cc.dmji.api.web.model.v2.reply.ReplyDTO;
 import cc.dmji.api.web.model.v2.reply.ReplyDetail;
 import cc.dmji.api.web.model.v2.reply.ReplyResponse;
+import cc.dmji.api.web.model.v2.reply.SubReplyResponse;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
@@ -31,6 +33,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -182,22 +185,38 @@ public class ReplyV2Controller extends BaseController {
         ReplyResponse replyResponse = new ReplyResponse();
         replyResponse.setTop(replyV2Service.getTopReply(oid, replyType, uid));
         List<ReplyDetail> replies;
+
+        //评论分页信息
+        PageInfo pageInfo = new PageInfo(pn,20,0);
         // 如果没有replyId, 则是普通的查询
         if (rpid == null) {
+            if(root > 0){
+                SubReplyResponse subReplyResponse = new SubReplyResponse();
+                Page<ReplyDetail> subReplies = PageHelper.startPage(pn, 10, true).doSelectPage(() -> {
+                    replyV2Service.listByObjectIdAndType(oid, replyType, root, uid, ReplyOrderBy.floor, Direction.ASC);
+                });
+                subReplyResponse.setReplies(subReplies.getResult());
+                //子评论不需要设置allTotalSize
+                subReplyResponse.setPage(new PageInfo(pn,10,subReplies.getTotal()));
+                subReplyResponse.setRoot(replyV2Service.getTopReply(root,replyType,uid));
+                return getSuccessResponseEntity(getSuccessResult(subReplyResponse));
+            }
+
             Page<ReplyDetail> replyDetailPage = PageHelper.startPage(pn, 20, true).doSelectPage(() -> {
                 replyV2Service.listByObjectIdAndType(oid, replyType, uid, replyOrderBy, Direction.DESC);
             });
             replies = replyDetailPage.getResult();
             setSubReplies(replies, uid, oid, replyType);
 
-            // 如果评论条数总数大于20条 且 root==0 时才显示热评
-            if (replyDetailPage.getTotal() > 20 && root.equals(0L)) {
+            // 如果评论条数总数大于20条 且 第一页 且 root==0 时才显示热评
+            if (replyDetailPage.getTotal() > 20 && root.equals(0L) && pn == 1) {
                 Page<ReplyDetail> hotReplyPage = PageHelper.startPage(pn, 3, true).doSelectPage(() -> {
                     replyV2Service.listByObjectIdAndType(oid, replyType, root, uid, ReplyOrderBy.like_count, Direction.DESC);
                 });
                 List<ReplyDetail> collect = hotReplyPage.getResult()
                         .stream()
-                        .filter(replyDetail -> !replyDetail.getLike().equals(0L))
+                        // 评论点赞要大于5个点赞才算
+                        .filter(replyDetail -> replyDetail.getLike()>5)
                         .collect(Collectors.toList());
                 if (collect.size() != 0) {
                     collect.forEach(rootReply -> {
@@ -207,10 +226,24 @@ public class ReplyV2Controller extends BaseController {
                         rootReply.setReplies(subReplies);
                         rootReply.setReplyCount(subReplies.getTotal());
                     });
-                    replyResponse.setHot(hotReplyPage.getResult());
+                    // 去重
+                    List<ReplyDetail> requireRemove = new ArrayList<>();
+                    hotReplyPage.getResult().forEach(hrd -> {
+                        replies.forEach(rrd -> {
+                            if (rrd.getId().equals(hrd.getId())){
+                                requireRemove.add(rrd);
+                            }
+                        });
+                    });
+                    List<ReplyDetail> hotResult = hotReplyPage.getResult();
+                    hotResult.removeAll(requireRemove);
+                    replyResponse.setHot(hotResult);
                 }
             }
-            replyResponse.setPage(new PageInfo(pn, 20, replyDetailPage.getTotal()));
+            //将所有子评论数与根评论数相加
+            pageInfo.setTotalSize(replyDetailPage.getTotal());
+            pageInfo.setAllTotalSize(replyV2Service.countAllRepliesByObjectIdAndReplyType(oid,replyType,Status.NORMAL));
+            replyResponse.setPage(pageInfo);
         } else {
             // 如果存在rpid的话，则是需要定位该评论的位置
             ReplyV2 replyV2 = replyV2Service.getById(rpid);
@@ -229,7 +262,10 @@ public class ReplyV2Controller extends BaseController {
                 });
                 replies = replyDetailPage.getResult();
                 setSubReplies(replies, uid, oid, replyType);
-                replyResponse.setPage(new PageInfo(pn, 20, replyDetailPage.getTotal()));
+                //将所有子评论数与根评论数相加
+                pageInfo.setTotalSize(replyDetailPage.getTotal());
+                pageInfo.setAllTotalSize(replyV2Service.countAllRepliesByObjectIdAndReplyType(oid,replyType,Status.NORMAL));
+                replyResponse.setPage(pageInfo);
             } else {
                 // 如果是子评论
                 Long replyCount = replyV2Service.countByObjectIdAndFloorBetween(replyV2.getRoot(), replyType, 1L, replyV2.getFloor());
@@ -239,8 +275,10 @@ public class ReplyV2Controller extends BaseController {
                 });
                 replies = replyDetailPage.getResult();
                 setSubReplies(replies, uid, oid, replyType);
-
-                replyResponse.setPage(new PageInfo(pn, 20, replyDetailPage.getTotal()));
+                //将所有子评论数与根评论数相加
+                pageInfo.setTotalSize(replyDetailPage.getTotal());
+                pageInfo.setAllTotalSize(replyV2Service.countAllRepliesByObjectIdAndReplyType(oid,replyType,Status.NORMAL));
+                replyResponse.setPage(pageInfo);
                 if (replyV2.getFloor() > 3 && replyV2.getFloor() < 10) {
                     replaceSubReplies(replies, oid, replyType, uid, root, 1);
 
@@ -314,6 +352,24 @@ public class ReplyV2Controller extends BaseController {
         return getSuccessResponseEntity(getSuccessResult("取消点赞失败，因为根本就没点过赞"));
     }
 
+    @DeleteMapping("/{rpid}")
+    public ResponseEntity<Result> deleteReply(@PathVariable("rpid")Long rpid,
+                                              HttpServletRequest request){
+        ReplyV2 replyV2 = replyV2Service.getById(rpid);
+        if (replyV2 == null){
+            return getErrorResponseEntity(HttpStatus.NOT_FOUND,ResultCode.RESULT_DATA_NOT_FOUND,"需要操作的对象不存在");
+        }
+        Long uid = getUidFromRequest(request);
+        if (!replyV2.getUserId().equals(uid)){
+            return getErrorResponseEntity(HttpStatus.FORBIDDEN,ResultCode.PERMISSION_DENY);
+        }
+
+        replyV2.setStatus(Status.DELETE);
+        ReplyV2 deleteReply = replyV2Service.update(replyV2);
+        logger.debug("删除的评论:",deleteReply);
+        return getSuccessResponseEntity(getSuccessResult());
+    }
+
     /**
      * 分配子评论到父级评论
      *
@@ -331,6 +387,8 @@ public class ReplyV2Controller extends BaseController {
             });
             rootReply.setReplies(subReplies);
             rootReply.setReplyCount(subReplies.getTotal());
+            //将所有根评论的子评论累加，存储到pageInfo的allTotalSize变量上
+//            pageInfo.setAllTotalSize(pageInfo.getAllTotalSize()+subReplies.getTotal());
         });
     }
 

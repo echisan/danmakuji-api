@@ -220,7 +220,7 @@ public class PostBangumiController extends BaseController {
 
         Long userId = getUidFromRequest(request);
         if (userId == null){
-            return getErrorResponseEntity(HttpStatus.FORBIDDEN,ResultCode.PERMISSION_DENY,"请先登陆");
+            return getErrorResponseEntity(HttpStatus.UNAUTHORIZED,ResultCode.PERMISSION_DENY,"请先登陆");
         }
 
         if (!StringUtils.hasText(idString)){

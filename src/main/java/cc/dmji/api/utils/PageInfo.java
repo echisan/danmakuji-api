@@ -12,6 +12,8 @@ public class PageInfo {
 
     private int pageNumber;
 
+    private long allTotalSize;
+
     public PageInfo(){}
 
     public PageInfo(int pageNumber, int pageSize, long totalSize){
@@ -42,5 +44,13 @@ public class PageInfo {
 
     public void setPageNumber(int pageNumber) {
         this.pageNumber = pageNumber;
+    }
+
+    public long getAllTotalSize() {
+        return allTotalSize;
+    }
+
+    public void setAllTotalSize(long allTotalSize) {
+        this.allTotalSize = allTotalSize;
     }
 }

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.dmji.api.mapper.SysMessageMapper">
+    <!--
+        private Long id;
+        private String title;
+        private String content;
+        private Timestamp createTime;
+        private Long publisherUid;
+        private Integer sysMsgTargetType;
+    -->
+    <resultMap id="sysMsgResultMap" type="cc.dmji.api.entity.v2.SysMessage">
+        <id property="id" column="id" javaType="Long"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="createTime" column="create_time"/>
+        <result property="publisherUid" column="puid"/>
+        <result property="status" column="status" typeHandler="org.apache.ibatis.type.EnumOrdinalTypeHandler"/>
+        <result property="sysMsgTargetType" column="sys_msg_target_type" javaType="Integer"/>
+    </resultMap>
+
+    <sql id="SELECT_NEW_SYS_MSG_SQL">
+        from dm_sys_message dsm
+        where dsm.create_time>=#{userCreateTime}
+        and dsm.sys_msg_target_type = #{sysMsgTargetType}
+        and dsm.`status`=0
+        and dsm.id not in (
+            select dmv2.sys_msg_id
+            from dm_message_v2 dmv2
+            where dmv2.uid=#{uid} and dmv2.type = #{type});
+    </sql>
+
+    <select id="countNewSysMessage" resultType="Long">
+        select count(*)
+        <include refid="SELECT_NEW_SYS_MSG_SQL"/>
+    </select>
+
+    <select id="listNewSysMessages" resultMap="sysMsgResultMap">
+        select dsm.*
+        <include refid="SELECT_NEW_SYS_MSG_SQL"/>
+    </select>
+</mapper>

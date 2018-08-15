@@ -11,6 +11,9 @@ public class RedisKey {
     /** 发送邮箱认证请求限制 */
     public static final String RE_VERIFY_EMAIL_LIMIT_ = "re_verify_email_limit_";
 
+    /** 修改邮箱时存放验证码 */
+    public static final String RESET_EMAIL_VERIFY_CODE = "reset_email_verify_code_";
+
     /** 存放token */
     public static final String LOGIN_TOKEN_KEY = "login_token";
 

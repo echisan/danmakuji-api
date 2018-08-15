@@ -65,8 +65,13 @@ public class ReplyV2V2ServiceImpl implements ReplyV2Service {
     }
 
     @Override
-    public Long countByObjectIdAndType(Long oid, ReplyType rt,Long root) {
+    public Long countByObjectIdAndTypeAndRoot(Long oid, ReplyType rt, Long root) {
         return replyV2Repository.countByObjectIdEqualsAndReplyTypeEqualsAndRootEqualsAndStatusEquals(oid,rt.getCode(),root,Status.NORMAL);
+    }
+
+    @Override
+    public Long countAllRepliesByObjectIdAndReplyType(Long oid, ReplyType rt, Status status) {
+        return replyV2Repository.countByObjectIdEqualsAndReplyTypeEqualsAndStatusEquals(oid,rt.getCode(),status);
     }
 
     @Override
