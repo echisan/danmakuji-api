@@ -5,6 +5,7 @@ import cc.dmji.api.repository.LikeRecordRepository;
 import cc.dmji.api.service.LikeRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -19,6 +20,7 @@ public class LikeRecordServiceImpl implements LikeRecordService {
     private LikeRecordRepository likeRecordRepository;
 
     @Override
+    @Transactional
     public LikeRecord insertLikeRecord(LikeRecord likeRecord) {
         likeRecord.setCreateTime(new Date());
         likeRecord.setModifyTime(new Date());
@@ -26,6 +28,7 @@ public class LikeRecordServiceImpl implements LikeRecordService {
     }
 
     @Override
+    @Transactional
     public LikeRecord updateLikeRecord(LikeRecord likeRecord) {
         likeRecord.setModifyTime(new Date());
         return likeRecordRepository.save(likeRecord);

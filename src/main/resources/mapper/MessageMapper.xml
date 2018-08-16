@@ -31,10 +31,10 @@
     <select id="listMessages" resultMap="messageDetailResultMap">
         select dmv2.*, du.user_id publisher_uid, du.nick nick, du.face face
         from dm_message_v2 dmv2
-        left join dm_user du on du.user_id = dmv2.uid
+        left join dm_user du on du.user_id = dmv2.puid
         where dmv2.uid = #{uid}
         and dmv2.`status` = #{status}
-        and dmv2.`type` = #{type};
+        and dmv2.`type` = #{type}
     </select>
 
 

@@ -9,6 +9,7 @@ import cc.dmji.api.service.v2.MessageV2Service;
 import cc.dmji.api.web.model.v2.message.MessageDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -27,16 +28,19 @@ public class MessageV2ServiceImpl implements MessageV2Service {
     }
 
     @Override
+    @Transactional
     public MessageV2 update(MessageV2 messageV2) {
         return messageV2Repository.save(messageV2);
     }
 
     @Override
+    @Transactional
     public List<MessageV2> insertAll(List<MessageV2> messageV2List) {
         return messageV2Repository.saveAll(messageV2List);
     }
 
     @Override
+    @Transactional
     public MessageV2 insert(MessageV2 messageV2) {
         return messageV2Repository.save(messageV2);
     }

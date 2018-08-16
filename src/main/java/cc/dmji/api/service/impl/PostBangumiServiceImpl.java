@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
@@ -35,6 +36,7 @@ public class PostBangumiServiceImpl implements PostBangumiService {
     private PostBangumiMapper postBangumiMapper;
 
     @Override
+    @Transactional
     public PostBangumi insertPostBangumi(PostBangumi postBangumi) {
         Timestamp ts = new Timestamp(System.currentTimeMillis());
         postBangumi.setCreateTime(ts);
@@ -43,21 +45,25 @@ public class PostBangumiServiceImpl implements PostBangumiService {
     }
 
     @Override
+    @Transactional
     public PostBangumi updatePostBangumi(PostBangumi postBangumi) {
         return postBangumiRepository.save(postBangumi);
     }
 
     @Override
+    @Transactional
     public List<PostBangumi> insertPostBangumiList(List<PostBangumi> postBangumiList) {
         return postBangumiRepository.saveAll(postBangumiList);
     }
 
     @Override
+    @Transactional
     public void deletePostBangumiById(Long id) {
         postBangumiRepository.deleteById(id);
     }
 
     @Override
+    @Transactional
     public void deleteByPostBangumiList(List<PostBangumi> postBangumiList) {
         postBangumiList.forEach(p -> {
             p.setStatus(Status.DELETE);

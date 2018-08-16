@@ -22,8 +22,8 @@ public class JwtUser implements UserDetails {
     private Collection<? extends GrantedAuthority> authorities;
     private Byte isLock;
     private Byte isEmailVerify;
-    // 单位为分钟
     private Timestamp lockTime;
+    private Timestamp createTime;
 
     public JwtUser(Long id, String nick, String pwd, String email, Collection<? extends GrantedAuthority> authorities, Byte isLock, Byte isEmailVerify) {
         this.id = id;
@@ -44,6 +44,7 @@ public class JwtUser implements UserDetails {
         isLock = user.getIsLock();
         isEmailVerify = user.getEmailVerified();
         lockTime = user.getLockTime();
+        createTime = user.getCreateTime();
     }
 
     @Override
@@ -100,6 +101,10 @@ public class JwtUser implements UserDetails {
 
     public Long getId() {
         return id;
+    }
+
+    public Timestamp getCreateTime() {
+        return createTime;
     }
 
     @Override

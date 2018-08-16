@@ -1,21 +1,19 @@
 package cc.dmji.api.utils;
 
-import cc.dmji.api.security.JwtUser;
 import cc.dmji.api.enums.UserStatus;
+import cc.dmji.api.security.JwtUser;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import static cc.dmji.api.constants.SecurityConstants.*;
-import static cc.dmji.api.constants.SecurityConstants.TOKEN_CLAIM_KEY_LOCK;
 
 /**
  * Created by echisan on 2018/5/16
@@ -27,6 +25,7 @@ public class JwtTokenUtils {
 
     /**
      * 生成token
+     *
      * @param claims
      * @param subject
      * @param rememberMe
@@ -43,7 +42,7 @@ public class JwtTokenUtils {
      * @return
      */
     public String createToken(String subject) {
-        return doCreateToken(new HashMap<>(),subject,false);
+        return doCreateToken(new HashMap<>(), subject, false);
     }
 
     /**
@@ -64,6 +63,7 @@ public class JwtTokenUtils {
         claims.put(TOKEN_CLAIM_KEY_EMAIL, user.getIsEmailVerify());
         claims.put(TOKEN_CLAIM_KEY_LOCK, user.getIsLock());
         claims.put(TOKEN_CLAIM_KEY_UID, user.getId());
+        claims.put(TOKEN_CLAIM_KEY_CREATE_TIME, user.getCreateTime());
         return doCreateToken(claims, user.getUsername(), rememberMe);
     }
 
@@ -78,7 +78,7 @@ public class JwtTokenUtils {
     private String doCreateToken(Map<String, Object> claimsMap, String username, boolean rememberMe) {
 
         return Jwts.builder().signWith(SignatureAlgorithm.HS512, TOKEN_SECRET)
-                .setHeaderParam("typ","JWT")
+                .setHeaderParam("typ", "JWT")
                 .setClaims(claimsMap)
                 .setSubject(username)
                 .setIssuedAt(new Date())
@@ -91,6 +91,7 @@ public class JwtTokenUtils {
 
     /**
      * 获取用户名
+     *
      * @param token
      * @return
      */
@@ -129,22 +130,23 @@ public class JwtTokenUtils {
         return getClaim(token).getIssuer();
     }
 
-    public Long getUid(String token){
+    public Long getUid(String token) {
         Integer userId = (Integer) getClaim(token).get(TOKEN_CLAIM_KEY_UID);
         return userId.longValue();
     }
 
     /**
      * 验证token
+     *
      * @param token
      * @return
      */
     public Boolean validateToken(String token) {
         Payload payload = getPayload(token);
-        if (payload.getUsername()==null){
+        if (payload.getUsername() == null) {
             return false;
         }
-        if (isTokenExpiration(payload.getClaims().getExpiration().getTime())){
+        if (isTokenExpiration(payload.getClaims().getExpiration().getTime())) {
             return false;
         }
         return true;
@@ -161,12 +163,12 @@ public class JwtTokenUtils {
         try {
             Jwts.parser().setSigningKey(TOKEN_SECRET).parseClaimsJws(token);
             return true;
-        } catch ( UnsupportedJwtException
+        } catch (UnsupportedJwtException
                 | MalformedJwtException | IllegalArgumentException e) {
-            logger.info("token不合法，解析失败,原因:{}",e.getMessage());
+            logger.info("token不合法，解析失败,原因:{}", e.getMessage());
             return false;
-        } catch (ExpiredJwtException e){
-            logger.info("token已过期,{}",e.getMessage());
+        } catch (ExpiredJwtException e) {
+            logger.info("token已过期,{}", e.getMessage());
             return false;
         }
     }
@@ -183,7 +185,7 @@ public class JwtTokenUtils {
     }
 
     private Date getExpireDate(Long expiration) {
-        return new Date(System.currentTimeMillis()+ expiration * 1000);
+        return new Date(System.currentTimeMillis() + expiration * 1000);
     }
 
     /**
@@ -193,7 +195,7 @@ public class JwtTokenUtils {
      * @return true则过期
      */
     private boolean isTokenExpiration(Long expiration) {
-        return System.currentTimeMillis()>expiration;
+        return System.currentTimeMillis() > expiration;
     }
 
 
@@ -227,7 +229,7 @@ public class JwtTokenUtils {
     public String refreshToken(String token) {
         Claims claims = getClaim(token);
         claims.setExpiration(new Date());
-        return doCreateToken(claims,claims.getSubject(),false);
+        return doCreateToken(claims, claims.getSubject(), false);
     }
 
 
@@ -241,6 +243,9 @@ public class JwtTokenUtils {
         boolean isEmailVerify;
         Claims claims;
         Long uid;
+        Date createTime;
+        Date issAt;
+        Date expiration;
 
         public Payload(String token) {
             this.token = token;
@@ -255,7 +260,10 @@ public class JwtTokenUtils {
             isLock = UserStatus.LOCK.getStatus().equals(lock);
             isEmailVerify = UserStatus.EMAIL_VERIFY.getStatus().equals(email);
             Integer integer = (Integer) claims.get(TOKEN_CLAIM_KEY_UID);
-            uid = (integer.longValue()) ;
+            uid = (integer.longValue());
+            createTime = new Date((Long) claims.get(TOKEN_CLAIM_KEY_CREATE_TIME));
+            issAt = claims.getIssuedAt();
+            expiration = claims.getExpiration();
         }
 
         public String getRole() {
@@ -280,6 +288,22 @@ public class JwtTokenUtils {
 
         public Long getUid() {
             return uid;
+        }
+
+        public String getToken() {
+            return token;
+        }
+
+        public Date getCreateTime() {
+            return createTime;
+        }
+
+        public Date getIssAt() {
+            return issAt;
+        }
+
+        public Date getExpiration() {
+            return expiration;
         }
     }
 

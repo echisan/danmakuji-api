@@ -115,6 +115,8 @@ public class AuthController extends BaseController {
             mailService.sendVerifyEmail(user.getEmail(), userId, uuid);
             stringRedisTemplate.opsForValue().set(key, uuid, 20L, TimeUnit.MINUTES);
             stringRedisTemplate.opsForValue().set(RedisKey.RE_VERIFY_EMAIL_LIMIT_ + userId, uuid, 60L, TimeUnit.SECONDS);
+
+
         } catch (MessagingException e) {
             e.printStackTrace();
             return getResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, getErrorResult(ResultCode.SYSTEM_INTERNAL_ERROR, "验证邮箱发送失败，请稍候再试"));

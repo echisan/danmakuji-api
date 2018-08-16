@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -82,6 +83,7 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
+    @Transactional
     public Video insertVideo(Video video) {
         setCreateAndModifyTime(video);
         video.setIsMatch((byte) 0);
@@ -90,17 +92,20 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
+    @Transactional
     public Video updateVideo(Video video) {
         setModifyTime(video);
         return videoRepository.save(video);
     }
 
     @Override
+    @Transactional
     public void deleteVideoById(Long videoId) {
         videoRepository.deleteById(videoId);
     }
 
     @Override
+    @Transactional
     public void deleteVideos(List<Video> videos) {
         videoRepository.deleteInBatch(videos);
     }

@@ -4,10 +4,14 @@ import cc.dmji.api.entity.User;
 import cc.dmji.api.repository.UserRepository;
 import cc.dmji.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private JdbcTemplate jdbcTemplate;
 
     @Override
+    @Transactional
     public User insertUser(User user) {
         // 加密密码存储
         String newPass = bCryptPasswordEncoder.encode(user.getPwd());
@@ -43,21 +48,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUserById(Long id) {
         userRepository.deleteById(id);
     }
 
     @Override
+    @Transactional
     public User deleteUserByNick(String nick) {
         return userRepository.deleteUserByNick(nick);
     }
 
     @Override
+    @Transactional
     public User deleteUserByEmail(String email) {
         return userRepository.deleteUserByEmail(email);
     }
 
     @Override
+    @Transactional
     public User updateUser(User user) {
         user.setModifyTime(new Timestamp(System.currentTimeMillis()));
         return userRepository.save(user);
@@ -82,9 +91,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> listUser(Integer pn, Integer ps) {
 
-        String sql = "select * from dm_user order by create_time desc limit ?,?";
-        Integer limit = pn == 1 ? 0 : (pn - 1) * ps;
-        return jdbcTemplate.query(sql, new UserMapper(), limit, ps);
+//        String sql = "select * from dm_user order by create_time desc limit ?,?";
+//        Integer limit = pn == 1 ? 0 : (pn - 1) * ps;
+        Page<User> userPage = userRepository.findAll(PageRequest.of(pn - 1, ps, Sort.Direction.DESC, "createTime"));
+        return userPage.getContent();
     }
 
     @Override

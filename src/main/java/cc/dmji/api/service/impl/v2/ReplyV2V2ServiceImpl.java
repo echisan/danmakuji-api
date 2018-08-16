@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
@@ -33,6 +34,7 @@ public class ReplyV2V2ServiceImpl implements ReplyV2Service {
     private ReplyMapper replyMapper;
 
     @Override
+    @Transactional
     public ReplyV2 insert(ReplyDTO replyDTO) {
 
         ReplyV2 replyV2 = new ReplyV2();
@@ -50,6 +52,7 @@ public class ReplyV2V2ServiceImpl implements ReplyV2Service {
     }
 
     @Override
+    @Transactional
     public ReplyV2 update(ReplyV2 replyV2) {
         return replyV2Repository.save(replyV2);
     }

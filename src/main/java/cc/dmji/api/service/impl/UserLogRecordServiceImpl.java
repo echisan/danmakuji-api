@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -25,21 +26,25 @@ public class UserLogRecordServiceImpl implements UserLogRecordService {
     private UserLogRecordRepository userLogRecordRepository;
 
     @Override
+    @Transactional
     public UserLogRecord insertUserLogRecord(UserLogRecord userLogRecord) {
         return userLogRecordRepository.save(userLogRecord);
     }
 
     @Override
+    @Transactional
     public void deleteUserLogRecordById(Long id) {
         userLogRecordRepository.deleteById(id);
     }
 
     @Override
+    @Transactional
     public void deleteUserLogRecordByIds(List<UserLogRecord> userLogRecords) {
         userLogRecordRepository.deleteInBatch(userLogRecords);
     }
 
     @Override
+    @Transactional
     public UserLogRecord updateUserLogRecord(UserLogRecord userLogRecord) {
         return userLogRecordRepository.save(userLogRecord);
     }

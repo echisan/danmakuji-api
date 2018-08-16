@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.sql.Timestamp;
@@ -79,6 +80,7 @@ public class BangumiServiceImpl implements BangumiService {
     }
 
     @Override
+    @Transactional
     public Bangumi insertBangumi(Bangumi bangumi) {
         bangumi.setViewCount(0L);
         setCreateAndModifyTime(bangumi);
@@ -86,17 +88,20 @@ public class BangumiServiceImpl implements BangumiService {
     }
 
     @Override
+    @Transactional
     public Bangumi updateBangumi(Bangumi bangumi) {
         setModifyTime(bangumi);
         return bangumiRepository.save(bangumi);
     }
 
     @Override
+    @Transactional
     public void deleteBangumiById(Long id) {
         bangumiRepository.deleteById(id);
     }
 
     @Override
+    @Transactional
     public void deleteBangumis(List<Bangumi> bangumis) {
         bangumiRepository.deleteInBatch(bangumis);
     }

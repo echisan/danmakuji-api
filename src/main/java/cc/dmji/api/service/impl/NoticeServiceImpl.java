@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 
@@ -24,6 +25,7 @@ public class NoticeServiceImpl implements NoticeService {
     private NoticeRepository noticeRepository;
 
     @Override
+    @Transactional
     public Notice insertNotice(Notice notice) {
         Timestamp ts = new Timestamp(System.currentTimeMillis());
         notice.setCreateTime(ts);
@@ -33,6 +35,7 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
+    @Transactional
     public Notice updateNotice(Notice notice) {
         notice.setModifyTime(new Timestamp(System.currentTimeMillis()));
         return noticeRepository.save(notice);
@@ -49,6 +52,7 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
+    @Transactional
     public void deleteNoticeById(Long nid) {
         noticeRepository.deleteById(nid);
     }
@@ -59,6 +63,7 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
+    @Transactional
     public Notice updateNoticeViewCountById(Notice notice) {
         notice.setViewCount(notice.getViewCount() == null ? 1 : notice.getViewCount() + 1);
         return noticeRepository.save(notice);

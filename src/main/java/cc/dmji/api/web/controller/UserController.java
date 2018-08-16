@@ -13,14 +13,12 @@ import cc.dmji.api.service.UserService;
 import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.GeneralUtils;
 import cc.dmji.api.utils.JwtTokenUtils;
-import cc.dmji.api.web.model.UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -145,12 +143,12 @@ public class UserController extends BaseController {
 //                userInfo.setFace(user.getFace());
 //                userInfo.setUid(user.getUserId());
 //                userInfo.setNick(user.getNick());
-                Map<String,String> userInfo = new HashMap<>();
-                userInfo.put("sex",user.getSex());
-                userInfo.put("face",user.getFace());
+                Map<String, String> userInfo = new HashMap<>();
+                userInfo.put("sex", user.getSex());
+                userInfo.put("face", user.getFace());
                 userInfo.put("uid", String.valueOf(user.getUserId()));
-                userInfo.put("nick",user.getNick());
-                userInfo.put("sign",user.getSign());
+                userInfo.put("nick", user.getNick());
+                userInfo.put("sign", user.getSign());
                 return getResponseEntity(HttpStatus.OK, getSuccessResult(userInfo));
             }
             user.setPwd("");
@@ -159,7 +157,7 @@ public class UserController extends BaseController {
         return getResponseEntity(HttpStatus.BAD_REQUEST, getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND));
     }
 
-//    @DeleteMapping("/{userId}")
+    //    @DeleteMapping("/{userId}")
     @UserLog("注销账号")
     public ResponseEntity<Result> deleteUser(@PathVariable Long userId, HttpServletRequest request) {
         Long uid = getUidFromRequest(request);
@@ -176,8 +174,8 @@ public class UserController extends BaseController {
 
     @PutMapping("/{userId}/pwd")
     public ResponseEntity<Result> updatePassword(@PathVariable Long userId,
-                                                 @RequestBody Map<String,String> requestMap,
-                                                 HttpServletRequest request){
+                                                 @RequestBody Map<String, String> requestMap,
+                                                 HttpServletRequest request) {
         // ----- 修改密码 -----
         Long uid = getUidFromRequest(request);
         User dbUser = userService.getUserById(userId);
@@ -187,17 +185,16 @@ public class UserController extends BaseController {
         String oldPassword = requestMap.get("opwd");
         String newPassword = requestMap.get("cpwd");
 
-        if (!bCryptPasswordEncoder.matches(oldPassword, dbUser.getPwd())){
-            return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.PARAM_IS_INVALID,"原密码错误，无法修改");
+        if (!bCryptPasswordEncoder.matches(oldPassword, dbUser.getPwd())) {
+            return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "原密码错误，无法修改");
         }
-        if(oldPassword.equals(newPassword)){
-            return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.DATA_IS_WRONG,"新密码不能与旧密码相同");
+        if (oldPassword.equals(newPassword)) {
+            return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.DATA_IS_WRONG, "新密码不能与旧密码相同");
         }
-        if (StringUtils.hasText(newPassword) && DmjiUtils.validPassword(newPassword)){
+        if (StringUtils.hasText(newPassword) && DmjiUtils.validPassword(newPassword)) {
             dbUser.setPwd(bCryptPasswordEncoder.encode(newPassword));
-        }
-        else {
-            return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.DATA_IS_WRONG,"密码格式有误");
+        } else {
+            return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.DATA_IS_WRONG, "密码格式有误");
         }
         User updateUser = userService.updateUser(dbUser);
         updateUser.setPwd("");
@@ -248,16 +245,16 @@ public class UserController extends BaseController {
         }
 
         // 修改个性前面
-        if (!StringUtils.isEmpty(user.getSign())){
+        if (!StringUtils.isEmpty(user.getSign())) {
             dbUser.setSign(user.getSign());
         }
 
         // 修改性别
-        if (!StringUtils.isEmpty(user.getSex())){
+        if (!StringUtils.isEmpty(user.getSex())) {
             String sex = user.getSex();
             Sex[] values = Sex.values();
-            for (Sex s :values){
-                if (s.getValue().equals(sex)){
+            for (Sex s : values) {
+                if (s.getValue().equals(sex)) {
                     dbUser.setSex(s.getValue());
                 }
             }
@@ -265,43 +262,48 @@ public class UserController extends BaseController {
 
         User updatedUser = userService.updateUser(dbUser);
         updatedUser.setPwd("");
-        logger.debug("更新后的用户数据{}",updatedUser.toString());
-        return getSuccessResponseEntity(getSuccessResult(updatedUser,"修改成功"));
+        logger.debug("更新后的用户数据{}", updatedUser.toString());
+        return getSuccessResponseEntity(getSuccessResult(updatedUser, "修改成功"));
     }
 
     @PutMapping("/{uid}/email")
     @UserLog("更换邮箱")
-    public Result updateUserEmail(@PathVariable("uid")Long uid,
-                                                  @RequestBody Map<String,String> requestMap,
-                                                  HttpServletRequest request){
+    public Result updateUserEmail(@PathVariable("uid") Long uid,
+                                  @RequestBody Map<String, String> requestMap,
+                                  HttpServletRequest request) {
 
-        if (!uid.equals(getUidFromRequest(request))){
+        if (!uid.equals(getUidFromRequest(request))) {
             return getErrorResult(ResultCode.PERMISSION_DENY);
         }
 
         String email = requestMap.get("email");
         String rcode = requestMap.get("rcode");
-        if (!StringUtils.hasText(email)){
-            return getErrorResult(ResultCode.PARAM_IS_INVALID,"邮箱地址不能为空");
+        if (!StringUtils.hasText(email)) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "邮箱地址不能为空");
         }
-        if (!DmjiUtils.validEmail(email)){
-            return getErrorResult(ResultCode.PARAM_IS_INVALID,"邮箱地址格式不正确，请确保是正确的邮箱地址");
+        User userByEmail = userService.getUserByEmail(email);
+        if (userByEmail != null) {
+            return getErrorResult(ResultCode.DATA_ALREADY_EXIST, "该邮件地址已被使用");
+        }
+
+        if (!DmjiUtils.validEmail(email)) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "邮箱地址格式不正确，请确保是正确的邮箱地址");
         }
 
         User user = userService.getUserById(uid);
 
         // 如果该邮箱已经验证过了，则需要发邮箱去验证
-        if (user.getEmailVerified().equals(UserStatus.EMAIL_VERIFY.getStatus())){
-            if (!StringUtils.hasText(rcode)){
-                return getErrorResult(ResultCode.PARAM_IS_INVALID,"验证码不能为空");
+        if (user.getEmailVerified().equals(UserStatus.EMAIL_VERIFY.getStatus())) {
+            if (!StringUtils.hasText(rcode)) {
+                return getErrorResult(ResultCode.PARAM_IS_INVALID, "验证码不能为空");
             }
             String s = stringRedisTemplate.opsForValue().get(RedisKey.RESET_EMAIL_VERIFY_CODE + uid);
-            if (s == null){
-                return getErrorResult(ResultCode.DATA_EXPIRATION,"验证码已过期，请重新获取");
+            if (s == null) {
+                return getErrorResult(ResultCode.DATA_EXPIRATION, "验证码已过期，请重新获取");
             }
             // 如果验证码不正确
-            if (!rcode.equals(s)){
-                return getErrorResult(ResultCode.DATA_IS_WRONG,"验证码不正确");
+            if (!rcode.equals(s)) {
+                return getErrorResult(ResultCode.DATA_IS_WRONG, "验证码不正确");
             }
 
         }
@@ -311,10 +313,12 @@ public class UserController extends BaseController {
         User updateUser = userService.updateUser(user);
 
         try {
-            mailService.sendVerifyEmail(updateUser.getEmail(),updateUser.getUserId(),GeneralUtils.getUUID());
+            String uuid = GeneralUtils.getUUID();
+            stringRedisTemplate.boundValueOps(RedisKey.VERIFY_EMAIL_KEY + uid).set(uuid,20L,TimeUnit.MINUTES);
+            mailService.sendVerifyEmail(updateUser.getEmail(), updateUser.getUserId(), uuid);
         } catch (MessagingException e) {
             e.printStackTrace();
-            return getErrorResult(ResultCode.SYSTEM_INTERNAL_ERROR,"服务器繁忙，请稍后再试");
+            return getErrorResult(ResultCode.SYSTEM_INTERNAL_ERROR, "服务器繁忙，请稍后再试");
         }
         return getSuccessResult("修改成功，验证邮箱已发往目标dalao的新邮箱，进及时处理");
 

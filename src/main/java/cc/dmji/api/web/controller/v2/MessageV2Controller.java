@@ -13,6 +13,7 @@ import cc.dmji.api.service.SysMessageService;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.service.v2.MessageV2Service;
 import cc.dmji.api.utils.DmjiUtils;
+import cc.dmji.api.utils.JwtUserInfo;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
 import cc.dmji.api.web.model.v2.message.MessageDetail;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,17 +48,22 @@ public class MessageV2Controller extends BaseController {
 
     @GetMapping("/cum")
     public ResponseEntity<Result> countUnreadMessage(HttpServletRequest request) {
-        Long uid = getUidFromRequest(request);
-        User user = userService.getUserById(uid);
-        Role role = Role.byRoleName(user.getRole());
+        //Long uid = getUidFromRequest(request);
+
+        JwtUserInfo user = getJwtUserInfo(request);
+        logger.debug("jwtUserInfo --- {}", user);
+        Long uid = user.getUid();
+        //User user = userService.getUserById(uid);
+        Role role = user.getRole();
         // 未读回复通知
         Long unReadReplyMessageCount = messageV2Service.countUnreadMessage(uid, MessageType.REPLY);
         // 未读系统通知
         Long unReadSystemMessageCount = messageV2Service.countUnreadMessage(uid, MessageType.SYSTEM);
         // 未读的新系统通知
-        Long newSysMessage = sysMessageService.countNewSysMessage(user.getUserId(), user.getCreateTime(), SysMsgTargetType.byUserRole(role));
+        Timestamp ct = new Timestamp(user.getCreateTime().getTime());
+        Long newSysMessage = sysMessageService.countNewSysMessage(user.getUid(), ct, SysMsgTargetType.byUserRole(role));
         if (newSysMessage != 0) {
-            List<SysMessage> sysMessages = sysMessageService.listNewSysMessages(user.getUserId(), user.getCreateTime(), SysMsgTargetType.byUserRole(role));
+            List<SysMessage> sysMessages = sysMessageService.listNewSysMessages(user.getUid(), ct, SysMsgTargetType.byUserRole(role));
             if (sysMessages != null && sysMessages.size() != 0) {
                 List<MessageV2> messageV2List = new ArrayList<>();
                 sysMessages.forEach(sysMessage -> {

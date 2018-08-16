@@ -37,8 +37,8 @@ public class MessageEventListener {
     // 1: 评论内容 2: 评论描点
     private static final String MSG_CONTENT = "#{%s}{\"%s\"}";
 
-    private static final String MSG_BANGUMI_EPISODE_URL = "http://darker.online/episode/%d";
-    private static final String MSG_BANGUMI_EPISODE_AT_POINT = "http://darker.online/#/episode/%d?rpid=%d";
+    private static final String MSG_BANGUMI_EPISODE_URL = "http://localhost:8083/#/video/%d";
+    private static final String MSG_BANGUMI_EPISODE_AT_POINT = "http://localhost:8083/#/video/%d?rpid=%d";
 
     @Autowired
     private MessageV2Service messageV2Service;

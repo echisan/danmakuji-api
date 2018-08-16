@@ -23,6 +23,8 @@ public class SecurityConstants {
     public static final String TOKEN_CLAIM_KEY_LOCK = "loc";
     /** 邮箱验证信息 */
     public static final String TOKEN_CLAIM_KEY_EMAIL = "ema";
+    /** 用户创建时间 */
+    public static final String TOKEN_CLAIM_KEY_CREATE_TIME = "crt";
 
     public static final String TOKEN_RESULT_CODE_HEADER = "Result-Code";
 

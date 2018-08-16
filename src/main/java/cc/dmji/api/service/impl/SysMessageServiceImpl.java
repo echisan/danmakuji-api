@@ -8,6 +8,7 @@ import cc.dmji.api.repository.SysMessageRepository;
 import cc.dmji.api.service.SysMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
@@ -21,11 +22,13 @@ public class SysMessageServiceImpl implements SysMessageService {
     private SysMessageMapper sysMessageMapper;
 
     @Override
+    @Transactional
     public SysMessage insert(SysMessage sysMessage) {
         return sysMessageRepository.save(sysMessage);
     }
 
     @Override
+    @Transactional
     public SysMessage update(SysMessage sysMessage) {
         return sysMessageRepository.save(sysMessage);
     }

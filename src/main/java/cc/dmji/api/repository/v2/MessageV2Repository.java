@@ -2,6 +2,7 @@ package cc.dmji.api.repository.v2;
 
 import cc.dmji.api.entity.v2.MessageV2;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.NoRepositoryBean;
 
 import java.util.List;
 

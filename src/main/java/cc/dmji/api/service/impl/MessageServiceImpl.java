@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -31,6 +32,7 @@ public class MessageServiceImpl implements MessageService {
     private UserService userService;
 
     @Override
+    @Transactional
     public Message insertMessage(Message message) {
         Timestamp ts = new Timestamp(System.currentTimeMillis());
         message.setCreateTime(ts);
@@ -39,11 +41,13 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional
     public void deleteMessageById(Long id) {
         messageRepository.deleteById(id);
     }
 
     @Override
+    @Transactional
     public Message updateMessage(Message message) {
         return messageRepository.save(message);
     }
@@ -87,6 +91,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional
     public List<Message> updateMessages(List<Message> messageList) {
         return messageRepository.saveAll(messageList);
     }

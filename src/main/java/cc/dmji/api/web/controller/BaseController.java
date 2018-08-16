@@ -4,8 +4,10 @@ import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.entity.User;
+import cc.dmji.api.enums.Role;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.utils.JwtTokenUtils;
+import cc.dmji.api.utils.JwtUserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -84,32 +86,56 @@ public class BaseController {
         return null;
     }
 
-    public String getNickFormRequest(HttpServletRequest request){
+    public String getNickFormRequest(HttpServletRequest request) {
         return new JwtTokenUtils().getUsername(getToken(request));
     }
 
     /**
      * 获取当前用户， 只能用在"/admin/**"下
      * 因为在header上肯定存在token
-     * @param request request
+     *
+     * @param request     request
      * @param userService userServiceImpl
      * @return User
      */
-    public User getCurrentUser(HttpServletRequest request, UserService userService){
+    public User getCurrentUser(HttpServletRequest request, UserService userService) {
         Long uid = getUidFromRequest(request);
         return userService.getUserById(uid);
     }
 
-    public ResponseEntity<Result> getErrorResponseEntity(HttpStatus httpStatus,ResultCode resultCode,String msg){
-        return getResponseEntity(httpStatus,getErrorResult(resultCode,msg));
+    public ResponseEntity<Result> getErrorResponseEntity(HttpStatus httpStatus, ResultCode resultCode, String msg) {
+        return getResponseEntity(httpStatus, getErrorResult(resultCode, msg));
     }
 
-    public ResponseEntity<Result> getErrorResponseEntity(HttpStatus httpStatus,ResultCode resultCode){
-        return getResponseEntity(httpStatus,getErrorResult(resultCode));
+    public ResponseEntity<Result> getErrorResponseEntity(HttpStatus httpStatus, ResultCode resultCode) {
+        return getResponseEntity(httpStatus, getErrorResult(resultCode));
     }
 
-    public ResponseEntity<Result> getSuccessResponseEntity(Result result){
-        return getResponseEntity(HttpStatus.OK,result);
+    public ResponseEntity<Result> getSuccessResponseEntity(Result result) {
+        return getResponseEntity(HttpStatus.OK, result);
+    }
+
+    /**
+     * 必须是要登陆后才能使用
+     *
+     * @param request request
+     * @return @see JwtUserInfo
+     */
+    public JwtUserInfo getJwtUserInfo(HttpServletRequest request) {
+        String token = getToken(request);
+        if (token == null) return null;
+        JwtTokenUtils.Payload payload = new JwtTokenUtils().getPayload(token);
+        JwtUserInfo userInfo = new JwtUserInfo();
+        userInfo.setCreateTime(payload.getCreateTime());
+        userInfo.setIssAt(payload.getIssAt());
+        userInfo.setCreateTime(payload.getCreateTime());
+        userInfo.setNick(payload.getUsername());
+        userInfo.setRole(Role.byRoleName(payload.getRole()));
+        userInfo.setEmailVerify(payload.isEmailVerify());
+        userInfo.setLock(payload.isLock());
+        userInfo.setUid(payload.getUid());
+        userInfo.setExpiration(payload.getExpiration());
+        return userInfo;
     }
 
 }
