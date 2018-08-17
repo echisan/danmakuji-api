@@ -165,9 +165,9 @@ public class PostBangumiController extends BaseController {
         Integer episodeTotal = Integer.valueOf(episodeTotalString);
         Byte hasZeroIndex = Byte.valueOf(hasZeroIndexString);
         Long userId = getUidFromRequest(request);
-//        if (episodeTotal < 0) {
-//            return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "总集数不能小于0");
-//        }
+        if (episodeTotal < 0) {
+            return getErrorResponseEntity(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, "总集数不能小于0");
+        }
 
         PostBangumi pb = new PostBangumi();
 

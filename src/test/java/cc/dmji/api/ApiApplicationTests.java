@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.sql.Timestamp;
@@ -32,6 +33,9 @@ public class ApiApplicationTests {
 
     @Autowired
     private SysMessageRepository sysMessageRepository;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Test
     public void test() {
@@ -55,5 +59,12 @@ public class ApiApplicationTests {
         sysMessage.setTitle("测试标题");
         sysMessage.setSysMsgTargetType(SysMsgTargetType.ADMIN.getCode());
         sysMessageRepository.save(sysMessage);
+    }
+
+    @Test
+    public void redisTest(){
+        String fwefsafa = stringRedisTemplate.opsForValue().get("fwefsafa");
+        System.out.println(fwefsafa);
+        System.out.println(fwefsafa == null);
     }
 }

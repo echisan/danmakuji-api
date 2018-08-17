@@ -13,9 +13,12 @@ import cc.dmji.api.service.UserService;
 import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.GeneralUtils;
 import cc.dmji.api.utils.JwtTokenUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -314,7 +318,7 @@ public class UserController extends BaseController {
 
         try {
             String uuid = GeneralUtils.getUUID();
-            stringRedisTemplate.boundValueOps(RedisKey.VERIFY_EMAIL_KEY + uid).set(uuid,20L,TimeUnit.MINUTES);
+            stringRedisTemplate.boundValueOps(RedisKey.VERIFY_EMAIL_KEY + uid).set(uuid, 20L, TimeUnit.MINUTES);
             mailService.sendVerifyEmail(updateUser.getEmail(), updateUser.getUserId(), uuid);
         } catch (MessagingException e) {
             e.printStackTrace();
@@ -322,6 +326,129 @@ public class UserController extends BaseController {
         }
         return getSuccessResult("修改成功，验证邮箱已发往目标dalao的新邮箱，进及时处理");
 
+    }
+
+
+    @PostMapping("/pwd/forget/cemail")
+    @UserLog("忘记密码，确认邮箱")
+    public Result checkEmailForgetPwd(@RequestBody Map<String, String> requestMap) throws JsonProcessingException {
+        String email = requestMap.get("email");
+        if (!StringUtils.hasText(email)) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "邮件地址不能为空");
+        }
+        if (!DmjiUtils.validEmail(email)) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "邮件地址格式不合法");
+        }
+        User userByEmail = userService.getUserByEmail(email);
+        if (userByEmail == null) {
+            return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND, "账号不存在");
+        }
+        String formatEmail = userByEmail.getEmail();
+        int i = formatEmail.indexOf("@");
+        formatEmail = String.valueOf(formatEmail.charAt(0)) + "***" + formatEmail.substring(i);
+        Map<String, String> map = new HashMap<>(4);
+        map.put("value", formatEmail);
+
+        String uuid = GeneralUtils.getUUID();
+        String ticketKey = RedisKey.FORGET_PWD_TICKET + uuid;
+        map.put("ticket", uuid);
+        // 存入ticket到redis
+        stringRedisTemplate.opsForValue().set(ticketKey, new ObjectMapper().writeValueAsString(userByEmail), 2L, TimeUnit.HOURS);
+        return getSuccessResult(map);
+
+    }
+
+    @GetMapping("/pwd/forget/vcode")
+    @UserLog("忘记密码，请求验证码")
+    public Result forgetPwdAndSendVerifyEmail(HttpServletRequest request,
+                                              @RequestParam("ticket") String ticket) throws IOException {
+
+        // 需要求60秒钟请求一次的限制
+        // 用户信息从ticket获取
+        if (!StringUtils.hasText(ticket)) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "凭证不能为空");
+        }
+
+        BoundValueOperations<String, String> valueOps =
+                stringRedisTemplate.boundValueOps(RedisKey.FORGET_PWD_TICKET + ticket);
+
+        String userJson;
+        if ((userJson = valueOps.get()) == null) {
+            return getErrorResult(ResultCode.USER_TICKET_EXPIRATION, "该凭证已过期，请重新确认账号");
+        }
+        User user = new ObjectMapper().readValue(userJson, User.class);
+
+        // 生成验证码
+        String verifyCode = DmjiUtils.generateVerifyCode();
+        String key = RedisKey.FORGET_PWD_VERIFY_CODE + ticket;
+        String ip = GeneralUtils.getIpAddress(request);
+        String limitKey = RedisKey.FORGET_PWD_VERIFY_LIMIT + ip;
+        BoundValueOperations<String, String> limitKeyOperation = stringRedisTemplate.boundValueOps(limitKey);
+        if (limitKeyOperation.get() != null) {
+            Long expire = limitKeyOperation.getExpire();
+            return getErrorResult(ResultCode.USER_REQUEST_FREQUENTLY, "请求频繁，请在" + expire + "秒后再试!");
+        }
+
+        logger.debug("忘记密码的请求验证码:{}", verifyCode);
+        // 往redis里存入验证码
+        stringRedisTemplate.boundValueOps(key).set(verifyCode, 5L, TimeUnit.MINUTES);
+        // 往redis里存入请求限制
+        stringRedisTemplate.boundValueOps(limitKey).set(ip, 60L, TimeUnit.SECONDS);
+        try {
+            String title = "【Darker】账号安全中心-找回登录密码";
+            String content = "尊敬的用户，你好:<br/>" +
+                    "  您正在进行找回登录密码的重置操作，本次请求的邮件验证码是：<strong>" + verifyCode + "</strong>" +
+                    "(为了保证你的账号的安全性，请在5分钟内完成设置)。" +
+                    "本验证码5分钟内有效，请及时输入。<br/>" +
+                    "  为了保证账号安全，请勿泄露此验证码。<br/>" +
+                    "  祝您生活愉快!<br/><br/>" +
+                    "  (这是一封自动发送的邮件，请不要直接回复，若有疑问请联系help@darker.online)";
+            mailService.sendEmail(user.getEmail(), title, content);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return getErrorResult(ResultCode.SYSTEM_INTERNAL_ERROR, "服务器正忙，请稍后再试。");
+        }
+
+        return getSuccessResult("验证码已发送，请前往目标邮箱查看。");
+    }
+
+    @PutMapping("/pwd/forget/reset")
+    @UserLog("忘记密码后的更换密码")
+    public Result resetPwdAfterForgetPwd(@RequestBody Map<String, String> requestMap) throws IOException {
+        String pwd = requestMap.get("pwd");
+        String rcode = requestMap.get("rcode");
+        String ticket = requestMap.get("ticket");
+
+        if (!StringUtils.hasText(ticket)) {
+            return getErrorResult(ResultCode.USER_TICKET_INVALID);
+        }
+
+        BoundValueOperations<String, String> valueOps =
+                stringRedisTemplate.boundValueOps(RedisKey.FORGET_PWD_TICKET + ticket);
+        String userJson;
+        if ((userJson = valueOps.get()) == null) {
+            return getErrorResult(ResultCode.USER_TICKET_EXPIRATION, "该凭证已过期，请重新确认账号");
+        }
+        User user = new ObjectMapper().readValue(userJson, User.class);
+
+        BoundValueOperations<String, String> ops = stringRedisTemplate.boundValueOps(RedisKey.FORGET_PWD_VERIFY_CODE + ticket);
+        String code;
+        if ((code = ops.get()) == null) {
+            return getErrorResult(ResultCode.DATA_EXPIRATION, "该验证码已过期，请重新获取");
+        }
+        if (!rcode.equals(code)) {
+            return getErrorResult(ResultCode.DATA_IS_WRONG, "验证码有误，请重新输入");
+        }
+
+        // 将验证码删了
+        stringRedisTemplate.delete(RedisKey.FORGET_PWD_VERIFY_CODE + user.getEmail());
+        // ticket也删了
+        stringRedisTemplate.delete(RedisKey.FORGET_PWD_TICKET + ticket);
+
+        user.setPwd(bCryptPasswordEncoder.encode(pwd));
+        userService.updateUser(user);
+
+        return getSuccessResult("密码修改成功");
     }
 
 }

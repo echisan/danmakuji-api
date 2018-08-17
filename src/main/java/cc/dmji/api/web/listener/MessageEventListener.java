@@ -6,6 +6,7 @@ import cc.dmji.api.entity.User;
 import cc.dmji.api.entity.v2.MessageV2;
 import cc.dmji.api.entity.v2.ReplyV2;
 import cc.dmji.api.enums.MessageType;
+import cc.dmji.api.enums.Status;
 import cc.dmji.api.enums.v2.ReplyType;
 import cc.dmji.api.service.BangumiService;
 import cc.dmji.api.service.EpisodeService;
@@ -98,6 +99,7 @@ public class MessageEventListener {
         messageV2.setType(MessageType.REPLY);
         messageV2.setTitle(title);
         messageV2.setContent(content);
+        messageV2.setStatus(Status.NORMAL);
         MessageV2 insert = messageV2Service.insert(messageV2);
         logger.debug("send reply message:{}", insert.getContent());
     }
@@ -119,6 +121,7 @@ public class MessageEventListener {
         messageV2.setUid(event.getUid());
         messageV2.setType(MessageType.LIKE);
         messageV2.setTitle(title);
+        messageV2.setStatus(Status.NORMAL);
         messageV2.setContent(content);
         MessageV2 insert = messageV2Service.insert(messageV2);
         logger.debug("send like message:{}", insert.getContent());

@@ -57,4 +57,16 @@ public class MailServiceImpl implements MailService {
         javaMailSender.send(mimeMessage);
         logger.debug("发送的邮件地址:{}，验证码:{}", toEmail, content);
     }
+
+    @Override
+    public void sendEmail(String toEmail, String title, String content) throws MessagingException {
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
+        helper.setFrom("Darker <" + from + ">");
+        helper.setTo(toEmail);
+        helper.setSubject(title);
+        helper.setText(content, true);
+        javaMailSender.send(mimeMessage);
+        logger.debug("发送的邮件地址:{},标题:{},正文:{}", toEmail, title, content);
+    }
 }

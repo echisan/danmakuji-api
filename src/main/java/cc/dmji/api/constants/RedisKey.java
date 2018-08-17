@@ -14,6 +14,15 @@ public class RedisKey {
     /** 修改邮箱时存放验证码 */
     public static final String RESET_EMAIL_VERIFY_CODE = "reset_email_verify_code_";
 
+    /** 忘记密码时存放的验证码 */
+    public static final String FORGET_PWD_VERIFY_CODE = "forget_pwd_verify_code_";
+
+    /** 忘记密码时请求验证码限制 */
+    public static final String FORGET_PWD_VERIFY_LIMIT = "forget_pwd_verify_limit_";
+
+    /** 忘记密码时存储修改邮箱的ticket */
+    public static final String FORGET_PWD_TICKET = "forget_pwd_ticket_";
+
     /** 存放token */
     public static final String LOGIN_TOKEN_KEY = "login_token";
 
