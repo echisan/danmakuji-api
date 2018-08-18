@@ -113,8 +113,8 @@ public class ReplyV2V2ServiceImpl implements ReplyV2Service {
 
     @Override
     public Long countByObjectIdAndFloorBetween(Long oid, ReplyType rt, Long beginFloor, Long endFloor) {
-        return replyV2Repository.countByObjectIdEqualsAndReplyTypeEqualsAndFloorBetweenAndStatusEquals(
-                oid,rt.getCode(),beginFloor,endFloor,Status.NORMAL,Sort.by(Sort.Direction.ASC,"floor")
+        return replyV2Repository.countByObjectIdEqualsAndReplyTypeEqualsAndRootEqualsAndFloorBetweenAndStatusEquals(
+                oid,rt.getCode(),0L,beginFloor,endFloor,Status.NORMAL,Sort.by(Sort.Direction.ASC,"floor")
         );
     }
 }
