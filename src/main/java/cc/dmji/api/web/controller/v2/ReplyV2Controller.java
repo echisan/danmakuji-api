@@ -22,10 +22,7 @@ import cc.dmji.api.web.listener.AtMessageEvent;
 import cc.dmji.api.web.listener.DeleteReplyMessageEvent;
 import cc.dmji.api.web.listener.LikeMessageEvent;
 import cc.dmji.api.web.listener.ReplyMessageEvent;
-import cc.dmji.api.web.model.v2.reply.ReplyDTO;
-import cc.dmji.api.web.model.v2.reply.ReplyDetail;
-import cc.dmji.api.web.model.v2.reply.ReplyResponse;
-import cc.dmji.api.web.model.v2.reply.SubReplyResponse;
+import cc.dmji.api.web.model.v2.reply.*;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
@@ -199,7 +196,7 @@ public class ReplyV2Controller extends BaseController {
         ReplyResponse replyResponse = new ReplyResponse();
         replyResponse.setTop(replyV2Service.getTopReply(oid, replyType, uid));
         List<ReplyDetail> replies;
-        PageInfo subPageInfo = new PageInfo();
+        JumpSubPageInfo subPageInfo = new JumpSubPageInfo(0,0,0L,0L);
 
         //评论分页信息
         PageInfo pageInfo = new PageInfo(pn, 20, 0);
@@ -265,6 +262,7 @@ public class ReplyV2Controller extends BaseController {
             if (replyV2 == null) {
                 return getErrorResponseEntity(HttpStatus.NOT_FOUND, ResultCode.RESULT_DATA_NOT_FOUND);
             }
+            subPageInfo.setRootId(replyV2.getRoot());
             // 判断该评论是根评论还是子评论
 
             // 如果是根评论
@@ -452,14 +450,16 @@ public class ReplyV2Controller extends BaseController {
      * 这里就需要调用本方法，将目标评论的整页子评论查出来
      * 并替换掉原来的子评论列表
      *
-     * @param replies    root replies list
-     * @param oid        object id
-     * @param replyType  reply type
-     * @param uid        uid
-     * @param root       父级评论的id
-     * @param pageNumber 子评论所在的页码
+     * @param replies         root replies list
+     * @param oid             object id
+     * @param replyType       reply type
+     * @param uid             uid
+     * @param root            父级评论的id
+     * @param pageNumber      子评论所在的页码
+     * @param pageInfo        该子评论的分页信息
      */
-    private void replaceSubReplies(List<ReplyDetail> replies, Long oid, ReplyType replyType, Long uid, Long root, Integer pageNumber, PageInfo pageInfo) {
+    private void replaceSubReplies(List<ReplyDetail> replies, Long oid, ReplyType replyType,
+                                   Long uid, Long root, Integer pageNumber, JumpSubPageInfo pageInfo) {
         Page<ReplyDetail> subReplyPage = PageHelper.startPage(pageNumber, 10, true).doSelectPage(() -> {
             replyV2Service.listByObjectIdAndType(oid, replyType, root, uid, ReplyOrderBy.floor, Direction.ASC);
         });
@@ -468,20 +468,22 @@ public class ReplyV2Controller extends BaseController {
                 ReplyDetail replyDetail = replies.get(i);
                 replyDetail.setReplies(subReplyPage.getResult());
                 replies.set(i, replyDetail);
+                pageInfo.setRootId(replies.get(i).getId());
                 break;
             }
         }
         pageInfo.setPageNumber(pageNumber);
         pageInfo.setPageSize(10);
         pageInfo.setTotalSize(subReplyPage.getTotal());
+
     }
 
     /**
      * 由于使用hashmap去接受请求参数，无法确认该value
      * 的类型，所以采用本方法去吧该value转成long
      *
-     * @param requestParam
-     * @return
+     * @param requestParam 请求的参数
+     * @return 参数的long类型
      */
     private Long objectToLong(Object requestParam) {
         if (requestParam == null) return null;
@@ -497,4 +499,5 @@ public class ReplyV2Controller extends BaseController {
         }
         return l;
     }
+
 }
