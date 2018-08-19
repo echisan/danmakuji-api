@@ -21,13 +21,13 @@
 
     <sql id="SELECT_NEW_SYS_MSG_SQL">
         from dm_sys_message dsm
-        where dsm.create_time>=#{userCreateTime}
+        where dsm.create_time > '${userCreateTime}'
+        and dsm.`status` = 0
         and dsm.sys_msg_target_type = #{sysMsgTargetType}
-        and dsm.`status`=0
         and dsm.id not in (
             select dmv2.sys_msg_id
             from dm_message_v2 dmv2
-            where dmv2.uid=#{uid} and dmv2.type = #{type});
+            where dmv2.uid=#{uid} and dmv2.type = #{type})
     </sql>
 
     <select id="countNewSysMessage" resultType="Long">

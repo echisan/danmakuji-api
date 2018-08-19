@@ -2,6 +2,7 @@ package cc.dmji.api.web.listener;
 
 import cc.dmji.api.entity.Bangumi;
 import cc.dmji.api.entity.Episode;
+import cc.dmji.api.entity.Notice;
 import cc.dmji.api.entity.User;
 import cc.dmji.api.entity.v2.MessageV2;
 import cc.dmji.api.entity.v2.ReplyV2;
@@ -10,6 +11,7 @@ import cc.dmji.api.enums.Status;
 import cc.dmji.api.enums.v2.ReplyType;
 import cc.dmji.api.service.BangumiService;
 import cc.dmji.api.service.EpisodeService;
+import cc.dmji.api.service.NoticeService;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.service.v2.MessageV2Service;
 import cc.dmji.api.utils.DmjiUtils;
@@ -40,6 +42,8 @@ public class MessageEventListener {
 
     private static final String MSG_BANGUMI_EPISODE_URL = "http://localhost:8083/#/video/%d";
     private static final String MSG_BANGUMI_EPISODE_AT_POINT = "http://localhost:8083/#/video/%d?rpid=%d";
+    private static final String MSG_NOTICE_EPISODE_URL = "http://localhost:8083/#/announce/%d";
+    private static final String MSG_NOTICE_EPISODE_AT_POINT = "http://localhost:8083/#/announce/%d?rpid=%d";
 
     @Autowired
     private MessageV2Service messageV2Service;
@@ -49,20 +53,22 @@ public class MessageEventListener {
     private BangumiService bangumiService;
     @Autowired
     private EpisodeService episodeService;
+    @Autowired
+    private NoticeService noticeService;
 
     @EventListener
     @Async
     public void sendAtMessage(AtMessageEvent event) {
         ReplyV2 replyV2 = event.getReplyV2();
         List<String> nicks = event.getNicks();
+        if (event.getTargetUid() != null) {
+            User targetUser = userService.getUserById(event.getTargetUid());
+            nicks.remove(targetUser.getNick());
+        }
+
         if (nicks != null && nicks.size() != 0) {
             List<User> userList = userService.listUserByNickIn(nicks);
-
             if (userList != null && userList.size() != 0) {
-                if (event.getUid() != null) {
-                    User targetUser = userService.getUserById(event.getUid());
-                    userList.remove(targetUser);
-                }
 
                 String title = createTitle(replyV2.getReplyType(), replyV2.getObjectId(), MessageType.AT);
                 String content = createContent(replyV2.getReplyType(), replyV2.getContent(), replyV2.getObjectId(), replyV2.getId());
@@ -76,6 +82,8 @@ public class MessageEventListener {
                     messageV2.setRead(false);
                     messageV2.setPublisherUid(event.getPublisherUid());
                     messageV2.setCreateTime(new Timestamp(event.getTimestamp()));
+                    messageV2.setStatus(Status.NORMAL);
+                    messageV2.setSysMessageId(0L);
                     messageV2List.add(messageV2);
                 }
                 List<MessageV2> messageV2List1 = messageV2Service.insertAll(messageV2List);
@@ -100,6 +108,7 @@ public class MessageEventListener {
         messageV2.setTitle(title);
         messageV2.setContent(content);
         messageV2.setStatus(Status.NORMAL);
+        messageV2.setSysMessageId(0L);
         MessageV2 insert = messageV2Service.insert(messageV2);
         logger.debug("send reply message:{}", insert.getContent());
     }
@@ -107,6 +116,9 @@ public class MessageEventListener {
     @EventListener
     @Async
     public void sendLikeMessage(LikeMessageEvent event) {
+        if (event.getTargetUid().equals(event.getPublisherUid())) {
+            return;
+        }
         ReplyV2 reply = event.getReplyV2();
         String title = String.format(
                 MSG_LIKE_TITLE,
@@ -118,14 +130,35 @@ public class MessageEventListener {
         messageV2.setCreateTime(new Timestamp(event.getTimestamp()));
         messageV2.setPublisherUid(event.getPublisherUid());
         messageV2.setRead(false);
-        messageV2.setUid(event.getUid());
+        messageV2.setUid(event.getTargetUid());
         messageV2.setType(MessageType.LIKE);
         messageV2.setTitle(title);
         messageV2.setStatus(Status.NORMAL);
         messageV2.setContent(content);
+        messageV2.setSysMessageId(0L);
         MessageV2 insert = messageV2Service.insert(messageV2);
         logger.debug("send like message:{}", insert.getContent());
 
+    }
+
+    @EventListener
+    @Async
+    public void deleteReplyAndSendMessage(DeleteReplyMessageEvent event) {
+        MessageV2 messageV2 = new MessageV2();
+        messageV2.setSysMessageId(0L);
+        messageV2.setStatus(Status.NORMAL);
+        messageV2.setUid(event.getTargetUid());
+        messageV2.setPublisherUid(event.getPublisherUid());
+        messageV2.setCreateTime(new Timestamp(event.getTimestamp()));
+        messageV2.setType(MessageType.SYSTEM);
+        messageV2.setTitle("评论删除通知");
+        messageV2.setRead(false);
+        String content = "尊敬的用户您好，由于您的评论【" +
+                        DmjiUtils.formatReplyContent(event.getDeleteReply().getContent()) +
+                        "】被多次举报已被删除。请遵守相关法律法规，珍惜发言机会，共同营造一个良好的讨论环境。" +
+                        "若有疑问请联系help@darker.online，感谢您的支持。";
+        messageV2.setContent(content);
+        messageV2Service.insert(messageV2);
     }
 
 
@@ -166,12 +199,21 @@ public class MessageEventListener {
         switch (replyType) {
             case BANGUMI_EPISODE: {
                 Episode episode = episodeService.getEpisodeByEpId(oid);
-                Bangumi bangumi = bangumiService.getBangumiById(episode.getBangumiId());
-                String name = bangumi.getBangumiName() + " " + episode.getEpIndex();
-                return String.format(titleFormat, name, String.format(MSG_BANGUMI_EPISODE_URL, oid));
+                logger.debug("episode:{}", episode);
+                if (episode != null) {
+                    Bangumi bangumi = bangumiService.getBangumiById(episode.getBangumiId());
+                    logger.debug("bangumi:{}", bangumi);
+                    if (bangumi != null) {
+                        String name = bangumi.getBangumiName() + " " + episode.getEpIndex();
+                        return String.format(titleFormat, name, String.format(MSG_BANGUMI_EPISODE_URL, oid));
+                    }
+                }
+                return String.format(titleFormat, "未知的领域", String.format(MSG_BANGUMI_EPISODE_URL, oid));
             }
             case NOTICE: {
-                break;
+                Notice notice = noticeService.getNoticeById(oid);
+                String title = notice == null ? "未知的公告领域" : notice.getTitle();
+                return String.format(titleFormat, title, String.format(MSG_NOTICE_EPISODE_URL, oid));
             }
             default: {
                 break;
@@ -193,7 +235,7 @@ public class MessageEventListener {
         content = DmjiUtils.formatReplyContent(content);
         switch (replyType) {
             case NOTICE: {
-                break;
+                return String.format(MSG_CONTENT, content, String.format(MSG_NOTICE_EPISODE_AT_POINT, oid, rpId));
             }
             case BANGUMI_EPISODE: {
                 return String.format(MSG_CONTENT, content, String.format(MSG_BANGUMI_EPISODE_AT_POINT, oid, rpId));

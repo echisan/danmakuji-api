@@ -4,8 +4,10 @@ import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.entity.LikeRecord;
+import cc.dmji.api.entity.User;
 import cc.dmji.api.entity.v2.ReplyV2;
 import cc.dmji.api.enums.Direction;
+import cc.dmji.api.enums.Role;
 import cc.dmji.api.enums.Status;
 import cc.dmji.api.enums.v2.ReplyOrderBy;
 import cc.dmji.api.enums.v2.ReplyType;
@@ -13,9 +15,11 @@ import cc.dmji.api.service.LikeRecordService;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.service.v2.ReplyV2Service;
 import cc.dmji.api.utils.DmjiUtils;
+import cc.dmji.api.utils.JwtUserInfo;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
 import cc.dmji.api.web.listener.AtMessageEvent;
+import cc.dmji.api.web.listener.DeleteReplyMessageEvent;
 import cc.dmji.api.web.listener.LikeMessageEvent;
 import cc.dmji.api.web.listener.ReplyMessageEvent;
 import cc.dmji.api.web.model.v2.reply.ReplyDTO;
@@ -134,20 +138,30 @@ public class ReplyV2Controller extends BaseController {
 
         /* ---------- 发送通知 ---------- */
 
+        Object tuidObject = requestMap.get("tuid");
+        Long tuid = objectToLong(tuidObject);
+
         // 先判断有没有艾特的用户
         List<String> nickList = DmjiUtils.findAtUsername(insertReplyV2.getContent());
+        if (tuid != null && !tuid.equals(userId)) {
+            User subReplyTargetUser = userService.getUserById(tuid);
+            nickList.remove(subReplyTargetUser.getNick());
+            applicationContext.publishEvent(new ReplyMessageEvent(this, tuid, userId, insertReplyV2));
+        }
         // 最多支持at5个用户
         if (nickList != null && nickList.size() != 0) {
             nickList.remove(getNickFormRequest(request));
-            AtMessageEvent event = new AtMessageEvent(this, null, userId, insertReplyV2, nickList);
+            AtMessageEvent event = new AtMessageEvent(this, rootReply == null ? null : rootReply.getUserId(), userId, insertReplyV2, nickList);
             // 通知被艾特的用户
             applicationContext.publishEvent(event);
         }
         // 如果不是父级评论
-        if (root != 0L) {
-            ReplyMessageEvent event =
-                    new ReplyMessageEvent(this, rootReply.getUserId(), userId, insertReplyV2);
-            applicationContext.publishEvent(event);
+        if (root != 0L && rootReply != null && !rootReply.getUserId().equals(userId)) {
+            if (tuid == null) {
+                ReplyMessageEvent event =
+                        new ReplyMessageEvent(this, rootReply.getUserId(), userId, insertReplyV2);
+                applicationContext.publishEvent(event);
+            }
         }
 
         return getSuccessResponseEntity(getSuccessResult(resultMap));
@@ -185,6 +199,7 @@ public class ReplyV2Controller extends BaseController {
         ReplyResponse replyResponse = new ReplyResponse();
         replyResponse.setTop(replyV2Service.getTopReply(oid, replyType, uid));
         List<ReplyDetail> replies;
+        PageInfo subPageInfo = new PageInfo();
 
         //评论分页信息
         PageInfo pageInfo = new PageInfo(pn, 20, 0);
@@ -263,7 +278,7 @@ public class ReplyV2Controller extends BaseController {
                 // 计算最新一条评论与目标评论楼层数的之间的差
                 Long replyCount = replyV2Service.countByObjectIdAndFloorBetween(oid, replyType, replyV2.getFloor(), newestReply.getFloor());
 
-                int rpn = Math.toIntExact((replyCount / 20) + 1);
+                int rpn = replyCount <= 20 ? 1 : Math.toIntExact((replyCount / 20) + 1);
                 Page<ReplyDetail> replyDetailPage = PageHelper.startPage(rpn, 20, true).doSelectPage(() -> {
                     replyV2Service.listByObjectIdAndType(oid, replyType, uid, replyOrderBy, Direction.DESC);
                 });
@@ -280,10 +295,10 @@ public class ReplyV2Controller extends BaseController {
                         replyV2Service.listByObjectIdAndType(oid, replyType, 0L, uid, ReplyOrderBy.create_time, Direction.DESC)
                 );
                 ReplyDetail newestReply = newestReplyPage.get(0);
-
                 // 计算最新一条评论与父级评论楼层数的之间的差
                 Long replyCount = replyV2Service.countByObjectIdAndFloorBetween(oid, replyType, rootReply.getFloor(), newestReply.getFloor());
-                int rpn = Math.toIntExact((replyCount / 20) + 1);
+                int rpn = replyCount <= 20 ? 1 : Math.toIntExact((replyCount / 20) + 1);
+                pageInfo.setPageNumber(rpn);
                 Page<ReplyDetail> replyDetailPage = PageHelper.startPage(rpn, 20, true).doSelectPage(() -> {
                     replyV2Service.listByObjectIdAndType(oid, replyType, uid, replyOrderBy, Direction.DESC);
                 });
@@ -294,21 +309,33 @@ public class ReplyV2Controller extends BaseController {
                 pageInfo.setAllTotalSize(replyV2Service.countAllRepliesByObjectIdAndReplyType(oid, replyType, Status.NORMAL));
                 replyResponse.setPage(pageInfo);
                 if (replyV2.getFloor() > 3 && replyV2.getFloor() < 10) {
-                    replaceSubReplies(replies, oid, replyType, uid, replyV2.getRoot(), 1);
+                    replaceSubReplies(replies, oid, replyType, uid, replyV2.getRoot(), 1, subPageInfo);
 
-                } else if (replyV2.getFloor() > 10) {
+                } else if (replyV2.getFloor() >= 10) {
                     Long floorBetween = replyV2Service.countByRootAndFloorBetween(replyV2.getRoot(), replyType, 1L, replyV2.getFloor());
                     if (floorBetween <= 10) {
-                        replaceSubReplies(replies, oid, replyType, uid, replyV2.getRoot(), 1);
+                        replaceSubReplies(replies, oid, replyType, uid, replyV2.getRoot(), 1, subPageInfo);
                     } else {
                         int page = Math.toIntExact((floorBetween / 10) + 1);
-                        replaceSubReplies(replies, oid, replyType, uid, replyV2.getRoot(), page);
+                        replaceSubReplies(replies, oid, replyType, uid, replyV2.getRoot(), page, subPageInfo);
                     }
                 }
+
             }
         }
         replyResponse.setReplies(replies);
-        return getSuccessResponseEntity(getSuccessResult(replyResponse));
+        if (rpid == null) {
+            return getSuccessResponseEntity(getSuccessResult(replyResponse));
+        } else {
+            Map<String, Object> replyResponseMap = new HashMap<>();
+            replyResponseMap.put("replies", replyResponse.getReplies());
+            replyResponseMap.put("hot", replyResponse.getHot());
+            replyResponseMap.put("top", replyResponse.getHot());
+            replyResponseMap.put("page", replyResponse.getPage());
+            replyResponseMap.put("subpage", subPageInfo);
+            return getSuccessResponseEntity(getSuccessResult(replyResponseMap));
+        }
+
     }
 
     @PostMapping("/{rpid}/like")
@@ -337,9 +364,11 @@ public class ReplyV2Controller extends BaseController {
         ReplyV2 update = replyV2Service.update(replyV2);
         logger.debug("like reply,id:{},like:{}", update.getId(), update.getLikeCount());
 
-        // 通知用户被点赞了
-        LikeMessageEvent event = new LikeMessageEvent(this, replyV2.getUserId(), uid, replyV2);
-        applicationContext.publishEvent(event);
+        if (likeRecord == null) {
+            // 通知用户被点赞了
+            LikeMessageEvent event = new LikeMessageEvent(this, replyV2.getUserId(), uid, replyV2);
+            applicationContext.publishEvent(event);
+        }
 
         return getSuccessResponseEntity(getSuccessResult());
     }
@@ -373,8 +402,19 @@ public class ReplyV2Controller extends BaseController {
         if (replyV2 == null) {
             return getErrorResponseEntity(HttpStatus.NOT_FOUND, ResultCode.RESULT_DATA_NOT_FOUND, "需要操作的对象不存在");
         }
-        Long uid = getUidFromRequest(request);
-        if (!replyV2.getUserId().equals(uid)) {
+
+        JwtUserInfo jwtUserInfo = getJwtUserInfo(request);
+        // 如果是管理员的话
+        if (!jwtUserInfo.getRole().equals(Role.USER)) {
+            replyV2.setStatus(Status.DELETE);
+            ReplyV2 deleteReply = replyV2Service.update(replyV2);
+            applicationContext.publishEvent(
+                    new DeleteReplyMessageEvent(this, deleteReply.getUserId(), jwtUserInfo.getUid(), deleteReply)
+            );
+            return getSuccessResponseEntity(getSuccessResult());
+        }
+
+        if (!replyV2.getUserId().equals(jwtUserInfo.getUid())) {
             return getErrorResponseEntity(HttpStatus.FORBIDDEN, ResultCode.PERMISSION_DENY);
         }
 
@@ -419,7 +459,7 @@ public class ReplyV2Controller extends BaseController {
      * @param root       父级评论的id
      * @param pageNumber 子评论所在的页码
      */
-    private void replaceSubReplies(List<ReplyDetail> replies, Long oid, ReplyType replyType, Long uid, Long root, Integer pageNumber) {
+    private void replaceSubReplies(List<ReplyDetail> replies, Long oid, ReplyType replyType, Long uid, Long root, Integer pageNumber, PageInfo pageInfo) {
         Page<ReplyDetail> subReplyPage = PageHelper.startPage(pageNumber, 10, true).doSelectPage(() -> {
             replyV2Service.listByObjectIdAndType(oid, replyType, root, uid, ReplyOrderBy.floor, Direction.ASC);
         });
@@ -431,5 +471,30 @@ public class ReplyV2Controller extends BaseController {
                 break;
             }
         }
+        pageInfo.setPageNumber(pageNumber);
+        pageInfo.setPageSize(10);
+        pageInfo.setTotalSize(subReplyPage.getTotal());
+    }
+
+    /**
+     * 由于使用hashmap去接受请求参数，无法确认该value
+     * 的类型，所以采用本方法去吧该value转成long
+     *
+     * @param requestParam
+     * @return
+     */
+    private Long objectToLong(Object requestParam) {
+        if (requestParam == null) return null;
+        Long l;
+        if (requestParam instanceof Integer) {
+            l = ((Integer) requestParam).longValue();
+        } else if (requestParam instanceof Long) {
+            l = (Long) requestParam;
+        } else if (requestParam instanceof String) {
+            l = Long.valueOf((String) requestParam);
+        } else {
+            return null;
+        }
+        return l;
     }
 }

@@ -35,6 +35,7 @@
         where dmv2.uid = #{uid}
         and dmv2.`status` = #{status}
         and dmv2.`type` = #{type}
+        order by dmv2.create_time desc
     </select>
 
 

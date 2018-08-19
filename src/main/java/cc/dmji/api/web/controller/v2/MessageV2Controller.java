@@ -2,7 +2,6 @@ package cc.dmji.api.web.controller.v2;
 
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
-import cc.dmji.api.entity.User;
 import cc.dmji.api.entity.v2.MessageV2;
 import cc.dmji.api.entity.v2.SysMessage;
 import cc.dmji.api.enums.MessageType;
@@ -10,7 +9,6 @@ import cc.dmji.api.enums.Role;
 import cc.dmji.api.enums.Status;
 import cc.dmji.api.enums.v2.SysMsgTargetType;
 import cc.dmji.api.service.SysMessageService;
-import cc.dmji.api.service.UserService;
 import cc.dmji.api.service.v2.MessageV2Service;
 import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.JwtUserInfo;
@@ -43,15 +41,13 @@ public class MessageV2Controller extends BaseController {
     private MessageV2Service messageV2Service;
     @Autowired
     private SysMessageService sysMessageService;
-    @Autowired
-    private UserService userService;
 
     @GetMapping("/cum")
     public ResponseEntity<Result> countUnreadMessage(HttpServletRequest request) {
         //Long uid = getUidFromRequest(request);
 
         JwtUserInfo user = getJwtUserInfo(request);
-        logger.debug("jwtUserInfo --- {}", user);
+//        logger.debug("jwtUserInfo --- {}", user);
         Long uid = user.getUid();
         //User user = userService.getUserById(uid);
         Role role = user.getRole();
@@ -62,6 +58,7 @@ public class MessageV2Controller extends BaseController {
         // 未读的新系统通知
         Timestamp ct = new Timestamp(user.getCreateTime().getTime());
         Long newSysMessage = sysMessageService.countNewSysMessage(user.getUid(), ct, SysMsgTargetType.byUserRole(role));
+        logger.debug("username:{},new System message count:{}",user.getNick(),newSysMessage);
         if (newSysMessage != 0) {
             List<SysMessage> sysMessages = sysMessageService.listNewSysMessages(user.getUid(), ct, SysMsgTargetType.byUserRole(role));
             if (sysMessages != null && sysMessages.size() != 0) {
@@ -80,7 +77,7 @@ public class MessageV2Controller extends BaseController {
                     messageV2List.add(messageV2);
                 });
                 List<MessageV2> insertAll = messageV2Service.insertAll(messageV2List);
-                logger.debug("新增加的系统通知:{}",insertAll);
+                logger.debug("新增加的系统通知:{}", insertAll);
             }
             unReadSystemMessageCount = unReadReplyMessageCount + newSysMessage;
         }

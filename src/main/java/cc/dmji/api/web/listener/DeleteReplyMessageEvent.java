@@ -3,29 +3,24 @@ package cc.dmji.api.web.listener;
 import cc.dmji.api.entity.v2.ReplyV2;
 import org.springframework.context.ApplicationEvent;
 
-import java.util.List;
-
-public class AtMessageEvent extends ApplicationEvent {
+public class DeleteReplyMessageEvent extends ApplicationEvent {
     private Long targetUid;
     private Long publisherUid;
-    private ReplyV2 replyV2;
-    private List<String> nicks;
-
+    private ReplyV2 deleteReply;
     /**
      * Create a new ApplicationEvent.
      *
      * @param source the object on which the event initially occurred (never {@code null})
      */
-    public AtMessageEvent(Object source) {
+    public DeleteReplyMessageEvent(Object source) {
         super(source);
     }
 
-    public AtMessageEvent(Object source, Long targetUid, Long publisherUid, ReplyV2 replyV2, List<String> nicks) {
+    public DeleteReplyMessageEvent(Object source, Long targetUid, Long publisherUid, ReplyV2 deleteReply) {
         super(source);
         this.targetUid = targetUid;
         this.publisherUid = publisherUid;
-        this.replyV2 = replyV2;
-        this.nicks = nicks;
+        this.deleteReply = deleteReply;
     }
 
     public Long getTargetUid() {
@@ -44,19 +39,11 @@ public class AtMessageEvent extends ApplicationEvent {
         this.publisherUid = publisherUid;
     }
 
-    public ReplyV2 getReplyV2() {
-        return replyV2;
+    public ReplyV2 getDeleteReply() {
+        return deleteReply;
     }
 
-    public void setReplyV2(ReplyV2 replyV2) {
-        this.replyV2 = replyV2;
-    }
-
-    public List<String> getNicks() {
-        return nicks;
-    }
-
-    public void setNicks(List<String> nicks) {
-        this.nicks = nicks;
+    public void setDeleteReply(ReplyV2 deleteReply) {
+        this.deleteReply = deleteReply;
     }
 }
