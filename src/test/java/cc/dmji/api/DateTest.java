@@ -1,12 +1,14 @@
 package cc.dmji.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by echisan on 2018/5/16
@@ -80,6 +82,26 @@ public class DateTest {
     enum Sex{
         MAN,
         GRIL
+    }
+
+    @Test
+    public void mapTest() throws JsonProcessingException {
+        Map<String, Long> data = new HashMap<>();
+        data.put("reply", 0L);
+        data.put("system", 1L);
+        data.put("at", 22L);
+        data.put("like", 999L);
+        data.put("total", 222L);
+        String s = new ObjectMapper().writeValueAsString(data);
+        System.out.println(s);
+
+    }
+
+    @Test
+    public void jsonToMap() throws IOException {
+        String json = "{\"total\":222,\"system\":1,\"at\":22,\"like\":999,\"reply\":0}";
+       Map<String,Long> map = new ObjectMapper().readValue(json, new TypeReference<Map<String, Long>>() {});
+        System.out.println(map);
     }
 
 }

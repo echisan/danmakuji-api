@@ -10,7 +10,17 @@ public enum ReplyType {
     /**
      * 公告下的评论
      */
-    NOTICE(2);
+    NOTICE(2),
+
+    /**
+     * 番剧下的评论
+     */
+    BANGUMI(3),
+
+    /**
+     * 用户个人资料页面下的评论
+     */
+    USER(4);
 
     Integer code;
 

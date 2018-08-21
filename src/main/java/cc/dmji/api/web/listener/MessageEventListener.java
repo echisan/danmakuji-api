@@ -1,5 +1,6 @@
 package cc.dmji.api.web.listener;
 
+import cc.dmji.api.constants.RedisKey;
 import cc.dmji.api.entity.Bangumi;
 import cc.dmji.api.entity.Episode;
 import cc.dmji.api.entity.Notice;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -42,8 +44,12 @@ public class MessageEventListener {
 
     private static final String MSG_BANGUMI_EPISODE_URL = "http://localhost:8083/#/video/%d";
     private static final String MSG_BANGUMI_EPISODE_AT_POINT = "http://localhost:8083/#/video/%d?rpid=%d";
-    private static final String MSG_NOTICE_EPISODE_URL = "http://localhost:8083/#/announce/%d";
-    private static final String MSG_NOTICE_EPISODE_AT_POINT = "http://localhost:8083/#/announce/%d?rpid=%d";
+    private static final String MSG_NOTICE_URL = "http://localhost:8083/#/announce/%d";
+    private static final String MSG_NOTICE_AT_POINT = "http://localhost:8083/#/announce/%d?rpid=%d";
+    private static final String MSG_BANGUMI_URL = "http://localhost:8083/#/bangumi/%d";
+    private static final String MSG_BANGUMI_AT_POINT = "http://localhost:8083/#/bangumi/%d?rpid=%d";
+    private static final String MSG_USER_URL = "http://localhost:8083/#/user/%d";
+    private static final String MSG_USER_AT_POINT = "http://localhost:8083/#/user/%d?rpid=%d";
 
     @Autowired
     private MessageV2Service messageV2Service;
@@ -55,6 +61,8 @@ public class MessageEventListener {
     private EpisodeService episodeService;
     @Autowired
     private NoticeService noticeService;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @EventListener
     @Async
@@ -90,7 +98,7 @@ public class MessageEventListener {
                 logger.debug("send at message:{}", messageV2List1);
             }
         }
-
+        cleanUserMsgCountCache(event.getTargetUid());
     }
 
     @EventListener
@@ -111,6 +119,7 @@ public class MessageEventListener {
         messageV2.setSysMessageId(0L);
         MessageV2 insert = messageV2Service.insert(messageV2);
         logger.debug("send reply message:{}", insert.getContent());
+        cleanUserMsgCountCache(event.getUid());
     }
 
     @EventListener
@@ -138,7 +147,7 @@ public class MessageEventListener {
         messageV2.setSysMessageId(0L);
         MessageV2 insert = messageV2Service.insert(messageV2);
         logger.debug("send like message:{}", insert.getContent());
-
+        cleanUserMsgCountCache(event.getTargetUid());
     }
 
     @EventListener
@@ -154,11 +163,12 @@ public class MessageEventListener {
         messageV2.setTitle("评论删除通知");
         messageV2.setRead(false);
         String content = "尊敬的用户您好，由于您的评论【" +
-                        DmjiUtils.formatReplyContent(event.getDeleteReply().getContent()) +
-                        "】被多次举报已被删除。请遵守相关法律法规，珍惜发言机会，共同营造一个良好的讨论环境。" +
-                        "若有疑问请联系help@darker.online，感谢您的支持。";
+                DmjiUtils.formatReplyContent(event.getDeleteReply().getContent()) +
+                "】被多次举报已被删除。请遵守相关法律法规，珍惜发言机会，共同营造一个良好的讨论环境。" +
+                "若有疑问请联系help@darker.online，感谢您的支持。";
         messageV2.setContent(content);
         messageV2Service.insert(messageV2);
+        cleanUserMsgCountCache(event.getTargetUid());
     }
 
 
@@ -188,9 +198,10 @@ public class MessageEventListener {
                 titleFormat = MSG_REPLY_TITLE;
                 break;
             }
-            case COMMENT:
+            case COMMENT: {
                 titleFormat = MSG_COMMENT_TITLE;
                 break;
+            }
             default:
                 titleFormat = "%s%s";
                 break;
@@ -213,7 +224,17 @@ public class MessageEventListener {
             case NOTICE: {
                 Notice notice = noticeService.getNoticeById(oid);
                 String title = notice == null ? "未知的公告领域" : notice.getTitle();
-                return String.format(titleFormat, title, String.format(MSG_NOTICE_EPISODE_URL, oid));
+                return String.format(titleFormat, title, String.format(MSG_NOTICE_URL, oid));
+            }
+            case BANGUMI: {
+                Bangumi bangumi = bangumiService.getBangumiById(oid);
+                String title = bangumi == null ? "未知的番剧领域" : bangumi.getBangumiName();
+                return String.format(titleFormat, title, String.format(MSG_BANGUMI_URL, oid));
+            }
+            case USER: {
+                User user = userService.getUserById(oid);
+                String title = "用户【" + user.getNick() + "】下的评论";
+                return String.format(titleFormat, title, String.format(MSG_USER_URL, oid));
             }
             default: {
                 break;
@@ -235,10 +256,16 @@ public class MessageEventListener {
         content = DmjiUtils.formatReplyContent(content);
         switch (replyType) {
             case NOTICE: {
-                return String.format(MSG_CONTENT, content, String.format(MSG_NOTICE_EPISODE_AT_POINT, oid, rpId));
+                return String.format(MSG_CONTENT, content, String.format(MSG_NOTICE_AT_POINT, oid, rpId));
             }
             case BANGUMI_EPISODE: {
                 return String.format(MSG_CONTENT, content, String.format(MSG_BANGUMI_EPISODE_AT_POINT, oid, rpId));
+            }
+            case BANGUMI: {
+                return String.format(MSG_CONTENT, content, String.format(MSG_BANGUMI_AT_POINT, oid, rpId));
+            }
+            case USER: {
+                return String.format(MSG_CONTENT, content, String.format(MSG_USER_AT_POINT, oid, rpId));
             }
             default:
                 break;
@@ -247,5 +274,16 @@ public class MessageEventListener {
         return "";
     }
 
+    /**
+     * 清除用户的消息缓存
+     *
+     * @param uid uid
+     */
+    private void cleanUserMsgCountCache(Long uid) {
+        Boolean delete = stringRedisTemplate.delete(RedisKey.USER_MSG_COUNT_CACHE + uid);
+        if (delete) {
+            logger.debug("清除用户id:{}的消息统计缓存成功", uid);
+        }
+    }
 
 }

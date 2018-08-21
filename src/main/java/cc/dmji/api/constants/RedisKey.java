@@ -56,4 +56,7 @@ public class RedisKey {
     /** 今日共同在线人数峰值 */
     public static final String MAX_ONLINE_TOTAL_USER_KEY = "max_online_total_user";
 
+    /** 用户消息统计缓存 */
+    public static final String USER_MSG_COUNT_CACHE = "user_msg_count_cache_";
+
 }

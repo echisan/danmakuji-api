@@ -36,4 +36,6 @@ public interface ReplyV2Service {
 
     Long countByObjectIdAndFloorBetween(Long oid, ReplyType rt, Long beginFloor, Long endFloor);
 
+    ReplyV2 getTopReply(Long oid,ReplyType rt);
+
 }

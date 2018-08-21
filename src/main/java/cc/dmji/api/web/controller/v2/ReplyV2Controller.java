@@ -18,10 +18,7 @@ import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.JwtUserInfo;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
-import cc.dmji.api.web.listener.AtMessageEvent;
-import cc.dmji.api.web.listener.DeleteReplyMessageEvent;
-import cc.dmji.api.web.listener.LikeMessageEvent;
-import cc.dmji.api.web.listener.ReplyMessageEvent;
+import cc.dmji.api.web.listener.*;
 import cc.dmji.api.web.model.v2.reply.*;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -32,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -136,8 +134,14 @@ public class ReplyV2Controller extends BaseController {
         /* ---------- 发送通知 ---------- */
 
         Object tuidObject = requestMap.get("tuid");
-        Long tuid = objectToLong(tuidObject);
-
+        Long tuid;
+        if (tuidObject instanceof Integer){
+            tuid = ((Integer) tuidObject).longValue();
+        } else if (tuidObject instanceof Long){
+            tuid = (Long) tuidObject;
+        } else {
+            tuid = null;
+        }
         // 先判断有没有艾特的用户
         List<String> nickList = DmjiUtils.findAtUsername(insertReplyV2.getContent());
         if (tuid != null && !tuid.equals(userId)) {
@@ -194,9 +198,10 @@ public class ReplyV2Controller extends BaseController {
 
         Long uid = getUidFromRequest(request);
         ReplyResponse replyResponse = new ReplyResponse();
-        replyResponse.setTop(replyV2Service.getTopReply(oid, replyType, uid));
+        ReplyDetail topReply = null;
+        replyResponse.setTop((topReply = replyV2Service.getTopReply(oid, replyType, uid)));
         List<ReplyDetail> replies;
-        JumpSubPageInfo subPageInfo = new JumpSubPageInfo(0,0,0L,0L);
+        JumpSubPageInfo subPageInfo = new JumpSubPageInfo(0, 0, 0L, 0L);
 
         //评论分页信息
         PageInfo pageInfo = new PageInfo(pn, 20, 0);
@@ -219,12 +224,17 @@ public class ReplyV2Controller extends BaseController {
             });
             replies = replyDetailPage.getResult();
             setSubReplies(replies, uid, oid, replyType);
-
             // 如果评论条数总数大于20条 且 第一页 且 root==0 时才显示热评
             if (replyDetailPage.getTotal() > 20 && root.equals(0L) && pn == 1) {
                 Page<ReplyDetail> hotReplyPage = PageHelper.startPage(pn, 3, true).doSelectPage(() -> {
                     replyV2Service.listByObjectIdAndType(oid, replyType, root, uid, ReplyOrderBy.like_count, Direction.DESC);
                 });
+                // 去重，在评论列表里去掉置顶的
+                if (topReply!=null){
+                    replies.remove(topReply);
+                }
+
+                // 去重
                 List<ReplyDetail> collect = hotReplyPage.getResult()
                         .stream()
                         // 评论点赞要大于5个点赞才算
@@ -252,7 +262,7 @@ public class ReplyV2Controller extends BaseController {
                     replyResponse.setHot(hotResult);
                 }
             }
-            //将所有子评论数与根评论数相加
+
             pageInfo.setTotalSize(replyDetailPage.getTotal());
             pageInfo.setAllTotalSize(replyV2Service.countAllRepliesByObjectIdAndReplyType(oid, replyType, Status.NORMAL));
             replyResponse.setPage(pageInfo);
@@ -271,10 +281,10 @@ public class ReplyV2Controller extends BaseController {
                 Page<ReplyDetail> newestReplyPage = PageHelper.startPage(1, 1, false).doSelectPage(() ->
                         replyV2Service.listByObjectIdAndType(oid, replyType, 0L, uid, ReplyOrderBy.create_time, Direction.DESC)
                 );
-                ReplyDetail newestReply = newestReplyPage.get(0);
+                ReplyDetail newestReply = newestReplyPage.getResult().size() != 0 ? newestReplyPage.get(0) : null;
 
                 // 计算最新一条评论与目标评论楼层数的之间的差
-                Long replyCount = replyV2Service.countByObjectIdAndFloorBetween(oid, replyType, replyV2.getFloor(), newestReply.getFloor());
+                Long replyCount = replyV2Service.countByObjectIdAndFloorBetween(oid, replyType, replyV2.getFloor(), newestReply == null ? 0L : newestReply.getFloor());
 
                 int rpn = replyCount <= 20 ? 1 : Math.toIntExact((replyCount / 20) + 1);
                 Page<ReplyDetail> replyDetailPage = PageHelper.startPage(rpn, 20, true).doSelectPage(() -> {
@@ -292,9 +302,9 @@ public class ReplyV2Controller extends BaseController {
                 Page<ReplyDetail> newestReplyPage = PageHelper.startPage(1, 1, false).doSelectPage(() ->
                         replyV2Service.listByObjectIdAndType(oid, replyType, 0L, uid, ReplyOrderBy.create_time, Direction.DESC)
                 );
-                ReplyDetail newestReply = newestReplyPage.get(0);
+                ReplyDetail newestReply = newestReplyPage.getResult().size() != 0 ? newestReplyPage.get(0) : null;
                 // 计算最新一条评论与父级评论楼层数的之间的差
-                Long replyCount = replyV2Service.countByObjectIdAndFloorBetween(oid, replyType, rootReply.getFloor(), newestReply.getFloor());
+                Long replyCount = replyV2Service.countByObjectIdAndFloorBetween(oid, replyType, rootReply.getFloor(), newestReply == null ? 0L : newestReply.getFloor());
                 int rpn = replyCount <= 20 ? 1 : Math.toIntExact((replyCount / 20) + 1);
                 pageInfo.setPageNumber(rpn);
                 Page<ReplyDetail> replyDetailPage = PageHelper.startPage(rpn, 20, true).doSelectPage(() -> {
@@ -422,6 +432,42 @@ public class ReplyV2Controller extends BaseController {
         return getSuccessResponseEntity(getSuccessResult());
     }
 
+    @PostMapping("/{rpid}/top")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<Result> setReplyTop(@PathVariable("rpid")Long rpid,HttpServletRequest request){
+        JwtUserInfo jwtUserInfo = getJwtUserInfo(request);
+
+        ReplyV2 replyV2 = replyV2Service.getById(rpid);
+        if (replyV2 == null) {
+            return getErrorResponseEntity(HttpStatus.NOT_FOUND,ResultCode.RESULT_DATA_NOT_FOUND,"找不到需要被置顶的评论");
+        }
+
+        ReplyV2 topReply = replyV2Service.getTopReply(replyV2.getObjectId(), replyV2.getReplyType());
+        topReply.setTop(false);
+        replyV2Service.update(topReply);
+
+        replyV2.setTop(true);
+        ReplyV2 update = replyV2Service.update(replyV2);
+        logger.debug("将id为:{}的评论设置成置顶，置顶状态：",update.getId(),update.isTop());
+
+        //applicationContext.publishEvent(new TopReplyMessageEvent(this,replyV2.getUserId(),jwtUserInfo.getUid(),update));
+        return getSuccessResponseEntity(getSuccessResult());
+    }
+
+    @DeleteMapping("/{rpid}/top")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ResponseEntity<Result> cancelTopReply(@PathVariable("rpid")Long rpid,
+                                                 HttpServletRequest request){
+        ReplyV2 replyV2 = replyV2Service.getById(rpid);
+        if (replyV2 == null){
+            return getErrorResponseEntity(HttpStatus.NOT_FOUND,ResultCode.RESULT_DATA_NOT_FOUND,"找不到被取消置顶的评论");
+        }
+        replyV2.setTop(false);
+        ReplyV2 update = replyV2Service.update(replyV2);
+        logger.debug("将id为:{}的评论取消置顶，置顶状态：",update.getId(),update.isTop());
+        return getSuccessResponseEntity(getSuccessResult());
+    }
+
     /**
      * 分配子评论到父级评论
      *
@@ -450,13 +496,13 @@ public class ReplyV2Controller extends BaseController {
      * 这里就需要调用本方法，将目标评论的整页子评论查出来
      * 并替换掉原来的子评论列表
      *
-     * @param replies         root replies list
-     * @param oid             object id
-     * @param replyType       reply type
-     * @param uid             uid
-     * @param root            父级评论的id
-     * @param pageNumber      子评论所在的页码
-     * @param pageInfo        该子评论的分页信息
+     * @param replies    root replies list
+     * @param oid        object id
+     * @param replyType  reply type
+     * @param uid        uid
+     * @param root       父级评论的id
+     * @param pageNumber 子评论所在的页码
+     * @param pageInfo   该子评论的分页信息
      */
     private void replaceSubReplies(List<ReplyDetail> replies, Long oid, ReplyType replyType,
                                    Long uid, Long root, Integer pageNumber, JumpSubPageInfo pageInfo) {
@@ -477,27 +523,4 @@ public class ReplyV2Controller extends BaseController {
         pageInfo.setTotalSize(subReplyPage.getTotal());
 
     }
-
-    /**
-     * 由于使用hashmap去接受请求参数，无法确认该value
-     * 的类型，所以采用本方法去吧该value转成long
-     *
-     * @param requestParam 请求的参数
-     * @return 参数的long类型
-     */
-    private Long objectToLong(Object requestParam) {
-        if (requestParam == null) return null;
-        Long l;
-        if (requestParam instanceof Integer) {
-            l = ((Integer) requestParam).longValue();
-        } else if (requestParam instanceof Long) {
-            l = (Long) requestParam;
-        } else if (requestParam instanceof String) {
-            l = Long.valueOf((String) requestParam);
-        } else {
-            return null;
-        }
-        return l;
-    }
-
 }

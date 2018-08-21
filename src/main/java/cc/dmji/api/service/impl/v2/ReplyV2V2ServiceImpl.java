@@ -117,4 +117,9 @@ public class ReplyV2V2ServiceImpl implements ReplyV2Service {
                 oid,rt.getCode(),0L,beginFloor,endFloor,Status.NORMAL,Sort.by(Sort.Direction.ASC,"floor")
         );
     }
+
+    @Override
+    public ReplyV2 getTopReply(Long oid, ReplyType rt) {
+        return replyV2Repository.findByObjectIdEqualsAndReplyTypeAndTopEquals(oid,rt.getCode(),true);
+    }
 }

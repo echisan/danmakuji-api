@@ -56,7 +56,7 @@ public class ReplyV2 {
     private String content;
 
     @Column(name = "is_top", columnDefinition = "tinyint(1)")
-    private Boolean isTop;
+    private boolean top;
 
     public Long getId() {
         return id;
@@ -142,11 +142,11 @@ public class ReplyV2 {
         this.content = content;
     }
 
-    public Boolean getTop() {
-        return isTop;
+    public boolean isTop() {
+        return top;
     }
 
-    public void setTop(Boolean top) {
-        isTop = top;
+    public void setTop(boolean top) {
+        this.top = top;
     }
 }

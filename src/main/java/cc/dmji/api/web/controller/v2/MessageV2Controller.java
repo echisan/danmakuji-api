@@ -2,10 +2,10 @@ package cc.dmji.api.web.controller.v2;
 
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
+import cc.dmji.api.constants.RedisKey;
 import cc.dmji.api.entity.v2.MessageV2;
 import cc.dmji.api.entity.v2.SysMessage;
 import cc.dmji.api.enums.MessageType;
-import cc.dmji.api.enums.Role;
 import cc.dmji.api.enums.Status;
 import cc.dmji.api.enums.v2.SysMsgTargetType;
 import cc.dmji.api.service.SysMessageService;
@@ -15,23 +15,29 @@ import cc.dmji.api.utils.JwtUserInfo;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
 import cc.dmji.api.web.model.v2.message.MessageDetail;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Controller
 @RequestMapping("/v2/messages")
@@ -41,26 +47,39 @@ public class MessageV2Controller extends BaseController {
     private MessageV2Service messageV2Service;
     @Autowired
     private SysMessageService sysMessageService;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @GetMapping("/cum")
-    public ResponseEntity<Result> countUnreadMessage(HttpServletRequest request) {
+    public ResponseEntity<Result> countUnreadMessage(HttpServletRequest request) throws IOException {
         //Long uid = getUidFromRequest(request);
 
         JwtUserInfo user = getJwtUserInfo(request);
 //        logger.debug("jwtUserInfo --- {}", user);
         Long uid = user.getUid();
+        // 未读的新系统通知
+        Timestamp ct = new Timestamp(user.getCreateTime().getTime());
+        Long newSysMessage = sysMessageService.countNewSysMessage(user.getUid(), ct, SysMsgTargetType.byUserRole(user.getRole()));
+        if (newSysMessage.equals(0L)){
+            // 检查一下缓存里有没有
+            BoundValueOperations<String, String> ops = stringRedisTemplate.boundValueOps(RedisKey.USER_MSG_COUNT_CACHE + uid);
+            String json;
+            if (StringUtils.hasText((json = ops.get()))) {
+                logger.debug("缓存里存在用户[{}]消息统计信息，直接返回{}",user.getNick(),json);
+                return getSuccessResponseEntity(getSuccessResult(json, "OK"));
+            }
+        }
+
         //User user = userService.getUserById(uid);
-        Role role = user.getRole();
+//        Role role = user.getRole();
         // 未读回复通知
         Long unReadReplyMessageCount = messageV2Service.countUnreadMessage(uid, MessageType.REPLY);
         // 未读系统通知
         Long unReadSystemMessageCount = messageV2Service.countUnreadMessage(uid, MessageType.SYSTEM);
-        // 未读的新系统通知
-        Timestamp ct = new Timestamp(user.getCreateTime().getTime());
-        Long newSysMessage = sysMessageService.countNewSysMessage(user.getUid(), ct, SysMsgTargetType.byUserRole(role));
-        logger.debug("username:{},new System message count:{}",user.getNick(),newSysMessage);
+
+        logger.debug("username:{},new System message count:{}", user.getNick(), newSysMessage);
         if (newSysMessage != 0) {
-            List<SysMessage> sysMessages = sysMessageService.listNewSysMessages(user.getUid(), ct, SysMsgTargetType.byUserRole(role));
+            List<SysMessage> sysMessages = sysMessageService.listNewSysMessages(user.getUid(), ct, SysMsgTargetType.byUserRole(user.getRole()));
             if (sysMessages != null && sysMessages.size() != 0) {
                 List<MessageV2> messageV2List = new ArrayList<>();
                 sysMessages.forEach(sysMessage -> {
@@ -80,6 +99,7 @@ public class MessageV2Controller extends BaseController {
                 logger.debug("新增加的系统通知:{}", insertAll);
             }
             unReadSystemMessageCount = unReadReplyMessageCount + newSysMessage;
+            cleanUserMsgCountCache(uid);
         }
 
         Long unReadLikeMessageCount = messageV2Service.countUnreadMessage(uid, MessageType.LIKE);
@@ -92,6 +112,7 @@ public class MessageV2Controller extends BaseController {
         data.put("at", unReadAtMessageCount);
         data.put("like", unReadLikeMessageCount);
         data.put("total", totalUnread);
+        stringRedisTemplate.opsForValue().set(RedisKey.USER_MSG_COUNT_CACHE+uid,new ObjectMapper().writeValueAsString(data),1L, TimeUnit.HOURS);
 
         return getSuccessResponseEntity(getSuccessResult(data));
     }
@@ -158,6 +179,19 @@ public class MessageV2Controller extends BaseController {
             messages.forEach(message -> message.setRead(true));
             List<MessageV2> messages1 = messageV2Service.insertAll(messages);
             logger.debug("已将id为{}的用户的未读信息设置为已读,共{}条", userId, messages1.size());
+            cleanUserMsgCountCache(userId);
+        }
+    }
+
+    /**
+     * 清除用户的消息缓存
+     *
+     * @param uid uid
+     */
+    private void cleanUserMsgCountCache(Long uid) {
+        Boolean delete = stringRedisTemplate.delete(RedisKey.USER_MSG_COUNT_CACHE + uid);
+        if (delete) {
+            logger.debug("清除用户id:{}的消息统计缓存成功");
         }
     }
 
