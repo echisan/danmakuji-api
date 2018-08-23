@@ -18,7 +18,10 @@ import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.JwtUserInfo;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
-import cc.dmji.api.web.listener.*;
+import cc.dmji.api.web.listener.AtMessageEvent;
+import cc.dmji.api.web.listener.DeleteReplyMessageEvent;
+import cc.dmji.api.web.listener.LikeMessageEvent;
+import cc.dmji.api.web.listener.ReplyMessageEvent;
 import cc.dmji.api.web.model.v2.reply.*;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -135,9 +138,9 @@ public class ReplyV2Controller extends BaseController {
 
         Object tuidObject = requestMap.get("tuid");
         Long tuid;
-        if (tuidObject instanceof Integer){
+        if (tuidObject instanceof Integer) {
             tuid = ((Integer) tuidObject).longValue();
-        } else if (tuidObject instanceof Long){
+        } else if (tuidObject instanceof Long) {
             tuid = (Long) tuidObject;
         } else {
             tuid = null;
@@ -152,7 +155,8 @@ public class ReplyV2Controller extends BaseController {
         // 最多支持at5个用户
         if (nickList != null && nickList.size() != 0) {
             nickList.remove(getNickFormRequest(request));
-            AtMessageEvent event = new AtMessageEvent(this, rootReply == null ? null : rootReply.getUserId(), userId, insertReplyV2, nickList);
+            AtMessageEvent event =
+                    new AtMessageEvent(this, rootReply == null ? null : rootReply.getUserId(), userId, insertReplyV2, nickList);
             // 通知被艾特的用户
             applicationContext.publishEvent(event);
         }
@@ -199,7 +203,9 @@ public class ReplyV2Controller extends BaseController {
         Long uid = getUidFromRequest(request);
         ReplyResponse replyResponse = new ReplyResponse();
         ReplyDetail topReply = null;
-        replyResponse.setTop((topReply = replyV2Service.getTopReply(oid, replyType, uid)));
+        if (pn==1){
+            replyResponse.setTop((topReply = replyV2Service.getTopReply(oid, replyType, uid)));
+        }
         List<ReplyDetail> replies;
         JumpSubPageInfo subPageInfo = new JumpSubPageInfo(0, 0, 0L, 0L);
 
@@ -224,15 +230,35 @@ public class ReplyV2Controller extends BaseController {
             });
             replies = replyDetailPage.getResult();
             setSubReplies(replies, uid, oid, replyType);
-            // 如果评论条数总数大于20条 且 第一页 且 root==0 时才显示热评
-            if (replyDetailPage.getTotal() > 20 && root.equals(0L) && pn == 1) {
+            // 去重，在评论列表里去掉置顶的，以及为置顶评论设置自评论
+            if (topReply != null) {
+                int i = -1;
+                for (int j = 0; j < replies.size(); j++) {
+                    if (replies.get(j).getId().equals(topReply.getId())) {
+                        i = j;
+                        break;
+                    }
+                }
+                if (i != -1) {
+                    replyResponse.setTop(replies.get(i));
+                    replies.remove(i);
+                } else {
+                    // 如果该置顶评论不在第一页的话就要把子评论查询出来
+                    // 再设置到置顶评论当中
+                    ReplyDetail finalTopReply = topReply;
+                    Page<ReplyDetail> topSubReplies = PageHelper.startPage(1, 3, true).doSelectPage(() -> {
+                        replyV2Service.listByObjectIdAndType(oid, replyType, finalTopReply.getId(), uid, ReplyOrderBy.create_time, Direction.ASC);
+                    });
+                    topReply.setReplies(topSubReplies.getResult());
+                    topReply.setReplyCount(topSubReplies.getTotal());
+                    replyResponse.setTop(topReply);
+                }
+            }
+            // 如果评论条数总数大于20条 且 第一页 且 root==0 时才显示热评 ,如果是按热度排行的话 就不加载热评了
+            if (replyDetailPage.getTotal() > 20 && root.equals(0L) && pn == 1 && replyOrderBy.equals(ReplyOrderBy.create_time)) {
                 Page<ReplyDetail> hotReplyPage = PageHelper.startPage(pn, 3, true).doSelectPage(() -> {
                     replyV2Service.listByObjectIdAndType(oid, replyType, root, uid, ReplyOrderBy.like_count, Direction.DESC);
                 });
-                // 去重，在评论列表里去掉置顶的
-                if (topReply!=null){
-                    replies.remove(topReply);
-                }
 
                 // 去重
                 List<ReplyDetail> collect = hotReplyPage.getResult()
@@ -434,21 +460,23 @@ public class ReplyV2Controller extends BaseController {
 
     @PostMapping("/{rpid}/top")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public ResponseEntity<Result> setReplyTop(@PathVariable("rpid")Long rpid,HttpServletRequest request){
+    public ResponseEntity<Result> setReplyTop(@PathVariable("rpid") Long rpid, HttpServletRequest request) {
         JwtUserInfo jwtUserInfo = getJwtUserInfo(request);
 
         ReplyV2 replyV2 = replyV2Service.getById(rpid);
         if (replyV2 == null) {
-            return getErrorResponseEntity(HttpStatus.NOT_FOUND,ResultCode.RESULT_DATA_NOT_FOUND,"找不到需要被置顶的评论");
+            return getErrorResponseEntity(HttpStatus.NOT_FOUND, ResultCode.RESULT_DATA_NOT_FOUND, "找不到需要被置顶的评论");
         }
 
         ReplyV2 topReply = replyV2Service.getTopReply(replyV2.getObjectId(), replyV2.getReplyType());
-        topReply.setTop(false);
-        replyV2Service.update(topReply);
+        if (topReply != null) {
+            topReply.setTop(false);
+            replyV2Service.update(topReply);
+        }
 
         replyV2.setTop(true);
         ReplyV2 update = replyV2Service.update(replyV2);
-        logger.debug("将id为:{}的评论设置成置顶，置顶状态：",update.getId(),update.isTop());
+        logger.debug("将id为:{}的评论设置成置顶，置顶状态：", update.getId(), update.isTop());
 
         //applicationContext.publishEvent(new TopReplyMessageEvent(this,replyV2.getUserId(),jwtUserInfo.getUid(),update));
         return getSuccessResponseEntity(getSuccessResult());
@@ -456,15 +484,15 @@ public class ReplyV2Controller extends BaseController {
 
     @DeleteMapping("/{rpid}/top")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public ResponseEntity<Result> cancelTopReply(@PathVariable("rpid")Long rpid,
-                                                 HttpServletRequest request){
+    public ResponseEntity<Result> cancelTopReply(@PathVariable("rpid") Long rpid,
+                                                 HttpServletRequest request) {
         ReplyV2 replyV2 = replyV2Service.getById(rpid);
-        if (replyV2 == null){
-            return getErrorResponseEntity(HttpStatus.NOT_FOUND,ResultCode.RESULT_DATA_NOT_FOUND,"找不到被取消置顶的评论");
+        if (replyV2 == null) {
+            return getErrorResponseEntity(HttpStatus.NOT_FOUND, ResultCode.RESULT_DATA_NOT_FOUND, "找不到被取消置顶的评论");
         }
         replyV2.setTop(false);
         ReplyV2 update = replyV2Service.update(replyV2);
-        logger.debug("将id为:{}的评论取消置顶，置顶状态：",update.getId(),update.isTop());
+        logger.debug("将id为:{}的评论取消置顶，置顶状态：", update.getId(), update.isTop());
         return getSuccessResponseEntity(getSuccessResult());
     }
 
