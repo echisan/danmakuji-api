@@ -448,6 +448,12 @@ public class ReplyV2Controller extends BaseController {
             return getSuccessResponseEntity(getSuccessResult());
         }
 
+        // 如果是用户的类型 且 在操作本人个人页面下的评论，可以删除
+        if (replyV2.getReplyType().equals(ReplyType.USER) && replyV2.getObjectId().equals(jwtUserInfo.getUid())){
+            replyV2.setStatus(Status.DELETE);
+            replyV2Service.update(replyV2);
+        }
+
         if (!replyV2.getUserId().equals(jwtUserInfo.getUid())) {
             return getErrorResponseEntity(HttpStatus.FORBIDDEN, ResultCode.PERMISSION_DENY);
         }
@@ -459,13 +465,21 @@ public class ReplyV2Controller extends BaseController {
     }
 
     @PostMapping("/{rpid}/top")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+//    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<Result> setReplyTop(@PathVariable("rpid") Long rpid, HttpServletRequest request) {
         JwtUserInfo jwtUserInfo = getJwtUserInfo(request);
 
         ReplyV2 replyV2 = replyV2Service.getById(rpid);
         if (replyV2 == null) {
             return getErrorResponseEntity(HttpStatus.NOT_FOUND, ResultCode.RESULT_DATA_NOT_FOUND, "找不到需要被置顶的评论");
+        }
+
+        // 如果是用户中心下的评论
+        if (jwtUserInfo.getRole().equals(Role.USER)){
+            if (!(replyV2.getReplyType().equals(ReplyType.USER)
+                    || replyV2.getObjectId().equals(jwtUserInfo.getUid()))){
+                return getErrorResponseEntity(HttpStatus.FORBIDDEN,ResultCode.PERMISSION_DENY);
+            }
         }
 
         ReplyV2 topReply = replyV2Service.getTopReply(replyV2.getObjectId(), replyV2.getReplyType());
@@ -483,13 +497,22 @@ public class ReplyV2Controller extends BaseController {
     }
 
     @DeleteMapping("/{rpid}/top")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+//    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<Result> cancelTopReply(@PathVariable("rpid") Long rpid,
                                                  HttpServletRequest request) {
+        JwtUserInfo jwtUserInfo = getJwtUserInfo(request);
         ReplyV2 replyV2 = replyV2Service.getById(rpid);
         if (replyV2 == null) {
             return getErrorResponseEntity(HttpStatus.NOT_FOUND, ResultCode.RESULT_DATA_NOT_FOUND, "找不到被取消置顶的评论");
         }
+        // 如果是用户中心下的评论
+        if (jwtUserInfo.getRole().equals(Role.USER)){
+            if (!(replyV2.getReplyType().equals(ReplyType.USER)
+                    || replyV2.getObjectId().equals(jwtUserInfo.getUid()))){
+                return getErrorResponseEntity(HttpStatus.FORBIDDEN,ResultCode.PERMISSION_DENY);
+            }
+        }
+
         replyV2.setTop(false);
         ReplyV2 update = replyV2Service.update(replyV2);
         logger.debug("将id为:{}的评论取消置顶，置顶状态：", update.getId(), update.isTop());
