@@ -15,6 +15,7 @@ import cc.dmji.api.utils.JwtUserInfo;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
 import cc.dmji.api.web.model.v2.message.MessageDetail;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -66,7 +67,8 @@ public class MessageV2Controller extends BaseController {
             String json;
             if (StringUtils.hasText((json = ops.get()))) {
                 logger.debug("缓存里存在用户[{}]消息统计信息，直接返回{}",user.getNick(),json);
-                return getSuccessResponseEntity(getSuccessResult(json, "OK"));
+                Map<String,Long> msgMap = new ObjectMapper().readValue(json, new TypeReference<Map<String, Long>>(){});
+                return getSuccessResponseEntity(getSuccessResult(msgMap));
             }
         }
 
