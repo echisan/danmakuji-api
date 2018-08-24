@@ -247,7 +247,7 @@ public class ReplyV2Controller extends BaseController {
                     // 再设置到置顶评论当中
                     ReplyDetail finalTopReply = topReply;
                     Page<ReplyDetail> topSubReplies = PageHelper.startPage(1, 3, true).doSelectPage(() -> {
-                        replyV2Service.listByObjectIdAndType(oid, replyType, finalTopReply.getId(), uid, ReplyOrderBy.create_time, Direction.ASC);
+                        replyV2Service.listByObjectIdAndType(oid, replyType, finalTopReply.getId(), uid, ReplyOrderBy.floor, Direction.ASC);
                     });
                     topReply.setReplies(topSubReplies.getResult());
                     topReply.setReplyCount(topSubReplies.getTotal());

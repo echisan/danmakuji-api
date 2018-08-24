@@ -61,13 +61,14 @@ public class MessageV2Controller extends BaseController {
         // 未读的新系统通知
         Timestamp ct = new Timestamp(user.getCreateTime().getTime());
         Long newSysMessage = sysMessageService.countNewSysMessage(user.getUid(), ct, SysMsgTargetType.byUserRole(user.getRole()));
-        if (newSysMessage.equals(0L)){
+        if (newSysMessage.equals(0L)) {
             // 检查一下缓存里有没有
             BoundValueOperations<String, String> ops = stringRedisTemplate.boundValueOps(RedisKey.USER_MSG_COUNT_CACHE + uid);
             String json;
             if (StringUtils.hasText((json = ops.get()))) {
-                logger.debug("缓存里存在用户[{}]消息统计信息，直接返回{}",user.getNick(),json);
-                Map<String,Long> msgMap = new ObjectMapper().readValue(json, new TypeReference<Map<String, Long>>(){});
+                logger.debug("缓存里存在用户[{}]消息统计信息，直接返回{}", user.getNick(), json);
+                Map<String, Long> msgMap = new ObjectMapper().readValue(json, new TypeReference<Map<String, Long>>() {
+                });
                 return getSuccessResponseEntity(getSuccessResult(msgMap));
             }
         }
@@ -114,7 +115,8 @@ public class MessageV2Controller extends BaseController {
         data.put("at", unReadAtMessageCount);
         data.put("like", unReadLikeMessageCount);
         data.put("total", totalUnread);
-        stringRedisTemplate.opsForValue().set(RedisKey.USER_MSG_COUNT_CACHE+uid,new ObjectMapper().writeValueAsString(data),1L, TimeUnit.HOURS);
+        stringRedisTemplate.opsForValue().set(RedisKey.USER_MSG_COUNT_CACHE + uid,
+                new ObjectMapper().writeValueAsString(data), 1L, TimeUnit.HOURS);
 
         return getSuccessResponseEntity(getSuccessResult(data));
     }

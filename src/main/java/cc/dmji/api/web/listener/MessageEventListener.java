@@ -31,6 +31,7 @@ import java.util.List;
 @Component
 public class MessageEventListener {
     private static final Logger logger = LoggerFactory.getLogger(MessageEventListener.class);
+    private static final String BASE_URL = "http://localhost:8080";
     // #{【1月】戒律的复活 23【独家正版】}{"http://www.bilibili.com/bangumi/play/ep200158/?aid=25388017"}评论中@了你"
     // 1: 对象的名称 2: 评论所在的地址
     private static final String MSG_AT_TITLE = "#{ %s }{\"%s\"}评论中@了你";
@@ -42,14 +43,14 @@ public class MessageEventListener {
     // 1: 评论内容 2: 评论描点
     private static final String MSG_CONTENT = "#{%s}{\"%s\"}";
 
-    private static final String MSG_BANGUMI_EPISODE_URL = "http://localhost:8083/#/video/%d";
-    private static final String MSG_BANGUMI_EPISODE_AT_POINT = "http://localhost:8083/#/video/%d?rpid=%d";
-    private static final String MSG_NOTICE_URL = "http://localhost:8083/#/announce/%d";
-    private static final String MSG_NOTICE_AT_POINT = "http://localhost:8083/#/announce/%d?rpid=%d";
-    private static final String MSG_BANGUMI_URL = "http://localhost:8083/#/bangumi/%d";
-    private static final String MSG_BANGUMI_AT_POINT = "http://localhost:8083/#/bangumi/%d?rpid=%d";
-    private static final String MSG_USER_URL = "http://localhost:8083/#/user/%d";
-    private static final String MSG_USER_AT_POINT = "http://localhost:8083/#/user/%d?rpid=%d";
+    private static final String MSG_BANGUMI_EPISODE_URL = BASE_URL+"/#/video/%d";
+    private static final String MSG_BANGUMI_EPISODE_AT_POINT = BASE_URL+"/#/video/%d?rpid=%d";
+    private static final String MSG_NOTICE_URL = BASE_URL+"/#/announce/%d";
+    private static final String MSG_NOTICE_AT_POINT = BASE_URL+"/#/announce/%d?rpid=%d";
+    private static final String MSG_BANGUMI_URL = BASE_URL+"/#/bangumi/%d";
+    private static final String MSG_BANGUMI_AT_POINT = BASE_URL+"/#/bangumi/%d?rpid=%d";
+    private static final String MSG_USER_URL = BASE_URL+"/#/user/%d";
+    private static final String MSG_USER_AT_POINT = BASE_URL+"/#/user/%d?rpid=%d";
 
     @Autowired
     private MessageV2Service messageV2Service;
