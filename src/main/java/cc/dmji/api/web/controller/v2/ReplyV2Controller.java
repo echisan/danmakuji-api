@@ -230,30 +230,7 @@ public class ReplyV2Controller extends BaseController {
             });
             replies = replyDetailPage.getResult();
             setSubReplies(replies, uid, oid, replyType);
-            // 去重，在评论列表里去掉置顶的，以及为置顶评论设置自评论
-            if (topReply != null) {
-                int i = -1;
-                for (int j = 0; j < replies.size(); j++) {
-                    if (replies.get(j).getId().equals(topReply.getId())) {
-                        i = j;
-                        break;
-                    }
-                }
-                if (i != -1) {
-                    replyResponse.setTop(replies.get(i));
-                    replies.remove(i);
-                } else {
-                    // 如果该置顶评论不在第一页的话就要把子评论查询出来
-                    // 再设置到置顶评论当中
-                    ReplyDetail finalTopReply = topReply;
-                    Page<ReplyDetail> topSubReplies = PageHelper.startPage(1, 3, true).doSelectPage(() -> {
-                        replyV2Service.listByObjectIdAndType(oid, replyType, finalTopReply.getId(), uid, ReplyOrderBy.floor, Direction.ASC);
-                    });
-                    topReply.setReplies(topSubReplies.getResult());
-                    topReply.setReplyCount(topSubReplies.getTotal());
-                    replyResponse.setTop(topReply);
-                }
-            }
+
             // 如果评论条数总数大于20条 且 第一页 且 root==0 时才显示热评 ,如果是按热度排行的话 就不加载热评了
             if (replyDetailPage.getTotal() > 20 && root.equals(0L) && pn == 1 && replyOrderBy.equals(ReplyOrderBy.create_time)) {
                 Page<ReplyDetail> hotReplyPage = PageHelper.startPage(pn, 3, true).doSelectPage(() -> {
@@ -286,6 +263,47 @@ public class ReplyV2Controller extends BaseController {
                     List<ReplyDetail> hotResult = hotReplyPage.getResult();
                     hotResult.removeAll(requireRemove);
                     replyResponse.setHot(hotResult);
+                }
+            }
+
+            // 去重，在评论列表里去掉置顶的，以及为置顶评论设置自评论
+            if (topReply != null) {
+                // 普通评论的flag
+                int i = -1;
+                for (int j = 0; j < replies.size(); j++) {
+                    if (replies.get(j).getId().equals(topReply.getId())) {
+                        i = j;
+                        break;
+                    }
+                }
+                if (i != -1) {
+                    replyResponse.setTop(replies.get(i));
+                    replies.remove(i);
+                } else {
+                    // 如果该置顶评论不在第一页的话就要把子评论查询出来
+                    // 再设置到置顶评论当中
+                    ReplyDetail finalTopReply = topReply;
+                    Page<ReplyDetail> topSubReplies = PageHelper.startPage(1, 3, true).doSelectPage(() -> {
+                        replyV2Service.listByObjectIdAndType(oid, replyType, finalTopReply.getId(), uid, ReplyOrderBy.floor, Direction.ASC);
+                    });
+                    topReply.setReplies(topSubReplies.getResult());
+                    topReply.setReplyCount(topSubReplies.getTotal());
+                    replyResponse.setTop(topReply);
+                }
+                // 将置顶从热评中去掉
+                List<ReplyDetail> responseHot = replyResponse.getHot();
+                if (responseHot!=null && responseHot.size()!=0){
+                    // 热评的flag
+                    int h = -1;
+                    for (int j = 0; j < responseHot.size(); j++) {
+                        if (responseHot.get(j).getId().equals(topReply.getId())){
+                            h = j;
+                        }
+                    }
+                    if (h!=-1){
+                        responseHot.remove(h);
+                        replyResponse.setHot(responseHot);
+                    }
                 }
             }
 
