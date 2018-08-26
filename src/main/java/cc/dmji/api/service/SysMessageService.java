@@ -15,4 +15,6 @@ public interface SysMessageService {
     Long countNewSysMessage(Long uid, Timestamp userCreateTime, SysMsgTargetType sysMsgTargetType);
 
     List<SysMessage> listNewSysMessages(Long uid, Timestamp userCreateTime, SysMsgTargetType sysMsgTargetType);
+
+    SysMessage getById(Long id);
 }

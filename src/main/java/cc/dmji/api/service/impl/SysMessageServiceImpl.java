@@ -46,4 +46,9 @@ public class SysMessageServiceImpl implements SysMessageService {
                 .listNewSysMessages(uid, userCreateTime,
                         sysMsgTargetType.getCode(), MessageType.SYSTEM.getCode());
     }
+
+    @Override
+    public SysMessage getById(Long id) {
+        return sysMessageRepository.findById(id).orElse(null);
+    }
 }
