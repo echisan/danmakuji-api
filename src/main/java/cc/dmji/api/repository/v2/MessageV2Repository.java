@@ -8,5 +8,7 @@ import java.util.List;
 
 public interface MessageV2Repository extends JpaRepository<MessageV2, Long> {
     List<MessageV2> findByUidEqualsAndTypeEqualsAndReadEquals(Long uid, Integer messageType, boolean isRead);
+    List<MessageV2> findByUidEqualsAndReadEquals(Long uid, boolean isRead);
     Long countByUidEqualsAndTypeEqualsAndReadEquals(Long uid, Integer messageType, boolean isRead);
+
 }

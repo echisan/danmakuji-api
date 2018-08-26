@@ -144,7 +144,7 @@ public class MessageV2Controller extends BaseController {
         responseMap.put("messages", messageDetailPage.getResult());
 
         /* --------- 将未读的消息设置成已读 ---------- */
-        cleanUnReadMessage(uid, messageType);
+        cleanUnReadMessage(uid);
         /* --------- --------------------- ---------- */
 
         return getSuccessResponseEntity(getSuccessResult(responseMap));
@@ -179,6 +179,17 @@ public class MessageV2Controller extends BaseController {
     @Async
     public void cleanUnReadMessage(Long userId, MessageType type) {
         List<MessageV2> messages = messageV2Service.listUserUnReadMessage(userId, type);
+        if (messages.size() != 0) {
+            messages.forEach(message -> message.setRead(true));
+            List<MessageV2> messages1 = messageV2Service.insertAll(messages);
+            logger.debug("已将id为{}的用户的未读信息设置为已读,共{}条", userId, messages1.size());
+            cleanUserMsgCountCache(userId);
+        }
+    }
+
+    @Async
+    public void cleanUnReadMessage(Long userId) {
+        List<MessageV2> messages = messageV2Service.listUserUnReadMessage(userId);
         if (messages.size() != 0) {
             messages.forEach(message -> message.setRead(true));
             List<MessageV2> messages1 = messageV2Service.insertAll(messages);
