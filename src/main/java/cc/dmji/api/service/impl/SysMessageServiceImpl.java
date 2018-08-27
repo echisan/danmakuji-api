@@ -7,6 +7,9 @@ import cc.dmji.api.mapper.SysMessageMapper;
 import cc.dmji.api.repository.SysMessageRepository;
 import cc.dmji.api.service.SysMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,5 +53,10 @@ public class SysMessageServiceImpl implements SysMessageService {
     @Override
     public SysMessage getById(Long id) {
         return sysMessageRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public Page<SysMessage> listSysMessages(Integer pn, Integer ps) {
+        return sysMessageRepository.findAll(PageRequest.of(pn-1,ps, Sort.Direction.DESC,"createTime"));
     }
 }

@@ -12,16 +12,19 @@ import cc.dmji.api.service.SysMessageService;
 import cc.dmji.api.service.v2.MessageV2Service;
 import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.JwtUserInfo;
+import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -115,4 +118,18 @@ public class AdminSysMessageController extends BaseController {
         return getSuccessResult(insertAll.size(),"ok");
     }
 
+
+    @GetMapping
+    @UserLog("获取系统消息列表")
+    public Result listSysMessage(@RequestParam(value = "pn",required = false,defaultValue = "1")Integer pn,
+                                 @RequestParam(value = "ps",required = false,defaultValue = "50")Integer ps){
+
+        Page<SysMessage> sysMessages = sysMessageService.listSysMessages(pn, ps);
+        PageInfo pageInfo = new PageInfo(pn,ps,sysMessages.getTotalElements());
+        List<SysMessage> sysMessageList = sysMessages.getContent();
+        Map<String,Object> resultMap = new HashMap<>(4);
+        resultMap.put("page",pageInfo);
+        resultMap.put("messages",sysMessageList);
+        return getSuccessResult(resultMap);
+    }
 }
