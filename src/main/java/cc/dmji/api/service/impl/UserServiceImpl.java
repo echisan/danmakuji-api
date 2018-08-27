@@ -1,6 +1,7 @@
 package cc.dmji.api.service.impl;
 
 import cc.dmji.api.entity.User;
+import cc.dmji.api.enums.Role;
 import cc.dmji.api.repository.UserRepository;
 import cc.dmji.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,5 +160,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> listUserByNickIn(List<String> usernameList) {
         return userRepository.findByNickIn(usernameList);
+    }
+
+    @Override
+    public List<User> listUserByRole(Role role) {
+        return userRepository.findByRoleEquals(role.getName());
     }
 }

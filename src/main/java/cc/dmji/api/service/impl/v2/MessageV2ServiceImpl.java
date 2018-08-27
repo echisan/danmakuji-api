@@ -64,4 +64,9 @@ public class MessageV2ServiceImpl implements MessageV2Service {
     public Long countUnreadMessage(Long uid, MessageType messageType) {
         return messageV2Repository.countByUidEqualsAndTypeEqualsAndReadEquals(uid,messageType.getCode(),false);
     }
+
+    @Override
+    public List<MessageV2> listIdIn(List<Long> mids) {
+        return messageV2Repository.findByIdIn(mids);
+    }
 }

@@ -15,13 +15,11 @@ import cc.dmji.api.service.LikeRecordService;
 import cc.dmji.api.service.UserService;
 import cc.dmji.api.service.v2.ReplyV2Service;
 import cc.dmji.api.utils.DmjiUtils;
+import cc.dmji.api.utils.GeneralUtils;
 import cc.dmji.api.utils.JwtUserInfo;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
-import cc.dmji.api.web.listener.AtMessageEvent;
-import cc.dmji.api.web.listener.DeleteReplyMessageEvent;
-import cc.dmji.api.web.listener.LikeMessageEvent;
-import cc.dmji.api.web.listener.ReplyMessageEvent;
+import cc.dmji.api.web.listener.*;
 import cc.dmji.api.web.model.v2.reply.*;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -33,6 +31,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -126,6 +125,9 @@ public class ReplyV2Controller extends BaseController {
             rootReply = replyV2;
             floor = replyV2Service.countNowFloorByRootReplyId(root, replyType);
         }
+        if (StringUtils.isEmpty((content=GeneralUtils.cleanXSS(content)))){
+            return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.PARAM_IS_INVALID,"dalao求放过qaq");
+        }
         ReplyDTO replyDTO = new ReplyDTO(userId, replyType, objectId, content, root, floor + 1);
         ReplyV2 insertReplyV2 = replyV2Service.insert(replyDTO);
         logger.debug("insert reply, id:{}, userId:{}, content:{} ", insertReplyV2.getId(), insertReplyV2.getUserId(), insertReplyV2.getContent());
@@ -167,6 +169,12 @@ public class ReplyV2Controller extends BaseController {
                         new ReplyMessageEvent(this, rootReply.getUserId(), userId, insertReplyV2);
                 applicationContext.publishEvent(event);
             }
+        }
+        // 如果是用户下的评论，而且是父级评论
+        if (root == 0L && replyType.equals(ReplyType.USER) && !objectId.equals(userId)){
+            UserCommentMessageEvent event =
+                    new UserCommentMessageEvent(this,objectId,userId,insertReplyV2);
+            applicationContext.publishEvent(event);
         }
 
         return getSuccessResponseEntity(getSuccessResult(resultMap));

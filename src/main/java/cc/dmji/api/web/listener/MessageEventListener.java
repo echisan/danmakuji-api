@@ -43,14 +43,14 @@ public class MessageEventListener {
     // 1: 评论内容 2: 评论描点
     private static final String MSG_CONTENT = "#{%s}{\"%s\"}";
 
-    private static final String MSG_BANGUMI_EPISODE_URL = BASE_URL+"/#/video/%d";
-    private static final String MSG_BANGUMI_EPISODE_AT_POINT = BASE_URL+"/#/video/%d?rpid=%d";
-    private static final String MSG_NOTICE_URL = BASE_URL+"/#/announce/%d";
-    private static final String MSG_NOTICE_AT_POINT = BASE_URL+"/#/announce/%d?rpid=%d";
-    private static final String MSG_BANGUMI_URL = BASE_URL+"/#/bangumi/%d";
-    private static final String MSG_BANGUMI_AT_POINT = BASE_URL+"/#/bangumi/%d?rpid=%d";
-    private static final String MSG_USER_URL = BASE_URL+"/#/user/%d";
-    private static final String MSG_USER_AT_POINT = BASE_URL+"/#/user/%d?rpid=%d";
+    private static final String MSG_BANGUMI_EPISODE_URL = BASE_URL + "/#/video/%d";
+    private static final String MSG_BANGUMI_EPISODE_AT_POINT = BASE_URL + "/#/video/%d?rpid=%d";
+    private static final String MSG_NOTICE_URL = BASE_URL + "/#/announce/%d";
+    private static final String MSG_NOTICE_AT_POINT = BASE_URL + "/#/announce/%d?rpid=%d";
+    private static final String MSG_BANGUMI_URL = BASE_URL + "/#/bangumi/%d";
+    private static final String MSG_BANGUMI_AT_POINT = BASE_URL + "/#/bangumi/%d?rpid=%d";
+    private static final String MSG_USER_URL = BASE_URL + "/#/user/%d";
+    private static final String MSG_USER_AT_POINT = BASE_URL + "/#/user/%d?rpid=%d";
 
     @Autowired
     private MessageV2Service messageV2Service;
@@ -172,6 +172,32 @@ public class MessageEventListener {
         cleanUserMsgCountCache(event.getTargetUid());
     }
 
+    @EventListener
+    @Async
+    public void sendUserCommentMessage(UserCommentMessageEvent event) {
+        MessageV2 messageV2 = new MessageV2();
+        messageV2.setStatus(Status.NORMAL);
+        messageV2.setSysMessageId(0L);
+        messageV2.setUid(event.getTargetUid());
+        messageV2.setPublisherUid(event.getPublisherUid());
+        messageV2.setCreateTime(new Timestamp(event.getTimestamp()));
+        messageV2.setType(MessageType.REPLY);
+        messageV2.setRead(false);
+        ReplyV2 replyV2 = event.getReplyV2();
+        String title = String.format(MSG_COMMENT_TITLE, "在您的主页下的",
+                String.format(MSG_USER_URL, replyV2.getObjectId()));
+        messageV2.setTitle(title);
+        messageV2.setContent(
+                createContent(
+                        replyV2.getReplyType(),
+                        replyV2.getContent(),
+                        replyV2.getObjectId(),
+                        replyV2.getId())
+        );
+        MessageV2 insert = messageV2Service.insert(messageV2);
+        cleanUserMsgCountCache(insert.getUid());
+    }
+
 
     /**
      * 由于有不同格式的标题，需要根据不同类型的对象
@@ -234,7 +260,7 @@ public class MessageEventListener {
             }
             case USER: {
                 User user = userService.getUserById(oid);
-                String title = "用户【" + user.getNick() + "】下的评论";
+                String title = "用户【" + user.getNick() + "】主页下的评论";
                 return String.format(titleFormat, title, String.format(MSG_USER_URL, oid));
             }
             default: {

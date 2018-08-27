@@ -29,4 +29,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByNickIn(Collection<String> nick);
 
+    List<User> findByRoleEquals(String role);
+
 }

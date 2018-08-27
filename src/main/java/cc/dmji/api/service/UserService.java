@@ -1,6 +1,7 @@
 package cc.dmji.api.service;
 
 import cc.dmji.api.entity.User;
+import cc.dmji.api.enums.Role;
 import org.springframework.data.domain.Page;
 
 import java.util.Date;
@@ -42,5 +43,7 @@ public interface UserService {
     List<User> listUserByIdsIn(List<Long> userId);
 
     List<User> listUserByNickIn(List<String> usernameList);
+
+    List<User> listUserByRole(Role role);
 
 }

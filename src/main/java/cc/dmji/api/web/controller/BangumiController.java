@@ -137,7 +137,7 @@ public class BangumiController extends BaseController {
 
     @GetMapping("/mostView")
     public ResponseEntity<Result> listMostViewBangumi(@RequestParam(value = "pn",required = false,defaultValue = "1") Integer pn,
-                                                      @RequestParam(value = "ps",required = false,defaultValue = "4") Integer ps){
+                                                      @RequestParam(value = "ps",required = false,defaultValue = "5") Integer ps){
 
         if (DmjiUtils.validatePageParam(pn,ps)!=5){
             return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.PARAM_IS_INVALID,"页码页数参数有误");

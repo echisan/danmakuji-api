@@ -1,5 +1,6 @@
 package cc.dmji.api;
 
+import cc.dmji.api.constants.RedisKey;
 import cc.dmji.api.entity.v2.SysMessage;
 import cc.dmji.api.enums.Direction;
 import cc.dmji.api.enums.MessageType;
@@ -16,9 +17,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 

@@ -58,23 +58,20 @@ public class MessageV2Controller extends BaseController {
         JwtUserInfo user = getJwtUserInfo(request);
 //        logger.debug("jwtUserInfo --- {}", user);
         Long uid = user.getUid();
+
+        // 检查一下缓存里有没有
+        BoundValueOperations<String, String> ops = stringRedisTemplate.boundValueOps(RedisKey.USER_MSG_COUNT_CACHE + uid);
+        String json;
+        if (StringUtils.hasText((json = ops.get()))) {
+            logger.debug("缓存里存在用户[{}]消息统计信息，直接返回{}", user.getNick(), json);
+            Map<String, Long> msgMap = new ObjectMapper().readValue(json, new TypeReference<Map<String, Long>>() {
+            });
+            return getSuccessResponseEntity(getSuccessResult(msgMap));
+        }
+
         // 未读的新系统通知
         Timestamp ct = new Timestamp(user.getCreateTime().getTime());
         Long newSysMessage = sysMessageService.countNewSysMessage(user.getUid(), ct, SysMsgTargetType.byUserRole(user.getRole()));
-        if (newSysMessage.equals(0L)) {
-            // 检查一下缓存里有没有
-            BoundValueOperations<String, String> ops = stringRedisTemplate.boundValueOps(RedisKey.USER_MSG_COUNT_CACHE + uid);
-            String json;
-            if (StringUtils.hasText((json = ops.get()))) {
-                logger.debug("缓存里存在用户[{}]消息统计信息，直接返回{}", user.getNick(), json);
-                Map<String, Long> msgMap = new ObjectMapper().readValue(json, new TypeReference<Map<String, Long>>() {
-                });
-                return getSuccessResponseEntity(getSuccessResult(msgMap));
-            }
-        }
-
-        //User user = userService.getUserById(uid);
-//        Role role = user.getRole();
         // 未读回复通知
         Long unReadReplyMessageCount = messageV2Service.countUnreadMessage(uid, MessageType.REPLY);
         // 未读系统通知

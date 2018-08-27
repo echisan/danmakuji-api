@@ -23,4 +23,6 @@ public interface MessageV2Service {
     List<MessageV2> listUserUnReadMessage(Long uid);
 
     Long countUnreadMessage(Long uid, MessageType messageType);
+
+    List<MessageV2> listIdIn(List<Long> mids);
 }
