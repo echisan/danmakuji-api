@@ -90,7 +90,6 @@ public class BangumiServiceImpl implements BangumiService {
     @Override
     @Transactional
     public Bangumi updateBangumi(Bangumi bangumi) {
-        setModifyTime(bangumi);
         return bangumiRepository.save(bangumi);
     }
 

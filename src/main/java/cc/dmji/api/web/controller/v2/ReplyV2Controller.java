@@ -126,7 +126,7 @@ public class ReplyV2Controller extends BaseController {
             floor = replyV2Service.countNowFloorByRootReplyId(root, replyType);
         }
         if (StringUtils.isEmpty((content=GeneralUtils.cleanXSS(content)))){
-            return getErrorResponseEntity(HttpStatus.BAD_REQUEST,ResultCode.PARAM_IS_INVALID,"dalao求放过qaq");
+            return getErrorResponseEntity(HttpStatus.OK,ResultCode.PARAM_IS_INVALID,"dalao求放过qaq");
         }
         ReplyDTO replyDTO = new ReplyDTO(userId, replyType, objectId, content, root, floor + 1);
         ReplyV2 insertReplyV2 = replyV2Service.insert(replyDTO);

@@ -23,6 +23,8 @@ public class Episode {
     private String danmakuId;
     @Column(name = "view_count")
     private Long viewCount;
+    @Column(name = "url",columnDefinition = "text")
+    private String url;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -101,5 +103,13 @@ public class Episode {
 
     public void setViewCount(Long viewCount) {
         this.viewCount = viewCount;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

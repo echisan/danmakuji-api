@@ -137,6 +137,8 @@ public class GeneralUtils {
             scriptPattern = Pattern.compile("onload(.*?)=",
                     Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
             value = scriptPattern.matcher(value).replaceAll("");
+
+            value = value.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         }
         return value;
     }

@@ -21,6 +21,8 @@ public class Bangumi {
     private Timestamp modifyTime;
     private String thumb;
     private Long viewCount;
+    @Column(name = "description",columnDefinition = "text")
+    private String description;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -89,6 +91,14 @@ public class Bangumi {
 
     public void setViewCount(Long viewCount) {
         this.viewCount = viewCount;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

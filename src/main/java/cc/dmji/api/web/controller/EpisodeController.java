@@ -104,6 +104,7 @@ public class EpisodeController extends BaseController{
             VideoInfo videoInfo = generateVideoInfo(episode,bangumiService);
             videoInfo.setDanmakuCount(danmakuService.countDanmakuByPlayer(episode.getDanmakuId()));
             videoInfo.setViewCount(episode.getViewCount());
+            videoInfo.setVideoUrl(episode.getUrl());
 
             updateEpisodeView(episode);
 

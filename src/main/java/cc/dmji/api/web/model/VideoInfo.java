@@ -12,6 +12,7 @@ public class VideoInfo {
     private String thumb;
     private Long viewCount;
     private Long danmakuCount;
+    private String videoUrl;
 
     public Integer getEpisodeIndex() {
         return episodeIndex;
@@ -91,6 +92,14 @@ public class VideoInfo {
 
     public void setDanmakuCount(Long danmakuCount) {
         this.danmakuCount = danmakuCount;
+    }
+
+    public String getVideoUrl() {
+        return videoUrl;
+    }
+
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = videoUrl;
     }
 
     @Override
