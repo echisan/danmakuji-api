@@ -62,4 +62,7 @@ public class RedisKey {
     /** 首页的文字 */
     public static final String INDEX_SENTENCE = "index_sentence";
 
+    /** 首页显示的5张图的内容的缓存 */
+    public static final String INDEX_RECOMMEND_CACHE = "index_recommend_cache";
+
 }

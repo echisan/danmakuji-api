@@ -151,6 +151,10 @@ public class AdminBangumiController extends BaseController {
         else {
             editedBangumi.setThumb(bangumi.getThumb());
         }
+
+        editedBangumi.setViewCount(bangumi.getViewCount());
+//        bangumi.setDescription(bangumi.getDescription());
+
         editedBangumi.setModifyTime(new Timestamp(System.currentTimeMillis()));
         editedBangumi = bangumiService.updateBangumi(editedBangumi);
         if(null == editedBangumi){
