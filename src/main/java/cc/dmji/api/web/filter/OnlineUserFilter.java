@@ -43,7 +43,7 @@ public class OnlineUserFilter implements Filter {
     public void doFilter(ServletRequest servletRequest,
                          ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
-        logger.debug("OnlineUserFilter");
+//        logger.debug("OnlineUserFilter");
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
@@ -56,22 +56,24 @@ public class OnlineUserFilter implements Filter {
         String tokenHeader = request.getHeader(SecurityConstants.TOKEN_HEADER_AUTHORIZATION);
 //        String clientId = request.getHeader(HeaderConstants.CLIENT_ID);
         if (tokenHeader != null) {
-            // 如果请求头中存在token,就算是以登录的用户
-            String token = tokenHeader.replace(SecurityConstants.TOKEN_PREFIX, "");
-            try {
-                // 如果能获取uid
-                Long uid = jwtTokenUtils.getUid(token);
-                onlineUserRedisService.insertOnlineUser(String.valueOf(uid), true);
-                stringRedisTemplate.boundZSetOps(RedisKey.ONLINE_ANON_USER_KEY).remove(GeneralUtils.getIpAddress(request));
-                filterChain.doFilter(request, response);
-                return;
-            } catch (Exception e) {
-                e.printStackTrace();
-                // 如果解析不了，就算是未登录用户, 看看有没有clientId
-                // 如果没有clientId就算了,也不拦了
-                onlineUserRedisService.insertOnlineUser(GeneralUtils.getIpAddress(request), false);
-                filterChain.doFilter(request, response);
-                return;
+            if (tokenHeader.contains("Bearer")){
+                // 如果请求头中存在token,就算是以登录的用户
+                String token = tokenHeader.replace(SecurityConstants.TOKEN_PREFIX, "");
+                try {
+                    // 如果能获取uid
+                    Long uid = jwtTokenUtils.getUid(token);
+                    onlineUserRedisService.insertOnlineUser(String.valueOf(uid), true);
+                    stringRedisTemplate.boundZSetOps(RedisKey.ONLINE_ANON_USER_KEY).remove(GeneralUtils.getIpAddress(request));
+                    filterChain.doFilter(request, response);
+                    return;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // 如果解析不了，就算是未登录用户, 看看有没有clientId
+                    // 如果没有clientId就算了,也不拦了
+                    onlineUserRedisService.insertOnlineUser(GeneralUtils.getIpAddress(request), false);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
             }
         } else {
             onlineUserRedisService.insertOnlineUser(GeneralUtils.getIpAddress(request), false);

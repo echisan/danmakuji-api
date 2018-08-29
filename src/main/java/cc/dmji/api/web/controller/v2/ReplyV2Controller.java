@@ -477,7 +477,8 @@ public class ReplyV2Controller extends BaseController {
         // 如果是用户的类型 且 在操作本人个人页面下的评论，可以删除
         if (replyV2.getReplyType().equals(ReplyType.USER) && replyV2.getObjectId().equals(jwtUserInfo.getUid())){
             replyV2.setStatus(Status.DELETE);
-            replyV2Service.update(replyV2);
+            ReplyV2 update = replyV2Service.update(replyV2);
+            return getSuccessResponseEntity(getSuccessResult(update));
         }
 
         if (!replyV2.getUserId().equals(jwtUserInfo.getUid())) {

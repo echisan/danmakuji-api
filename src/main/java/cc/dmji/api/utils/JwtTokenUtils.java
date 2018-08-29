@@ -120,6 +120,7 @@ public class JwtTokenUtils {
     }
 
     public Claims getClaim(String token) {
+//        logger.debug("get claim:{}",token);
         return Jwts.parser()
                 .setSigningKey(TOKEN_SECRET)
                 .parseClaimsJws(token)

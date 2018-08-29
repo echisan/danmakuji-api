@@ -61,6 +61,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/tokens/**").permitAll()
                 .antMatchers("/admin/**").hasAnyRole(Role.MANAGER.name(),Role.ADMIN.name())
                 .antMatchers(HttpMethod.GET,"/v2/replies/**").permitAll()
+                .antMatchers("/actuator/**").permitAll()
+                .antMatchers("/index/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilter(jwtAuthenticationFilter())

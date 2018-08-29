@@ -13,9 +13,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +22,7 @@ import java.util.Map;
  * Created by echisan on 2018/6/9
  */
 @RestController
-@RequestMapping("/admin/mainInfo")
+@RequestMapping("/admin/index")
 public class AdminIndexController extends BaseController {
 
     @Autowired
@@ -39,7 +37,7 @@ public class AdminIndexController extends BaseController {
     @Autowired
     private ReplyService replyService;
 
-    @GetMapping
+    @GetMapping("/mainInfo")
     public ResponseEntity<Result> getIndexInfo(){
 
         Map<String, Object> map = new HashMap<>();
@@ -80,5 +78,21 @@ public class AdminIndexController extends BaseController {
         map.put("maxAuthOnline",onlineUserRedisService.countTodayMaxAuthOnlineUser());
 
         return getResponseEntity(HttpStatus.OK, getSuccessResult(map));
+    }
+
+    @PostMapping("/is")
+    public Result setIndexSentence(@RequestBody Map<String,String> requestMap){
+        String word = requestMap.get("sentence");
+        stringRedisTemplate.opsForValue().set(RedisKey.INDEX_SENTENCE,word);
+        return getSuccessResult("设置成功～");
+    }
+
+    @GetMapping("/is")
+    public Result getIndexSentence(){
+        String s = stringRedisTemplate.opsForValue().get(RedisKey.INDEX_SENTENCE);
+        if (s == null){
+            s = "";
+        }
+        return getSuccessResult(s,"ok");
     }
 }

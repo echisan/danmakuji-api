@@ -30,11 +30,11 @@ public class WebLogAspect {
         if (!joinPoint.getSignature().getName().equals("getUserMessageInfo")){
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             HttpServletRequest request = attributes.getRequest();
-            logger.info("URL : " + request.getRequestURL().toString());
-            logger.info("HTTP_METHOD : " + request.getMethod());
-            logger.info("IP : " + request.getRemoteAddr());
-            logger.info("CLASS_METHOD : " + joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName());
-            logger.info("ARGS : " + Arrays.toString(joinPoint.getArgs()));
+            logger.debug("URL : " + request.getRequestURL().toString());
+            logger.debug("HTTP_METHOD : " + request.getMethod());
+            logger.debug("IP : " + request.getRemoteAddr());
+            logger.debug("CLASS_METHOD : " + joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName());
+            logger.debug("ARGS : " + Arrays.toString(joinPoint.getArgs()));
         }
     }
 

@@ -7,11 +7,13 @@ import cc.dmji.api.entity.Bangumi;
 import cc.dmji.api.entity.Episode;
 import cc.dmji.api.entity.Message;
 import cc.dmji.api.entity.PostBangumi;
+import cc.dmji.api.entity.v2.MessageV2;
 import cc.dmji.api.enums.*;
 import cc.dmji.api.service.BangumiService;
 import cc.dmji.api.service.EpisodeService;
 import cc.dmji.api.service.MessageService;
 import cc.dmji.api.service.PostBangumiService;
+import cc.dmji.api.service.v2.MessageV2Service;
 import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
@@ -46,7 +48,7 @@ public class AdminPostBangumiController extends BaseController {
     private PostBangumiService postBangumiService;
 
     @Autowired
-    private MessageService messageService;
+    private MessageV2Service messageV2Service;
 
     @Autowired
     private BangumiService bangumiService;
@@ -236,24 +238,24 @@ public class AdminPostBangumiController extends BaseController {
         PostBangumi updatePb = postBangumiService.updatePostBangumi(postBangumi);
 
         // 发送消息通知改用户
-        sendMessage(postBangumi.getUserId(), messageContent);
+        sendMessage(postBangumi.getUserId(),managerUserId, messageContent);
 
         return getResponseEntity(HttpStatus.OK, getSuccessResult(updatePb));
     }
 
     @Async
-    public void sendMessage(Long userId, String content) {
-        Message message = new Message();
-        message.setUserId(userId);
-        message.setTitle("番剧提交结果通知");
-        message.setContent(content);
-        message.setType(MessageType.SYSTEM.name());
-        message.setIsRead(MessageConstants.NOT_READ);
-        Timestamp ts = new Timestamp(System.currentTimeMillis());
-        message.setCreateTime(ts);
-        message.setModifyTime(ts);
-        message.setmStatus(Status.NORMAL.name());
-        Message insertMessage = messageService.insertMessage(message);
-        logger.debug("send message:{}", insertMessage);
+    public void sendMessage(Long targetId,Long publisher, String content) {
+        MessageV2 messageV2 = new MessageV2();
+        messageV2.setUid(targetId);
+        messageV2.setPublisherUid(publisher);
+        messageV2.setTitle("番剧提交结果");
+        messageV2.setContent(content);
+        messageV2.setRead(false);
+        messageV2.setSysMessageId(0L);
+        messageV2.setStatus(Status.NORMAL);
+        messageV2.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        messageV2.setType(MessageType.SYSTEM);
+        MessageV2 insert = messageV2Service.insert(messageV2);
+        logger.debug("send message:{}", insert);
     }
 }

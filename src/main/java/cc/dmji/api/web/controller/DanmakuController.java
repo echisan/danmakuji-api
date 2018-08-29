@@ -88,7 +88,7 @@ public class DanmakuController {
         String type = danmaku.getType();
         String ip = GeneralUtils.getIpAddress(request);
 
-        if (player.equals("null") || StringUtils.isEmpty(player)){
+        if (null == player || StringUtils.isEmpty(player) || player.equals("null")){
             danmakuResponse.setCode(DanmakuResponseType.ILLEGAL_DATA);
             danmakuResponse.setMsg("请选择好番剧以及集数后再发送弹幕~");
             return danmakuResponse;

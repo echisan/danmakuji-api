@@ -59,4 +59,7 @@ public class RedisKey {
     /** 用户消息统计缓存 */
     public static final String USER_MSG_COUNT_CACHE = "user_msg_count_cache_";
 
+    /** 首页的文字 */
+    public static final String INDEX_SENTENCE = "index_sentence";
+
 }

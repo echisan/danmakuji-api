@@ -31,7 +31,7 @@ public class GeneralUtils {
         if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
-        logger.info("请求的ip地址: {}", ip);
+//        logger.info("请求的ip地址: {}", ip);
         return ip;
     }
 

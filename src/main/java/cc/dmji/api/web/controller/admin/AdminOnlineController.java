@@ -99,15 +99,15 @@ public class AdminOnlineController extends BaseController {
                 Map<String, Object> data = new HashMap<>(4);
                 data.put("ip", stt.getValue());
                 data.put("last_vtime", String.valueOf(new Double(stt.getScore()).longValue()));
-                ResponseEntity<IpSbResp> forEntity = restTemplate.getForEntity(IP_API + stt.getValue(), IpSbResp.class);
-                if (forEntity.getStatusCode().equals(HttpStatus.OK)){
-                    IpSbResp ipSbResp = forEntity.getBody();
-                    String location = ipSbResp.getCountry()+","+ipSbResp.getRegion()+","+ipSbResp.getCity();
-                    data.put("location",location);
-                    data.put("location_detail",ipSbResp);
-                }else {
-                    data.put("location","");
-                }
+//                ResponseEntity<IpSbResp> forEntity = restTemplate.getForEntity(IP_API + stt.getValue(), IpSbResp.class);
+//                if (forEntity.getStatusCode().equals(HttpStatus.OK)){
+//                    IpSbResp ipSbResp = forEntity.getBody();
+//                    String location = ipSbResp.getCountry()+","+ipSbResp.getRegion()+","+ipSbResp.getCity();
+//                    data.put("location",location);
+//                    data.put("location_detail",ipSbResp);
+//                }else {
+//                    data.put("location","");
+//                }
                 visitorDataList.add(data);
             });
 
