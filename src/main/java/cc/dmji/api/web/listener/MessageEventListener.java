@@ -31,8 +31,8 @@ import java.util.List;
 @Component
 public class MessageEventListener {
     private static final Logger logger = LoggerFactory.getLogger(MessageEventListener.class);
-    private static final String BASE_URL = "http://localhost:8080";
-    // #{【1月】戒律的复活 23【独家正版】}{"http://www.bilibili.com/bangumi/play/ep200158/?aid=25388017"}评论中@了你"
+//    private static final String BASE_URL = "http://localhost:8080";
+    private static final String BASE_URL = "";
     // 1: 对象的名称 2: 评论所在的地址
     private static final String MSG_AT_TITLE = "#{ %s }{\"%s\"}评论中@了你";
     private static final String MSG_REPLY_TITLE = "#{ %s }{\"%s\"}评论中回复了你";

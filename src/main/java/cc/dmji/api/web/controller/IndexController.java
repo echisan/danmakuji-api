@@ -54,6 +54,7 @@ public class IndexController extends BaseController {
         if (indexRecommendCacheJson == null || indexRecommendCacheJson.equals("")) {
             Page<IndexRecommend> indexRecommends = indexRecommendService.listByShowIndex(1, 5);
             List<IndexRecommend> indexRecommendList = indexRecommends.getContent();
+            indexRecommendList.forEach(ir -> ir.setPublisherId(0L));
             resultMap.put("ir", indexRecommendList);
             stringRedisTemplate.opsForValue().set(RedisKey.INDEX_RECOMMEND_CACHE,
                     new ObjectMapper().writeValueAsString(indexRecommendList));
