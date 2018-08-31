@@ -8,6 +8,7 @@ import cc.dmji.api.enums.v2.ReplyType;
 import cc.dmji.api.web.model.v2.reply.ReplyDTO;
 import cc.dmji.api.web.model.v2.reply.ReplyDetail;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public interface ReplyV2Service {
@@ -30,12 +31,14 @@ public interface ReplyV2Service {
 
     Long countNowFloorByRootReplyId(Long root, ReplyType rt);
 
-    ReplyDetail getTopReply(Long oid,ReplyType rt,Long userId);
+    ReplyDetail getTopReply(Long oid, ReplyType rt, Long userId);
 
     Long countByRootAndFloorBetween(Long root, ReplyType rt, Long beginFloor, Long endFloor);
 
     Long countByObjectIdAndFloorBetween(Long oid, ReplyType rt, Long beginFloor, Long endFloor);
 
-    ReplyV2 getTopReply(Long oid,ReplyType rt);
+    ReplyV2 getTopReply(Long oid, ReplyType rt);
+
+    Long countReplyByCreateTimeBetween(Timestamp beginTime, Timestamp endTime);
 
 }

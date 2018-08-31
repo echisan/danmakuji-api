@@ -122,4 +122,9 @@ public class ReplyV2V2ServiceImpl implements ReplyV2Service {
     public ReplyV2 getTopReply(Long oid, ReplyType rt) {
         return replyV2Repository.findByObjectIdEqualsAndReplyTypeAndTopEquals(oid,rt.getCode(),true);
     }
+
+    @Override
+    public Long countReplyByCreateTimeBetween(Timestamp beginTime, Timestamp endTime) {
+        return replyV2Repository.countByCreateTimeBetween(beginTime, endTime);
+    }
 }

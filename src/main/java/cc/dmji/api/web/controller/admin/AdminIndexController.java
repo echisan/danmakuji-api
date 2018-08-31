@@ -7,8 +7,8 @@ import cc.dmji.api.entity.IndexRecommend;
 import cc.dmji.api.enums.Status;
 import cc.dmji.api.service.IndexRecommendService;
 import cc.dmji.api.service.OnlineUserRedisService;
-import cc.dmji.api.service.ReplyService;
 import cc.dmji.api.service.UserService;
+import cc.dmji.api.service.v2.ReplyV2Service;
 import cc.dmji.api.utils.GeneralUtils;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
@@ -40,7 +40,7 @@ public class AdminIndexController extends BaseController {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
-    private ReplyService replyService;
+    private ReplyV2Service replyV2Service;
     @Autowired
     private IndexRecommendService indexRecommendService;
 
@@ -72,7 +72,10 @@ public class AdminIndexController extends BaseController {
         map.put("visit", visitCount);
 
         // 新评论
-        Long newReplies = replyService.countReplysBetween(GeneralUtils.getToday0Clock(), GeneralUtils.getToday2359Clock());
+        Long newReplies = replyV2Service
+                .countReplyByCreateTimeBetween(
+                        new Timestamp(GeneralUtils.getToday0Clock().getTime()),
+                        new Timestamp(GeneralUtils.getToday2359Clock().getTime()));
         map.put("newReplies", newReplies);
 
         // 今日总访客
@@ -168,7 +171,7 @@ public class AdminIndexController extends BaseController {
         IndexRecommend insert = indexRecommendService.insert(ir);
 
         // 如果是显示在首页的话就清除缓存
-        if (insert.isShowIndex()){
+        if (insert.isShowIndex()) {
             stringRedisTemplate.delete(RedisKey.INDEX_RECOMMEND_CACHE);
         }
 
@@ -211,7 +214,7 @@ public class AdminIndexController extends BaseController {
         indexRecommend.setModifyTime(new Timestamp(System.currentTimeMillis()));
         IndexRecommend update = indexRecommendService.update(indexRecommend);
 
-        if (update.isShowIndex()){
+        if (update.isShowIndex()) {
             stringRedisTemplate.delete(RedisKey.INDEX_RECOMMEND_CACHE);
         }
         return getSuccessResult(update);
@@ -228,7 +231,7 @@ public class AdminIndexController extends BaseController {
         indexRecommend.setModifyTime(new Timestamp(System.currentTimeMillis()));
         IndexRecommend delete = indexRecommendService.delete(indexRecommend);
 
-        if (delete.isShowIndex()){
+        if (delete.isShowIndex()) {
             stringRedisTemplate.delete(RedisKey.INDEX_RECOMMEND_CACHE);
         }
         return getSuccessResult(delete);

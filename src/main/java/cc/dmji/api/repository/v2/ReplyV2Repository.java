@@ -5,23 +5,27 @@ import cc.dmji.api.enums.Status;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.sql.Timestamp;
+
 public interface ReplyV2Repository extends JpaRepository<ReplyV2, Long> {
 
     Long countByObjectIdEqualsAndReplyTypeEqualsAndRootEquals(Long oid, Integer replyType, Long root);
 
-    Long countByRootEqualsAndReplyTypeEquals(Long root,Integer replyType);
+    Long countByRootEqualsAndReplyTypeEquals(Long root, Integer replyType);
 
     Long countByObjectIdEqualsAndReplyTypeEqualsAndStatusEquals(Long oid, Integer replyType, Status status);
 
     Long countByRootEqualsAndReplyTypeEqualsAndFloorBetweenAndStatusEquals(
-            Long root, Integer replyType, Long beginFloor, Long endFloor, Status status,Sort sort);
+            Long root, Integer replyType, Long beginFloor, Long endFloor, Status status, Sort sort);
 
     Long countByObjectIdEqualsAndReplyTypeEqualsAndRootEqualsAndFloorBetweenAndStatusEquals(
-            Long oid, Integer replyType, Long root,Long beginFloor,Long endFloor, Status status, Sort sort
+            Long oid, Integer replyType, Long root, Long beginFloor, Long endFloor, Status status, Sort sort
     );
 
-    Long countByObjectIdEqualsAndReplyTypeEqualsAndRootEqualsAndStatusEquals(Long oid,Integer replyType,Long root, Status status);
+    Long countByObjectIdEqualsAndReplyTypeEqualsAndRootEqualsAndStatusEquals(Long oid, Integer replyType, Long root, Status status);
 
-    ReplyV2 findByObjectIdEqualsAndReplyTypeAndTopEquals(Long oid,Integer replyType, boolean isTop);
+    ReplyV2 findByObjectIdEqualsAndReplyTypeAndTopEquals(Long oid, Integer replyType, boolean isTop);
+
+    Long countByCreateTimeBetween(Timestamp beginTime, Timestamp endTime);
 
 }
