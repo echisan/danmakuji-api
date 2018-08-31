@@ -19,4 +19,10 @@ public class GlobalConfig {
     public RestTemplate restTemplate() {
         return new RestTemplateBuilder().build();
     }
+
+    @Bean
+    public ApplicationStartup applicationStartup() {
+        return new ApplicationStartup();
+    }
+
 }

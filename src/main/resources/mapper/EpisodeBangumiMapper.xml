@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.dmji.api.mapper.EpisodeBangumiMapper">
+
+    <!--
+        private Long epId;
+        private Long bangumiId;
+        private Long danmakuCount;
+        private Integer epIndex;
+        private Long episodeViewCount;
+        private Long bangumiViewCount;
+        private String bangumiName;
+        private String thumb;
+    -->
+    <resultMap id="episodeDetailResultMap" type="cc.dmji.api.web.model.EpisodeDetail">
+        <id property="epId" column="epId"/>
+        <result property="bangumiId" column="bangumiId"/>
+        <result property="epIndex" column="epIndex"/>
+        <result property="episodeViewCount" column="episodeViewCount"/>
+        <result property="danmakuId" column="danmakuId"/>
+        <result property="bangumiViewCount" column="bangumiViewCount"/>
+        <result property="bangumiName" column="bangumiName"/>
+        <result property="thumb" column="thumb"/>
+        <result property="episodeTotal" column="episodeTotal"/>
+    </resultMap>
+
+    <sql id="SELECT_EPISODE_DETAIL_COLUMN">
+         select
+       de.ep_id epId,
+       de.bangumi_id bangumiId,
+       de.ep_index epIndex,
+       de.view_count episodeViewCount,
+       de.danmaku_id danmakuId,
+       db.bangumi_name bangumiName,
+       db.thumb thumb,
+       db.view_count bangumiViewCount,
+       db.episode_total episodeTotal
+    </sql>
+
+    <select id="listEpisodeDetailByEpIdIn" resultMap="episodeDetailResultMap">
+       <include refid="SELECT_EPISODE_DETAIL_COLUMN"/>
+       from dm_episode de
+       right join dm_bangumi db on de.bangumi_id = db.bangumi_id
+       where de.ep_id in
+       <foreach collection="epIds" item="id" open="(" close=")" separator=",">
+           #{id}
+       </foreach>
+    </select>
+
+    <select id="getEpisodeDetailByEpId" resultMap="episodeDetailResultMap">
+        <include refid="SELECT_EPISODE_DETAIL_COLUMN"/>
+        from dm_episode de
+        right join dm_bangumi db on de.bangumi_id = db.bangumi_id
+        where de.ep_id = #{epId}
+    </select>
+</mapper>

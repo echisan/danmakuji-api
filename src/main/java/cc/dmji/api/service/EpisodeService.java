@@ -2,6 +2,7 @@ package cc.dmji.api.service;
 
 import cc.dmji.api.entity.Episode;
 import cc.dmji.api.utils.EpisodePageInfo;
+import cc.dmji.api.web.model.EpisodeDetail;
 import cc.dmji.api.web.model.VideoInfo;
 import org.springframework.data.domain.Page;
 
@@ -44,5 +45,11 @@ public interface EpisodeService {
     long countEpisodeByBangumiId(Long bangumiId);
 
     Page<Episode> listEpisodeByViewCount(Integer pn, Integer ps);
+
+    List<Episode> listByIdIn(List<Long> epIds);
+
+    List<EpisodeDetail> listEpisodeDetailByEpIdIn(List<Long> epIds);
+
+    EpisodeDetail getEpisodeDetailByEpId(Long epId);
 
 }

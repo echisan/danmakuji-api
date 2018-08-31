@@ -1,26 +1,35 @@
 package cc.dmji.api.service.impl;
 
 import cc.dmji.api.entity.Episode;
+import cc.dmji.api.mapper.EpisodeBangumiMapper;
 import cc.dmji.api.repository.EpisodeRepository;
 import cc.dmji.api.service.EpisodeService;
 import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.EpisodePageInfo;
 import cc.dmji.api.utils.PageInfo;
+import cc.dmji.api.web.model.EpisodeDetail;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.util.List;
 
 @Service
+//@CacheConfig(cacheNames = "episodeService")
 public class EpisodeServiceImpl implements EpisodeService {
 
     @Autowired
     private EpisodeRepository episodeRepository;
+
+    @Resource
+    private EpisodeBangumiMapper episodeBangumiMapper;
 
     @Override
     public EpisodePageInfo listEpisodes() {
@@ -75,6 +84,7 @@ public class EpisodeServiceImpl implements EpisodeService {
     }
 
     @Override
+//    @Cacheable(value = "getEpisodeByEpId",keyGenerator = "wiselyKeyGenerator")
     public Episode getEpisodeByEpId(Long epId) {
         return episodeRepository.findById(epId).orElse(null);
     }
@@ -132,6 +142,21 @@ public class EpisodeServiceImpl implements EpisodeService {
     @Override
     public Page<Episode> listEpisodeByViewCount(Integer pn, Integer ps) {
         return episodeRepository.findAll(PageRequest.of(pn - 1, ps, Sort.Direction.DESC, "viewCount"));
+    }
+
+    @Override
+    public List<Episode> listByIdIn(List<Long> epIds) {
+        return episodeRepository.findByEpIdIn(epIds);
+    }
+
+    @Override
+    public List<EpisodeDetail> listEpisodeDetailByEpIdIn(List<Long> epIds) {
+        return episodeBangumiMapper.listEpisodeDetailByEpIdIn(epIds);
+    }
+
+    @Override
+    public EpisodeDetail getEpisodeDetailByEpId(Long epId) {
+        return episodeBangumiMapper.getEpisodeDetailByEpId(epId);
     }
 
     private void setModifyTime(Episode episode) {

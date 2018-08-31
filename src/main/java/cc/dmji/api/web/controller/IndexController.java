@@ -1,23 +1,31 @@
 package cc.dmji.api.web.controller;
 
 import cc.dmji.api.common.Result;
+import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.constants.RedisKey;
+import cc.dmji.api.entity.Episode;
 import cc.dmji.api.entity.IndexRecommend;
+import cc.dmji.api.service.DanmakuService;
+import cc.dmji.api.service.EpisodeService;
 import cc.dmji.api.service.IndexRecommendService;
+import cc.dmji.api.web.model.EpisodeDetail;
+import cc.dmji.api.web.socket.WatchPageWs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
 @RequestMapping("/index")
@@ -28,6 +36,10 @@ public class IndexController extends BaseController {
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
     private IndexRecommendService indexRecommendService;
+    @Autowired
+    private EpisodeService episodeService;
+    @Autowired
+    private DanmakuService danmakuService;
 
     @GetMapping("/is")
     public Result getIndexSentence() {
@@ -47,7 +59,7 @@ public class IndexController extends BaseController {
             sentence = "welcome to darker~";
         }
         Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("is", sentence);
+        resultMap.put("index_sentence", sentence);
 
         // 首页推荐
         String indexRecommendCacheJson = stringRedisTemplate.opsForValue().get(RedisKey.INDEX_RECOMMEND_CACHE);
@@ -55,14 +67,55 @@ public class IndexController extends BaseController {
             Page<IndexRecommend> indexRecommends = indexRecommendService.listByShowIndex(1, 5);
             List<IndexRecommend> indexRecommendList = indexRecommends.getContent();
             indexRecommendList.forEach(ir -> ir.setPublisherId(0L));
-            resultMap.put("ir", indexRecommendList);
+            resultMap.put("index_recommend", indexRecommendList);
             stringRedisTemplate.opsForValue().set(RedisKey.INDEX_RECOMMEND_CACHE,
                     new ObjectMapper().writeValueAsString(indexRecommendList));
         } else {
-            resultMap.put("ir", new ObjectMapper().readValue(indexRecommendCacheJson, IndexRecommend.class));
+            resultMap.put("index_recommend", new ObjectMapper().readValue(indexRecommendCacheJson, IndexRecommend[].class));
         }
 
+        // 在线观看总人数
+        int watchPageTotalCount = WatchPageWs.watchPageTotalCount.get();
+        resultMap.put("online_watch_count",watchPageTotalCount);
         return getSuccessResult(resultMap);
     }
 
+    @GetMapping("/online")
+    public Result getOnlineView(){
+        BoundZSetOperations<String, String> ops = stringRedisTemplate.boundZSetOps(RedisKey.WATCH_EPISODE_ONLINE_EACH);
+        Set<ZSetOperations.TypedTuple<String>> typedTuples = ops.reverseRangeByScoreWithScores(0, 9999999);
+
+        if (typedTuples!=null && typedTuples.size()!=0){
+            Map<String,Integer> onlineMap = new LinkedHashMap<>();
+            List<Long> epIds = new ArrayList<>();
+            final int[] count = {0};
+            typedTuples.forEach(stringTypedTuple -> {
+                int score = stringTypedTuple.getScore().intValue();
+                onlineMap.put(stringTypedTuple.getValue(),score);
+                epIds.add(Long.valueOf(stringTypedTuple.getValue()));
+                count[0] = count[0] + score;
+            });
+
+            List<EpisodeDetail> episodeDetails = episodeService.listEpisodeDetailByEpIdIn(epIds);
+            List<Map<String,Object>> onlineDetailResult = new ArrayList<>();
+            episodeDetails.forEach(episodeDetail -> {
+                Map<String,Object> map = new HashMap<>();
+                map.put("bangumiName",episodeDetail.getBangumiName());
+                map.put("epId",episodeDetail.getEpId());
+                map.put("bangumiId",episodeDetail.getBangumiId());
+                map.put("epIndex",episodeDetail.getEpIndex());
+                map.put("episodeViewCount",episodeDetail.getEpisodeViewCount());
+                String title = episodeDetail.getBangumiName();
+                if (episodeDetail.getEpisodeTotal() != 1){
+                    title = title + " 第"+episodeDetail.getEpIndex()+"集";
+                }
+                map.put("title",title);
+                map.put("onlineCount",onlineMap.get(String.valueOf(episodeDetail.getEpId())));
+                map.put("danmakuCount",danmakuService.countDanmakuByPlayer(episodeDetail.getDanmakuId()));
+                onlineDetailResult.add(map);
+            });
+            return getSuccessResult(onlineDetailResult);
+        }
+        return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND,"暂时没有人在观看视频",Collections.EMPTY_LIST);
+    }
 }

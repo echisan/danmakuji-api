@@ -63,6 +63,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET,"/v2/replies/**").permitAll()
                 .antMatchers("/actuator/**").hasAnyRole(Role.ADMIN.name())
                 .antMatchers("/index/**").permitAll()
+                .antMatchers("/watch/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilter(jwtAuthenticationFilter())

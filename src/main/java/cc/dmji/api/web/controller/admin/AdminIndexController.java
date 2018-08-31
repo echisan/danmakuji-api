@@ -9,7 +9,6 @@ import cc.dmji.api.service.IndexRecommendService;
 import cc.dmji.api.service.OnlineUserRedisService;
 import cc.dmji.api.service.ReplyService;
 import cc.dmji.api.service.UserService;
-import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.GeneralUtils;
 import cc.dmji.api.utils.PageInfo;
 import cc.dmji.api.web.controller.BaseController;
@@ -36,13 +35,10 @@ public class AdminIndexController extends BaseController {
 
     @Autowired
     private UserService userService;
-
     @Autowired
     private OnlineUserRedisService onlineUserRedisService;
-
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
-
     @Autowired
     private ReplyService replyService;
     @Autowired
@@ -129,9 +125,9 @@ public class AdminIndexController extends BaseController {
     }
 
     @GetMapping("/recommend/{irid}")
-    public Result getRecommend(@PathVariable("irid")Long irId){
+    public Result getRecommend(@PathVariable("irid") Long irId) {
         IndexRecommend indexRecommend = indexRecommendService.getById(irId);
-        if (indexRecommend == null){
+        if (indexRecommend == null) {
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND);
         }
         return getSuccessResult(indexRecommend);
@@ -143,16 +139,16 @@ public class AdminIndexController extends BaseController {
         String title = requestMap.get("title");
         String imageUrl = requestMap.get("image_url");
         String linkUrl = requestMap.get("link_url");
-        if (!StringUtils.hasText(title) || !StringUtils.hasText(imageUrl) || !StringUtils.hasText(linkUrl)){
-            return getErrorResult(ResultCode.PARAM_IS_INVALID,"title,imageUrl,linkUrl cannot be null!!");
+        if (!StringUtils.hasText(title) || !StringUtils.hasText(imageUrl) || !StringUtils.hasText(linkUrl)) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "title,imageUrl,linkUrl cannot be null!!");
         }
         String showIndexStr = requestMap.get("show_index");
         Integer showIndex;
-        if (showIndexStr == null){
-            return getErrorResult(ResultCode.PARAM_IS_INVALID,"是否在首页显示不能为空");
+        if (showIndexStr == null) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "是否在首页显示不能为空");
         }
-        if (!showIndexStr.equals("1") && !showIndexStr.equals("0")){
-            return getErrorResult(ResultCode.PARAM_IS_INVALID,"show_index类型不合法，只能是0或1");
+        if (!showIndexStr.equals("1") && !showIndexStr.equals("0")) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "show_index类型不合法，只能是0或1");
         }
         showIndex = Integer.valueOf(showIndexStr);
         IndexRecommend ir = new IndexRecommend();
@@ -163,43 +159,49 @@ public class AdminIndexController extends BaseController {
         ir.setImageUrl(imageUrl);
         ir.setLinkUrl(linkUrl);
         ir.setTitle(title);
-        if (showIndex.equals(1)){
+        if (showIndex.equals(1)) {
             ir.setShowIndex(true);
-        }else {
+        } else {
             ir.setShowIndex(false);
         }
         ir.setPublisherId(getJwtUserInfo(request).getUid());
         IndexRecommend insert = indexRecommendService.insert(ir);
+
+        // 如果是显示在首页的话就清除缓存
+        if (insert.isShowIndex()){
+            stringRedisTemplate.delete(RedisKey.INDEX_RECOMMEND_CACHE);
+        }
+
         return getSuccessResult(insert);
     }
 
     @PutMapping("/recommend/{irid}")
-    public Result updateIndexRecommend(@PathVariable("irid")Long irId,
-                                       @RequestBody Map<String,String> requestMap,
-                                       HttpServletRequest request){
+    public Result updateIndexRecommend(@PathVariable("irid") Long irId,
+                                       @RequestBody Map<String, String> requestMap,
+                                       HttpServletRequest request) {
         IndexRecommend indexRecommend = indexRecommendService.getById(irId);
-        if (indexRecommend == null){
-            return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND,"被修改的对象不存在，请检查你的irid是否正确");
+        if (indexRecommend == null) {
+            return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND, "被修改的对象不存在，请检查你的irid是否正确");
         }
         String title = requestMap.get("title");
         String imageUrl = requestMap.get("image_url");
         String linkUrl = requestMap.get("link_url");
-        if (!StringUtils.hasText(title) || !StringUtils.hasText(imageUrl) || !StringUtils.hasText(linkUrl)){
-            return getErrorResult(ResultCode.PARAM_IS_INVALID,"title,imageUrl,linkUrl cannot be null!!");
+        if (!StringUtils.hasText(title) || !StringUtils.hasText(imageUrl) || !StringUtils.hasText(linkUrl)) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "title,imageUrl,linkUrl cannot be null!!");
         }
         String showIndexStr = requestMap.get("show_index");
         Integer showIndex;
-        if (showIndexStr == null){
-            return getErrorResult(ResultCode.PARAM_IS_INVALID,"是否在首页显示不能为空");
+        if (showIndexStr == null) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "是否在首页显示不能为空");
         }
-        if (!showIndexStr.equals("1") && !showIndexStr.equals("0")){
-            return getErrorResult(ResultCode.PARAM_IS_INVALID,"show_index类型不合法，只能是0或1");
+        if (!showIndexStr.equals("1") && !showIndexStr.equals("0")) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "show_index类型不合法，只能是0或1");
         }
         showIndex = Integer.valueOf(showIndexStr);
 
-        if (showIndex.equals(1)){
+        if (showIndex.equals(1)) {
             indexRecommend.setShowIndex(true);
-        }else {
+        } else {
             indexRecommend.setShowIndex(false);
         }
         indexRecommend.setLinkUrl(linkUrl);
@@ -208,19 +210,27 @@ public class AdminIndexController extends BaseController {
         indexRecommend.setTitle(title);
         indexRecommend.setModifyTime(new Timestamp(System.currentTimeMillis()));
         IndexRecommend update = indexRecommendService.update(indexRecommend);
+
+        if (update.isShowIndex()){
+            stringRedisTemplate.delete(RedisKey.INDEX_RECOMMEND_CACHE);
+        }
         return getSuccessResult(update);
     }
 
     @DeleteMapping("/recommend/{irid}")
-    public Result deleteIndexRecommendById(@PathVariable("irid")Long irId,
-                                           HttpServletRequest request){
+    public Result deleteIndexRecommendById(@PathVariable("irid") Long irId,
+                                           HttpServletRequest request) {
         IndexRecommend indexRecommend = indexRecommendService.getById(irId);
-        if (indexRecommend == null){
-            return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND,"需要删除的首页推荐不存在，请检查你的irId参数");
+        if (indexRecommend == null) {
+            return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND, "需要删除的首页推荐不存在，请检查你的irId参数");
         }
         indexRecommend.setPublisherId(getUidFromRequest(request));
         indexRecommend.setModifyTime(new Timestamp(System.currentTimeMillis()));
         IndexRecommend delete = indexRecommendService.delete(indexRecommend);
+
+        if (delete.isShowIndex()){
+            stringRedisTemplate.delete(RedisKey.INDEX_RECOMMEND_CACHE);
+        }
         return getSuccessResult(delete);
     }
 }

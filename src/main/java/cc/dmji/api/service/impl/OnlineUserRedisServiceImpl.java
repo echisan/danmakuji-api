@@ -55,9 +55,9 @@ public class OnlineUserRedisServiceImpl implements OnlineUserRedisService {
     public Long countTodayMaxAnonOnlineUser() {
         // 统计在线游客峰值
         BoundValueOperations<String, String> operations = stringRedisTemplate.boundValueOps(RedisKey.MAX_ONLINE_ANON_USER_KEY);
-        String recordAnonString = operations.get();
+        String recordAnonString = String.valueOf(operations.get());
         Long recordAnon = 0L;
-        if (!StringUtils.isEmpty(recordAnonString)) {
+        if (!StringUtils.isEmpty(recordAnonString) && !recordAnonString.equals("null")) {
             recordAnon = Long.valueOf(recordAnonString);
         }
         return recordAnon;
@@ -67,9 +67,9 @@ public class OnlineUserRedisServiceImpl implements OnlineUserRedisService {
     public Long countTodayMaxAuthOnlineUser() {
         // 统计在线注册用户峰值
         BoundValueOperations<String, String> operations = stringRedisTemplate.boundValueOps(RedisKey.MAX_ONLINE_AUTH_USER_KEY);
-        String recordAuthString = operations.get();
+        String recordAuthString = String.valueOf(operations.get());
         Long recordAuth = 0L;
-        if (!StringUtils.isEmpty(recordAuthString)) {
+        if (!StringUtils.isEmpty(recordAuthString) && !recordAuthString.equals("null")) {
             recordAuth = Long.valueOf(recordAuthString);
         }
         return recordAuth;

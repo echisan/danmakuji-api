@@ -65,4 +65,12 @@ public class RedisKey {
     /** 首页显示的5张图的内容的缓存 */
     public static final String INDEX_RECOMMEND_CACHE = "index_recommend_cache";
 
+    /** 观看视频页面在线用户 */
+    public static final String WATCH_EPISODE_ONLINE_WEB_SOCKET = "watch_episode_online";
+
+    /** 分别观看视频页面在线用户 */
+    public static final String WATCH_EPISODE_ONLINE_EACH = "watch_episode_online_each";
+
+
+
 }

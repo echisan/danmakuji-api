@@ -15,4 +15,6 @@ public interface EpisodeRepository extends JpaRepository<Episode, Long> {
     List<Episode> findEpisodesByBangumiIdEquals(Long bangumiId);
 
     long countEpisodesByBangumiIdEquals(Long bangumiId);
+
+    List<Episode> findByEpIdIn(List<Long> epIds);
 }
