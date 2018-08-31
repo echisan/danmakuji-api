@@ -4,7 +4,6 @@ import cc.dmji.api.annotation.RequestLimit;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.constants.RedisKey;
-import cc.dmji.api.entity.Episode;
 import cc.dmji.api.entity.IndexRecommend;
 import cc.dmji.api.service.DanmakuService;
 import cc.dmji.api.service.EpisodeService;
@@ -25,8 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @RestController
 @RequestMapping("/index")
@@ -78,49 +75,50 @@ public class IndexController extends BaseController {
 
         // 在线观看总人数
         int watchPageTotalCount = WatchPageWs.watchPageTotalCount.get();
-        resultMap.put("online_watch_count",watchPageTotalCount);
+        resultMap.put("online_watch_count", watchPageTotalCount);
         return getSuccessResult(resultMap);
     }
 
 
     // TODO 日后会考虑加上缓存,目前人太少没得问题
     @GetMapping("/online")
-    public Result getOnlineView(){
+    public Result getOnlineView() {
         BoundZSetOperations<String, String> ops = stringRedisTemplate.boundZSetOps(RedisKey.WATCH_EPISODE_ONLINE_EACH);
         Set<ZSetOperations.TypedTuple<String>> typedTuples = ops.reverseRangeByScoreWithScores(0, 9999999);
 
-        if (typedTuples!=null && typedTuples.size()!=0){
-            Map<String,Integer> onlineMap = new LinkedHashMap<>();
+        if (typedTuples != null && typedTuples.size() != 0) {
+            Map<String, Integer> onlineMap = new LinkedHashMap<>();
             List<Long> epIds = new ArrayList<>();
             final int[] count = {0};
             typedTuples.forEach(stringTypedTuple -> {
                 int score = stringTypedTuple.getScore().intValue();
-                onlineMap.put(stringTypedTuple.getValue(),score);
+                onlineMap.put(stringTypedTuple.getValue(), score);
                 epIds.add(Long.valueOf(stringTypedTuple.getValue()));
                 count[0] = count[0] + score;
             });
 
             List<EpisodeDetail> episodeDetails = episodeService.listEpisodeDetailByEpIdIn(epIds);
-            List<Map<String,Object>> onlineDetailResult = new ArrayList<>();
+            List<Map<String, Object>> onlineDetailResult = new ArrayList<>();
             episodeDetails.forEach(episodeDetail -> {
-                Map<String,Object> map = new HashMap<>();
-                map.put("bangumiName",episodeDetail.getBangumiName());
-                map.put("epId",episodeDetail.getEpId());
-                map.put("bangumiId",episodeDetail.getBangumiId());
-                map.put("epIndex",episodeDetail.getEpIndex());
-                map.put("episodeViewCount",episodeDetail.getEpisodeViewCount());
+                Map<String, Object> map = new HashMap<>();
+                map.put("bangumiName", episodeDetail.getBangumiName());
+                map.put("epId", episodeDetail.getEpId());
+                map.put("bangumiId", episodeDetail.getBangumiId());
+                map.put("epIndex", episodeDetail.getEpIndex());
+                map.put("episodeViewCount", episodeDetail.getEpisodeViewCount());
                 String title = episodeDetail.getBangumiName();
-                if (episodeDetail.getEpisodeTotal() != 1){
-                    title = title + " 第"+episodeDetail.getEpIndex()+"集";
+                if (episodeDetail.getEpisodeTotal() != 1) {
+                    title = title + " " + episodeDetail.getEpIndex();
                 }
-                map.put("title",title);
-                map.put("onlineCount",onlineMap.get(String.valueOf(episodeDetail.getEpId())));
-                map.put("danmakuCount",danmakuService.countDanmakuByPlayer(episodeDetail.getDanmakuId()));
-                map.put("thumb",episodeDetail.getThumb());
+                map.put("title", title);
+                map.put("onlineCount", onlineMap.get(String.valueOf(episodeDetail.getEpId())));
+                map.put("danmakuCount", danmakuService.countDanmakuByPlayer(episodeDetail.getDanmakuId()));
+                map.put("thumb", episodeDetail.getThumb());
+                map.put("linkUrl", "/#/video/" + episodeDetail.getEpId());
                 onlineDetailResult.add(map);
             });
             return getSuccessResult(onlineDetailResult);
         }
-        return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND,"暂时没有人在观看视频",Collections.EMPTY_LIST);
+        return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND, "暂时没有人在观看视频", Collections.EMPTY_LIST);
     }
 }
