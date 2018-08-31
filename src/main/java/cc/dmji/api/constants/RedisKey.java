@@ -71,6 +71,6 @@ public class RedisKey {
     /** 分别观看视频页面在线用户 */
     public static final String WATCH_EPISODE_ONLINE_EACH = "watch_episode_online_each";
 
-
-
+    /** 请求限制filter的key */
+    public static final String REQUEST_LIMIT = "request_limit_ip_";
 }

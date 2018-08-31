@@ -1,10 +1,8 @@
 package cc.dmji.api.web.filter;
 
-import cc.dmji.api.constants.HeaderConstants;
 import cc.dmji.api.constants.RedisKey;
 import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.service.OnlineUserRedisService;
-import cc.dmji.api.utils.DmjiUtils;
 import cc.dmji.api.utils.GeneralUtils;
 import cc.dmji.api.utils.JwtTokenUtils;
 import org.slf4j.Logger;
@@ -56,7 +54,7 @@ public class OnlineUserFilter implements Filter {
         String tokenHeader = request.getHeader(SecurityConstants.TOKEN_HEADER_AUTHORIZATION);
 //        String clientId = request.getHeader(HeaderConstants.CLIENT_ID);
         if (tokenHeader != null) {
-            if (tokenHeader.contains("Bearer")){
+            if (tokenHeader.contains("Bearer")) {
                 // 如果请求头中存在token,就算是以登录的用户
                 String token = tokenHeader.replace(SecurityConstants.TOKEN_PREFIX, "");
                 try {

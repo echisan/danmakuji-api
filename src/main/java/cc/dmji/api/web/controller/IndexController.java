@@ -1,5 +1,6 @@
 package cc.dmji.api.web.controller;
 
+import cc.dmji.api.annotation.RequestLimit;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.constants.RedisKey;
@@ -42,6 +43,7 @@ public class IndexController extends BaseController {
     private DanmakuService danmakuService;
 
     @GetMapping("/is")
+    @RequestLimit
     public Result getIndexSentence() {
         String s = stringRedisTemplate.opsForValue().get(RedisKey.INDEX_SENTENCE);
         if (s == null) {
@@ -80,6 +82,8 @@ public class IndexController extends BaseController {
         return getSuccessResult(resultMap);
     }
 
+
+    // TODO 日后会考虑加上缓存,目前人太少没得问题
     @GetMapping("/online")
     public Result getOnlineView(){
         BoundZSetOperations<String, String> ops = stringRedisTemplate.boundZSetOps(RedisKey.WATCH_EPISODE_ONLINE_EACH);
@@ -112,6 +116,7 @@ public class IndexController extends BaseController {
                 map.put("title",title);
                 map.put("onlineCount",onlineMap.get(String.valueOf(episodeDetail.getEpId())));
                 map.put("danmakuCount",danmakuService.countDanmakuByPlayer(episodeDetail.getDanmakuId()));
+                map.put("thumb",episodeDetail.getThumb());
                 onlineDetailResult.add(map);
             });
             return getSuccessResult(onlineDetailResult);

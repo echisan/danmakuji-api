@@ -1,5 +1,6 @@
 package cc.dmji.api.config;
 
+import cc.dmji.api.web.RequestLimitInterceptor;
 import cc.dmji.api.web.filter.OnlineUserFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -27,4 +28,15 @@ public class WebConfig implements WebMvcConfigurer {
         return new OnlineUserFilter();
     }
 
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(requestLimitInterceptor());
+    }
+
+    @Bean
+    public RequestLimitInterceptor requestLimitInterceptor(){
+        return new RequestLimitInterceptor();
+    }
 }
+

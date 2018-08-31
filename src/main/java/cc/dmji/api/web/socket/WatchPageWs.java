@@ -44,9 +44,9 @@ public class WatchPageWs {
             sessionMap.put(epId, sessionSet);
         }
         int size = sessionMap.get(epId).size();
-        sendAllByEpId(epId, String.valueOf(size));
         updateRedisCount(epId,size);
         watchPageTotalCount.incrementAndGet();
+        sendAllByEpId(epId, String.valueOf(size));
     }
 
     @OnMessage
@@ -62,9 +62,9 @@ public class WatchPageWs {
         if ((size = sessionMap.get(epId).size()) == 0) {
             sessionMap.remove(epId);
         }
-        sendAllByEpId(epId, String.valueOf(size));
         updateRedisCount(epId,size);
         watchPageTotalCount.decrementAndGet();
+        sendAllByEpId(epId, String.valueOf(size));
     }
 
     private void sendAllByEpId(String epId, String msg) {

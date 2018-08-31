@@ -140,12 +140,19 @@ public class AdminIndexController extends BaseController {
     public Result postRecommend(@RequestBody Map<String, String> requestMap,
                                 HttpServletRequest request) {
         String title = requestMap.get("title");
-        String imageUrl = requestMap.get("image_url");
-        String linkUrl = requestMap.get("link_url");
-        if (!StringUtils.hasText(title) || !StringUtils.hasText(imageUrl) || !StringUtils.hasText(linkUrl)) {
-            return getErrorResult(ResultCode.PARAM_IS_INVALID, "title,imageUrl,linkUrl cannot be null!!");
+        String imageUrl = requestMap.get("imageUrl");
+        String linkUrl = requestMap.get("linkUrl");
+        if (!StringUtils.hasText(title)){
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "title cannot be null!!");
         }
-        String showIndexStr = requestMap.get("show_index");
+        if (!StringUtils.hasText(imageUrl)){
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "imageUrl cannot be null!!");
+        }
+        if (!StringUtils.hasText(linkUrl)){
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "linkUrl cannot be null!!");
+        }
+
+        String showIndexStr = requestMap.get("showIndex");
         Integer showIndex;
         if (showIndexStr == null) {
             return getErrorResult(ResultCode.PARAM_IS_INVALID, "是否在首页显示不能为空");
@@ -187,12 +194,18 @@ public class AdminIndexController extends BaseController {
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND, "被修改的对象不存在，请检查你的irid是否正确");
         }
         String title = requestMap.get("title");
-        String imageUrl = requestMap.get("image_url");
-        String linkUrl = requestMap.get("link_url");
-        if (!StringUtils.hasText(title) || !StringUtils.hasText(imageUrl) || !StringUtils.hasText(linkUrl)) {
-            return getErrorResult(ResultCode.PARAM_IS_INVALID, "title,imageUrl,linkUrl cannot be null!!");
+        String imageUrl = requestMap.get("imageUrl");
+        String linkUrl = requestMap.get("linkUrl");
+        if (!StringUtils.hasText(title)){
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "title cannot be null!!");
         }
-        String showIndexStr = requestMap.get("show_index");
+        if (!StringUtils.hasText(imageUrl)){
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "imageUrl cannot be null!!");
+        }
+        if (!StringUtils.hasText(linkUrl)){
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "linkUrl cannot be null!!");
+        }
+        String showIndexStr = requestMap.get("showIndex");
         Integer showIndex;
         if (showIndexStr == null) {
             return getErrorResult(ResultCode.PARAM_IS_INVALID, "是否在首页显示不能为空");

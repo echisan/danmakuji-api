@@ -1,5 +1,6 @@
 package cc.dmji.api.web.controller.v2;
 
+import cc.dmji.api.annotation.RequestLimit;
 import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.common.Result;
 import cc.dmji.api.common.ResultCode;
@@ -62,6 +63,7 @@ public class ReplyV2Controller extends BaseController {
 
     @PostMapping
     @UserLog("发送评论")
+    @RequestLimit(value = "评论发得太快啦",timeout = "2")
     public ResponseEntity<Result> postReply(HttpServletRequest request,
                                             @RequestBody Map<String, Object> requestMap) {
         // 用户id

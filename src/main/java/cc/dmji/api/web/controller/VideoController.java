@@ -150,6 +150,16 @@ public class VideoController extends BaseController {
         String md5 = requestMap.get("v_md5");
         logger.debug("epId:{},fileSize:{},md5:{}", epId, fileSize, md5);
 
+        // fix match info repeat bug
+        List<Video> videoByFileSizeAndVmd5 = videoService.getVideoByFileSizeAndVmd5(fileSize, md5);
+        if (videoByFileSizeAndVmd5 != null && videoByFileSizeAndVmd5.size()!=0){
+            for (Video video: videoByFileSizeAndVmd5) {
+                if (video.getEpId().equals(epId)){
+                    return getSuccessResult();
+                }
+            }
+        }
+
         Video video = new Video();
         video.setEpId(epId);
         video.setFileSize(fileSize);
