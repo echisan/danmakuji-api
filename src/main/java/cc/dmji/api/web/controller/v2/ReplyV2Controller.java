@@ -239,7 +239,7 @@ public class ReplyV2Controller extends BaseController {
                 replyV2Service.listByObjectIdAndType(oid, replyType, uid, replyOrderBy, Direction.DESC);
             });
             replies = replyDetailPage.getResult();
-            setSubReplies(replies, uid, oid, replyType);
+//            setSubReplies(replies, uid, oid, replyType);
 
             // 如果评论条数总数大于20条 且 第一页 且 root==0 时才显示热评 ,如果是按热度排行的话 就不加载热评了
             if (replyDetailPage.getTotal() > 20 && root.equals(0L) && pn == 1 && replyOrderBy.equals(ReplyOrderBy.create_time)) {
@@ -247,7 +247,7 @@ public class ReplyV2Controller extends BaseController {
                     replyV2Service.listByObjectIdAndType(oid, replyType, root, uid, ReplyOrderBy.like_count, Direction.DESC);
                 });
 
-                // 去重
+                // 获取热评列表
                 List<ReplyDetail> collect = hotReplyPage.getResult()
                         .stream()
                         // 评论点赞要大于5个点赞才算
@@ -261,18 +261,19 @@ public class ReplyV2Controller extends BaseController {
                         rootReply.setReplies(subReplies);
                         rootReply.setReplyCount(subReplies.getTotal());
                     });
-                    // 去重
+                    replyResponse.setHot(collect);
+
+                    // 去重 评论列表中的热评
                     List<ReplyDetail> requireRemove = new ArrayList<>();
-                    hotReplyPage.getResult().forEach(hrd -> {
+                    collect.forEach(hrd -> {
                         replies.forEach(rrd -> {
                             if (rrd.getId().equals(hrd.getId())) {
                                 requireRemove.add(rrd);
                             }
                         });
                     });
-                    List<ReplyDetail> hotResult = hotReplyPage.getResult();
-                    hotResult.removeAll(requireRemove);
-                    replyResponse.setHot(hotResult);
+
+                    replies.removeAll(requireRemove);
                 }
             }
 
@@ -316,7 +317,7 @@ public class ReplyV2Controller extends BaseController {
                     }
                 }
             }
-
+            setSubReplies(replies, uid, oid, replyType);
             pageInfo.setTotalSize(replyDetailPage.getTotal());
             pageInfo.setAllTotalSize(replyV2Service.countAllRepliesByObjectIdAndReplyType(oid, replyType, Status.NORMAL));
             replyResponse.setPage(pageInfo);
