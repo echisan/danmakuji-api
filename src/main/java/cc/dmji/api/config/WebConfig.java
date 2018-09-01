@@ -1,6 +1,6 @@
 package cc.dmji.api.config;
 
-import cc.dmji.api.web.RequestLimitInterceptor;
+import cc.dmji.api.web.interceptor.RequestLimitInterceptor;
 import cc.dmji.api.web.filter.OnlineUserFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;

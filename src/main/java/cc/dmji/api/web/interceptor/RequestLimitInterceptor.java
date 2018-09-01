@@ -1,4 +1,4 @@
-package cc.dmji.api.web;
+package cc.dmji.api.web.interceptor;
 
 import cc.dmji.api.annotation.RequestLimit;
 import cc.dmji.api.common.Result;

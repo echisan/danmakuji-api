@@ -1,5 +1,6 @@
 package cc.dmji.api.web.controller;
 
+import cc.dmji.api.annotation.RequestLimit;
 import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.constants.DanmakuResponseType;
 import cc.dmji.api.constants.RedisKey;
@@ -31,7 +32,7 @@ public class DanmakuController {
 
     private static final Logger logger = LoggerFactory.getLogger(DanmakuController.class);
 
-    private static final Long POST_FREQUENT_IP_TIME_OUT = 5L;
+    private static final Long POST_FREQUENT_IP_TIME_OUT = 3L;
 
     @Autowired
     private DanmakuService danmakuService;
@@ -70,6 +71,7 @@ public class DanmakuController {
 //    @CrossOrigin
     @PostMapping
     @UserLog("发送弹幕")
+    @RequestLimit(value = "你发弹幕太快啦!稍后再试试吧!",timeout = "3")
     public DanmakuResponse postDanmaku(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         Danmaku danmaku = new ObjectMapper().readValue(request.getInputStream(), Danmaku.class);
@@ -114,20 +116,26 @@ public class DanmakuController {
 
         logger.info("请求参数 :{} ip :{}", danmaku, ip);
 
-        String fequentIpKey = RedisKey.POST_FREQUENT_IP_KEY + ip;
-        if (stringRedisTemplate.hasKey(fequentIpKey)) {
-            logger.info("ip为 [{}] 访问频繁");
-            danmakuResponse.setCode(DanmakuResponseType.FREQUENT_OPERATION);
-            danmakuResponse.setMsg("你发弹幕太快啦!稍后再试试吧!");
-            return danmakuResponse;
-        } else {
-            stringRedisTemplate.opsForValue().set(fequentIpKey, ip, POST_FREQUENT_IP_TIME_OUT, TimeUnit.SECONDS);
-        }
+//        String fequentIpKey = RedisKey.POST_FREQUENT_IP_KEY + ip;
+//        if (stringRedisTemplate.hasKey(fequentIpKey)) {
+//            logger.info("ip为 [{}] 访问频繁");
+//            danmakuResponse.setCode(DanmakuResponseType.FREQUENT_OPERATION);
+//            danmakuResponse.setMsg("你发弹幕太快啦!稍后再试试吧!");
+//            return danmakuResponse;
+//        } else {
+//            stringRedisTemplate.opsForValue().set(fequentIpKey, ip, POST_FREQUENT_IP_TIME_OUT, TimeUnit.SECONDS);
+//        }
 
         if (isEmpty(author) || isEmpty(color) || isEmpty(player)
                 || isEmpty(text) || isEmpty(type)) {
             danmakuResponse.setCode(DanmakuResponseType.ILLEGAL_DATA);
             danmakuResponse.setMsg("请选择好番剧以及集数后再发送弹幕~");
+            return danmakuResponse;
+        }
+
+        if (text.length()>50){
+            danmakuResponse.setCode(DanmakuResponseType.ILLEGAL_DATA);
+            danmakuResponse.setMsg("字数超出限制，请在50字以内");
             return danmakuResponse;
         }
 
