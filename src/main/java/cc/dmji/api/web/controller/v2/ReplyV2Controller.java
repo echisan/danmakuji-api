@@ -215,13 +215,15 @@ public class ReplyV2Controller extends BaseController {
         ReplyDetail topReply = null;
         if (pn==1){
             topReply = replyV2Service.getTopReply(oid, replyType, uid);
-            ReplyDetail finalTopReply = topReply;
-            Page<ReplyDetail> topSubReplies = PageHelper.startPage(1, 3, true).doSelectPage(() -> {
-                replyV2Service.listByObjectIdAndType(oid, replyType, finalTopReply.getId(), uid, ReplyOrderBy.floor, Direction.ASC);
-            });
-            topReply.setReplies(topSubReplies.getResult());
-            topReply.setReplyCount(topSubReplies.getTotal());
-            replyResponse.setTop(topReply);
+            if (topReply!=null){
+                ReplyDetail finalTopReply = topReply;
+                Page<ReplyDetail> topSubReplies = PageHelper.startPage(1, 3, true).doSelectPage(() -> {
+                    replyV2Service.listByObjectIdAndType(oid, replyType, finalTopReply.getId(), uid, ReplyOrderBy.floor, Direction.ASC);
+                });
+                topReply.setReplies(topSubReplies.getResult());
+                topReply.setReplyCount(topSubReplies.getTotal());
+                replyResponse.setTop(topReply);
+            }
         }
         List<ReplyDetail> replies;
         JumpSubPageInfo subPageInfo = new JumpSubPageInfo(0, 0, 0L, 0L);
