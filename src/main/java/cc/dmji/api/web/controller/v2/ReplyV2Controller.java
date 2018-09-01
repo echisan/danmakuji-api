@@ -214,7 +214,14 @@ public class ReplyV2Controller extends BaseController {
         ReplyResponse replyResponse = new ReplyResponse();
         ReplyDetail topReply = null;
         if (pn==1){
-            replyResponse.setTop((topReply = replyV2Service.getTopReply(oid, replyType, uid)));
+            topReply = replyV2Service.getTopReply(oid, replyType, uid);
+            ReplyDetail finalTopReply = topReply;
+            Page<ReplyDetail> topSubReplies = PageHelper.startPage(1, 3, true).doSelectPage(() -> {
+                replyV2Service.listByObjectIdAndType(oid, replyType, finalTopReply.getId(), uid, ReplyOrderBy.floor, Direction.ASC);
+            });
+            topReply.setReplies(topSubReplies.getResult());
+            topReply.setReplyCount(topSubReplies.getTotal());
+            replyResponse.setTop(topReply);
         }
         List<ReplyDetail> replies;
         JumpSubPageInfo subPageInfo = new JumpSubPageInfo(0, 0, 0L, 0L);
@@ -288,18 +295,7 @@ public class ReplyV2Controller extends BaseController {
                     }
                 }
                 if (i != -1) {
-                    replyResponse.setTop(replies.get(i));
                     replies.remove(i);
-                } else {
-                    // 如果该置顶评论不在第一页的话就要把子评论查询出来
-                    // 再设置到置顶评论当中
-                    ReplyDetail finalTopReply = topReply;
-                    Page<ReplyDetail> topSubReplies = PageHelper.startPage(1, 3, true).doSelectPage(() -> {
-                        replyV2Service.listByObjectIdAndType(oid, replyType, finalTopReply.getId(), uid, ReplyOrderBy.floor, Direction.ASC);
-                    });
-                    topReply.setReplies(topSubReplies.getResult());
-                    topReply.setReplyCount(topSubReplies.getTotal());
-                    replyResponse.setTop(topReply);
                 }
                 // 将置顶从热评中去掉
                 List<ReplyDetail> responseHot = replyResponse.getHot();

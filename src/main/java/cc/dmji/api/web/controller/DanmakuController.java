@@ -3,7 +3,6 @@ package cc.dmji.api.web.controller;
 import cc.dmji.api.annotation.RequestLimit;
 import cc.dmji.api.annotation.UserLog;
 import cc.dmji.api.constants.DanmakuResponseType;
-import cc.dmji.api.constants.RedisKey;
 import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.entity.Danmaku;
 import cc.dmji.api.service.DanmakuService;
@@ -24,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/dplayer/v2")
@@ -43,7 +41,7 @@ public class DanmakuController {
     @Autowired
     private JwtTokenUtils jwtTokenUtils;
 
-//    @CrossOrigin
+    //    @CrossOrigin
     @GetMapping
     @UserLog("获取某个视频下的弹幕")
     public DanmakuResponse getDanmakuList(@RequestParam("id") String id,
@@ -68,10 +66,10 @@ public class DanmakuController {
         }
     }
 
-//    @CrossOrigin
+    //    @CrossOrigin
     @PostMapping
     @UserLog("发送弹幕")
-    @RequestLimit(value = "你发弹幕太快啦!稍后再试试吧!",timeout = "3")
+    @RequestLimit(value = "你发弹幕太快啦!稍后再试试吧!", timeout = "3")
     public DanmakuResponse postDanmaku(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         Danmaku danmaku = new ObjectMapper().readValue(request.getInputStream(), Danmaku.class);
@@ -90,7 +88,7 @@ public class DanmakuController {
         String type = danmaku.getType();
         String ip = GeneralUtils.getIpAddress(request);
 
-        if (null == player || StringUtils.isEmpty(player) || player.equals("null")){
+        if (null == player || StringUtils.isEmpty(player) || player.equals("null")) {
             danmakuResponse.setCode(DanmakuResponseType.ILLEGAL_DATA);
             danmakuResponse.setMsg("请选择好番剧以及集数后再发送弹幕~");
             return danmakuResponse;
@@ -133,7 +131,7 @@ public class DanmakuController {
             return danmakuResponse;
         }
 
-        if (text.length()>50){
+        if (text.length() > 50) {
             danmakuResponse.setCode(DanmakuResponseType.ILLEGAL_DATA);
             danmakuResponse.setMsg("字数超出限制，请在50字以内");
             return danmakuResponse;
