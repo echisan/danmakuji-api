@@ -6,6 +6,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 /**
  * 弹幕实体
@@ -36,12 +37,12 @@ public class Danmaku implements Serializable {
      * 弹幕颜色
      */
     @Column(name = "color")
-    private String color;
+    private Integer color;
     /**
      * 弹幕类型（居中，顶部，滚动等）
      */
     @Column(name = "type")
-    private String type;
+    private Integer type;
     /**
      * 发送弹幕的ip地址
      */
@@ -52,14 +53,14 @@ public class Danmaku implements Serializable {
     /**
      * 发送弹幕的用户
      */
-    @Column(name = "author")
-    private String author;
+    @Column(name = "username")
+    private String username;
 
     /**
      * 弹幕池id
      */
-    @Column(name = "player")
-    private String player;
+    @Column(name = "danmaku_id")
+    private String danmakuId;
 
     /**
      * 请求的域名
@@ -68,11 +69,20 @@ public class Danmaku implements Serializable {
     @Column(name = "referer")
     private String referer;
 
+    /**
+     * 用户id
+     */
     @Column(name = "user_id")
     private Long userId;
 
-    @Transient
-    private String token;
+    /**
+     * 发送的时间
+     */
+    @Column(name = "create_time")
+    private Timestamp createTime;
+
+    public Danmaku() {
+    }
 
     public Long getId() {
         return id;
@@ -98,19 +108,19 @@ public class Danmaku implements Serializable {
         this.text = text;
     }
 
-    public String getColor() {
+    public Integer getColor() {
         return color;
     }
 
-    public void setColor(String color) {
+    public void setColor(Integer color) {
         this.color = color;
     }
 
-    public String getType() {
+    public Integer getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(Integer type) {
         this.type = type;
     }
 
@@ -122,20 +132,20 @@ public class Danmaku implements Serializable {
         this.ipAddress = ipAddress;
     }
 
-    public String getAuthor() {
-        return author;
+    public String getUsername() {
+        return username;
     }
 
-    public void setAuthor(String author) {
-        this.author = author;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public String getPlayer() {
-        return player;
+    public String getDanmakuId() {
+        return danmakuId;
     }
 
-    public void setPlayer(String player) {
-        this.player = player;
+    public void setDanmakuId(String danmakuId) {
+        this.danmakuId = danmakuId;
     }
 
     public String getReferer() {
@@ -154,25 +164,11 @@ public class Danmaku implements Serializable {
         this.userId = userId;
     }
 
-    public String getToken() {
-        return token;
+    public Timestamp getCreateTime() {
+        return createTime;
     }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    @Override
-    public String toString() {
-        return "DanmakuEntity{" +
-                "id='" + id + '\'' +
-                ", time='" + time + '\'' +
-                ", text='" + text + '\'' +
-                ", color='" + color + '\'' +
-                ", type='" + type + '\'' +
-                ", ipAddress='" + ipAddress + '\'' +
-                ", author='" + author + '\'' +
-                ", player='" + player + '\'' +
-                '}';
+    public void setCreateTime(Timestamp createTime) {
+        this.createTime = createTime;
     }
 }

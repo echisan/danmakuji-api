@@ -47,20 +47,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable().authorizeRequests()
                 .antMatchers("/auth/**").permitAll()
-                .antMatchers(HttpMethod.GET,"/bangumis/**").permitAll()
-                .antMatchers("/dplayer/v2/**").permitAll()
-                .antMatchers(HttpMethod.GET,"/episodes/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/bangumis/**").permitAll()
+                .antMatchers("/dplayer3/v3/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/episodes/**").permitAll()
 //                .antMatchers("/messages/**").permitAll()
-                .antMatchers(HttpMethod.GET,"/notices/**").permitAll()
-                .antMatchers(HttpMethod.GET,"/postBangumis/**").permitAll()
-                .antMatchers(HttpMethod.GET,"/replies/**").permitAll()
-                .antMatchers(HttpMethod.GET,"/users/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/notices/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/postBangumis/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/replies/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/users/**").permitAll()
                 .antMatchers("/users/pwd/forget/**").permitAll()
-                .antMatchers(HttpMethod.POST,"/users/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/users/**").permitAll()
                 .antMatchers("/videos/**").permitAll()
                 .antMatchers("/tokens/**").permitAll()
-                .antMatchers("/admin/**").hasAnyRole(Role.MANAGER.name(),Role.ADMIN.name())
-                .antMatchers(HttpMethod.GET,"/v2/replies/**").permitAll()
+                .antMatchers("/admin/**").hasAnyRole(Role.MANAGER.name(), Role.ADMIN.name())
+                .antMatchers(HttpMethod.GET, "/v2/replies/**").permitAll()
                 .antMatchers("/actuator/**").hasAnyRole(Role.ADMIN.name())
                 .antMatchers("/index/**").permitAll()
                 .antMatchers("/watch/**").permitAll()
@@ -98,7 +98,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public JWTAuthenticationFilter jwtAuthenticationFilter(){
+    public JWTAuthenticationFilter jwtAuthenticationFilter() {
         JWTAuthenticationFilter jwtAuthenticationFilter = new JWTAuthenticationFilter();
         jwtAuthenticationFilter.setFilterProcessesUrl("/auth/login");
         return jwtAuthenticationFilter;
