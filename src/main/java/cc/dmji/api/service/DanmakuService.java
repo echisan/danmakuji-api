@@ -11,4 +11,8 @@ public interface DanmakuService {
 
     Long countDanmakuByPlayer(String player);
 
+    Danmaku getById(Long danmakuId);
+
+    void deleteById(Long id);
+
 }

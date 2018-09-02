@@ -26,7 +26,9 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class MessageEventListener {
@@ -198,6 +200,27 @@ public class MessageEventListener {
         cleanUserMsgCountCache(insert.getUid());
     }
 
+    @EventListener
+    @Async
+    public void sendSystemMessage(SysMessageEvent event){
+        List<MessageV2> messageV2List = new ArrayList<>();
+        event.getUids().forEach(uid->{
+            MessageV2 messageV2 = new MessageV2();
+            messageV2.setType(MessageType.SYSTEM);
+            messageV2.setCreateTime(new Timestamp(event.getTimestamp()));
+            messageV2.setStatus(Status.NORMAL);
+            messageV2.setRead(false);
+            messageV2.setContent(event.getContent());
+            messageV2.setTitle(event.getTitle());
+            messageV2.setPublisherUid(0L);
+            messageV2.setUid(uid);
+            messageV2.setSysMessageId(0L);
+            messageV2List.add(messageV2);
+        });
+        messageV2Service.insertAll(messageV2List);
+        cleanUsersMessageCache(event.getUids());
+    }
+
 
     /**
      * 由于有不同格式的标题，需要根据不同类型的对象
@@ -311,6 +334,13 @@ public class MessageEventListener {
         if (delete) {
             logger.debug("清除用户id:{}的消息统计缓存成功", uid);
         }
+    }
+
+    private void cleanUsersMessageCache(List<Long> ids) {
+        Set<String> keys = new HashSet<>();
+        ids.forEach(id -> keys.add(RedisKey.USER_MSG_COUNT_CACHE + id));
+        Long delete = stringRedisTemplate.delete(keys);
+        logger.debug("删除了用户信息缓存{}条", delete);
     }
 
 }

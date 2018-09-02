@@ -43,6 +43,10 @@ public class DanmakuController extends BaseController {
     public Result getDanmakuList(@RequestParam("id") String id,
                                  @RequestParam(value = "max", required = false, defaultValue = "1000") Integer max) {
 
+        if (id == null){
+            return getErrorResult(ResultCode.PARAM_IS_INVALID,"弹幕池id不能为空");
+        }
+
         Page<Danmaku> danmakus = danmakuService.listDanmakuById(id, max);
         List<Object[]> danmakuItemList = new ArrayList<>();
         danmakus.getContent().forEach(danmaku -> {
@@ -110,7 +114,7 @@ public class DanmakuController extends BaseController {
                 return getErrorResult(ResultCode.PARAM_IS_INVALID, "颜色不能为空");
             }
             if (!hasText(id)) {
-                return getErrorResult(ResultCode.PARAM_IS_INVALID, "弹幕池id不能为空");
+                return getErrorResult(ResultCode.PARAM_IS_INVALID, "请先选择好番剧集数后再发弹幕啦");
             }
             if (hasText(text)) {
                 text = GeneralUtils.htmlEncode(text);

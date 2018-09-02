@@ -38,4 +38,14 @@ public class DanmakuServiceImpl implements DanmakuService {
     public Long countDanmakuByPlayer(String danmakuId) {
         return danmakuRespository.countByDanmakuIdEquals(danmakuId);
     }
+
+    @Override
+    public Danmaku getById(Long danmakuId) {
+        return danmakuRespository.findById(danmakuId).orElse(null);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        danmakuRespository.deleteById(id);
+    }
 }
