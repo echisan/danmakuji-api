@@ -58,7 +58,6 @@ public class DanmakuController extends BaseController {
         return getSuccessResult(danmakuItemList);
     }
 
-    //    @CrossOrigin
     @PostMapping
     @UserLog("发送弹幕")
     @RequestLimit(value = "你发弹幕太快啦!稍后再试试吧!")
@@ -138,7 +137,7 @@ public class DanmakuController extends BaseController {
             danmaku.setType(type);
             danmaku.setUserId(uid);
         } catch (Exception e) {
-            getErrorResult(ResultCode.DATA_IS_WRONG, "发送的数据类型有误");
+           return getErrorResult(ResultCode.DATA_IS_WRONG, "发送的数据类型有误:"+e.getMessage());
         }
 
         String ipAddress = GeneralUtils.getIpAddress(request);
