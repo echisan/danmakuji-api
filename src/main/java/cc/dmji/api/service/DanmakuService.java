@@ -1,13 +1,14 @@
 package cc.dmji.api.service;
 
 import cc.dmji.api.entity.Danmaku;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface DanmakuService {
 
-    Danmaku saveDanmaku(Danmaku danmaku) throws Exception;
-    List<Danmaku> listDanmakuById(String id, Integer max) throws Exception;
+    Danmaku saveDanmaku(Danmaku danmaku);
+
+    Page<Danmaku> listDanmakuById(String id, Integer max);
+
     Long countDanmakuByPlayer(String player);
 
 }

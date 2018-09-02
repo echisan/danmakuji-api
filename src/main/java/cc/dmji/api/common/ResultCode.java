@@ -26,6 +26,7 @@ public enum  ResultCode {
     USER_REQUEST_FREQUENTLY(2007,"请求频繁，请稍后再试"),
     USER_TICKET_EXPIRATION(3002,"凭证过期"),
     USER_TICKET_INVALID(3003,"凭证无效"),
+    USER_HAVE_RISK(3004,"账号存在风险"),
 
     /*业务错误3001-3999*/
     SPECIFIED_QUESTION_USER_NOT_EXIST(3001,"某业务出现问题"),

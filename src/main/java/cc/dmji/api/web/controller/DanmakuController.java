@@ -2,206 +2,165 @@ package cc.dmji.api.web.controller;
 
 import cc.dmji.api.annotation.RequestLimit;
 import cc.dmji.api.annotation.UserLog;
-import cc.dmji.api.constants.DanmakuResponseType;
+import cc.dmji.api.common.Result;
+import cc.dmji.api.common.ResultCode;
 import cc.dmji.api.constants.SecurityConstants;
 import cc.dmji.api.entity.Danmaku;
 import cc.dmji.api.service.DanmakuService;
 import cc.dmji.api.utils.GeneralUtils;
 import cc.dmji.api.utils.JwtTokenUtils;
-import cc.dmji.api.web.model.DanmakuResponse;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.domain.Page;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/dplayer/v2")
-public class DanmakuController {
+@RequestMapping("/dplayer3/v3")
+public class DanmakuController extends BaseController {
 
     private static final Logger logger = LoggerFactory.getLogger(DanmakuController.class);
-
-    private static final Long POST_FREQUENT_IP_TIME_OUT = 3L;
-
+    private final int[] danmakuTypeHolder = new int[]{0, 1, 2};
     @Autowired
     private DanmakuService danmakuService;
-
-    @Autowired
-    private StringRedisTemplate stringRedisTemplate;
-
     @Autowired
     private JwtTokenUtils jwtTokenUtils;
 
     //    @CrossOrigin
     @GetMapping
     @UserLog("获取某个视频下的弹幕")
-    public DanmakuResponse getDanmakuList(@RequestParam("id") String id,
-                                          @RequestParam(value = "max", required = false, defaultValue = "1000") Integer max) {
-        DanmakuResponse danmakuResponse = new DanmakuResponse();
-        try {
-            List<Danmaku> danmakuEntityList = danmakuService.listDanmakuById(id, max);
-            if (danmakuEntityList != null && danmakuEntityList.size() != 0) {
-                danmakuResponse.setDanmaku(parseDanmakuListToArray(danmakuEntityList));
-            } else {
-                danmakuResponse.setDanmaku(new ArrayList<>());
-            }
-            danmakuResponse.setCode(DanmakuResponseType.SUCCESS);
-            danmakuResponse.setMsg("");
-            return danmakuResponse;
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.info("数据库出错");
-            danmakuResponse.setCode(DanmakuResponseType.DATABASE_ERROR);
-            danmakuResponse.setMsg("数据库出现了点偏差");
-            return danmakuResponse;
-        }
+    public Result getDanmakuList(@RequestParam("id") String id,
+                                 @RequestParam(value = "max", required = false, defaultValue = "1000") Integer max) {
+
+        Page<Danmaku> danmakus = danmakuService.listDanmakuById(id, max);
+        List<Object[]> danmakuItemList = new ArrayList<>();
+        danmakus.getContent().forEach(danmaku -> {
+            Object[] item = new Object[]{
+                    danmaku.getTime(),
+                    danmaku.getType(),
+                    danmaku.getColor(),
+                    danmaku.getUsername(),
+                    danmaku.getText()
+            };
+            danmakuItemList.add(item);
+        });
+        return getSuccessResult(danmakuItemList);
     }
 
     //    @CrossOrigin
     @PostMapping
     @UserLog("发送弹幕")
-    @RequestLimit(value = "你发弹幕太快啦!稍后再试试吧!", timeout = "3")
-    public DanmakuResponse postDanmaku(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    @RequestLimit(value = "你发弹幕太快啦!稍后再试试吧!")
+    public Result postDanmaku(HttpServletRequest request) throws IOException {
+        ServletInputStream inputStream = request.getInputStream();
+        Map<String, Object> requestMap = new ObjectMapper().readValue(inputStream, new TypeReference<Map<String, Object>>() {
+        });
 
-        Danmaku danmaku = new ObjectMapper().readValue(request.getInputStream(), Danmaku.class);
-        DanmakuResponse danmakuResponse = new DanmakuResponse();
-
-        // 获取请求域
-        String refererHeader = request.getHeader("referer");
-        String referer = refererHeader == null ? "" : refererHeader;
-        logger.info("referer [{}]", referer);
-
-        String author = danmaku.getAuthor();
-        String color = danmaku.getColor();
-        double time = danmaku.getTime();
-        String player = danmaku.getPlayer();
-        String text = danmaku.getText();
-        String type = danmaku.getType();
-        String ip = GeneralUtils.getIpAddress(request);
-
-        if (null == player || StringUtils.isEmpty(player) || player.equals("null")) {
-            danmakuResponse.setCode(DanmakuResponseType.ILLEGAL_DATA);
-            danmakuResponse.setMsg("请选择好番剧以及集数后再发送弹幕~");
-            return danmakuResponse;
+        // 校验用户
+        Object tokenObj = requestMap.get("token");
+        if (!(tokenObj instanceof String)) {
+            return getErrorResult(ResultCode.PARAM_IS_INVALID, "token类型错误");
         }
-
-        // 先验证token
-        String header = request.getHeader(SecurityConstants.TOKEN_HEADER_AUTHORIZATION);
-        if (StringUtils.isEmpty(header)) {
-            header = danmaku.getToken();
-        }
-        if (StringUtils.isEmpty(header)) {
-            danmakuResponse.setMsg("请先登录后再发弹幕");
-            danmakuResponse.setCode(DanmakuResponseType.PERMISSION_DENY);
-            return danmakuResponse;
-        }
-
-        String token = header.replace(SecurityConstants.TOKEN_PREFIX, "");
-        if (!jwtTokenUtils.validateToken(token)) {
-            danmakuResponse.setMsg("无效的登录凭证或该凭证已过期，请重新登录");
-            danmakuResponse.setCode(DanmakuResponseType.PERMISSION_DENY);
-            return danmakuResponse;
-        }
-
-        logger.info("请求参数 :{} ip :{}", danmaku, ip);
-
-//        String fequentIpKey = RedisKey.POST_FREQUENT_IP_KEY + ip;
-//        if (stringRedisTemplate.hasKey(fequentIpKey)) {
-//            logger.info("ip为 [{}] 访问频繁");
-//            danmakuResponse.setCode(DanmakuResponseType.FREQUENT_OPERATION);
-//            danmakuResponse.setMsg("你发弹幕太快啦!稍后再试试吧!");
-//            return danmakuResponse;
-//        } else {
-//            stringRedisTemplate.opsForValue().set(fequentIpKey, ip, POST_FREQUENT_IP_TIME_OUT, TimeUnit.SECONDS);
-//        }
-
-        if (isEmpty(author) || isEmpty(color) || isEmpty(player)
-                || isEmpty(text) || isEmpty(type)) {
-            danmakuResponse.setCode(DanmakuResponseType.ILLEGAL_DATA);
-            danmakuResponse.setMsg("请选择好番剧以及集数后再发送弹幕~");
-            return danmakuResponse;
-        }
-
-        if (text.length() > 50) {
-            danmakuResponse.setCode(DanmakuResponseType.ILLEGAL_DATA);
-            danmakuResponse.setMsg("字数超出限制，请在50字以内");
-            return danmakuResponse;
-        }
-
-
-        Danmaku danmakuEntity = new Danmaku();
-        danmakuEntity.setAuthor(GeneralUtils.htmlEncode(author));
-        danmakuEntity.setColor(GeneralUtils.htmlEncode(color));
-        danmakuEntity.setPlayer(GeneralUtils.htmlEncode(player));
-        danmakuEntity.setText(GeneralUtils.htmlEncode(text));
-        danmakuEntity.setTime(time);
-        danmakuEntity.setType(GeneralUtils.htmlEncode(type));
-        danmakuEntity.setIpAddress(ip);
-        danmakuEntity.setReferer(referer);
-        danmakuEntity.setUserId(jwtTokenUtils.getUid(token));
-
-        try {
-            Danmaku newDanmaku = danmakuService.saveDanmaku(danmakuEntity);
-            danmakuResponse.setCode(DanmakuResponseType.SUCCESS);
-            danmakuResponse.setMsg("ok");
-            danmakuResponse.setDanmaku(parseDanmakuListToArray(Collections.singletonList(newDanmaku)));
-            return danmakuResponse;
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.info("数据库出现了点偏差");
-            danmakuResponse.setCode(DanmakuResponseType.DATABASE_ERROR);
-            danmakuResponse.setMsg("数据库出现了点偏差");
-            return danmakuResponse;
-        }
-    }
-
-    private boolean isEmpty(String string) {
-        return StringUtils.isEmpty(string);
-    }
-
-    /**
-     * 将弹幕type转成int
-     *
-     * @param type 弹幕type
-     * @return 弹幕代号
-     */
-    private int parseTypeToInt(String type) {
-        if (type.equals("right")) {
-            return 0;
-        }
-        if (type.equals("top")) {
-            return 1;
-        }
-        if (type.equals("bottom")) {
-            return 2;
-        }
-        return 0;
-    }
-
-    /**
-     * 将弹幕数据包装成dplayer能识别的格式
-     *
-     * @param danmakuEntities 弹幕列表
-     * @return 弹幕列表
-     */
-    private List<Object[]> parseDanmakuListToArray(List<Danmaku> danmakuEntities) {
-        List<Object[]> data = new ArrayList<>();
-        if (danmakuEntities != null && danmakuEntities.size() != 0) {
-            for (Danmaku de : danmakuEntities) {
-                Object[] danmaku = new Object[]{de.getTime(), parseTypeToInt(de.getType()), de.getColor(), de.getAuthor(), de.getText()};
-                data.add(danmaku);
+        String token = (String) tokenObj;
+        Long uid;
+        String nick;
+        if (token.startsWith(SecurityConstants.TOKEN_PREFIX)) {
+            token = token.replace(SecurityConstants.TOKEN_PREFIX, "");
+            try {
+                JwtTokenUtils.Payload payload = jwtTokenUtils.getPayload(token);
+                uid = payload.getUid();
+                nick = payload.getUsername();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return getErrorResult(ResultCode.USER_EXPIRATION);
             }
-            return data;
+        } else {
+            return getErrorResult(ResultCode.USER_NOT_LOGINED, "发送弹幕前请先登录啦～");
         }
-        return data;
+        // 校验用户token完毕
+
+        Danmaku danmaku = new Danmaku();
+        try {
+            String author = (String) requestMap.get("author");
+            Integer color = (Integer) requestMap.get("color");
+            String id = (String) requestMap.get("id");
+            String text = (String) requestMap.get("text");
+            Double time = (Double) requestMap.get("time");
+            Integer type = (Integer) requestMap.get("type");
+            if (!hasText(author)) {
+                return getErrorResult(ResultCode.PARAM_IS_INVALID, "用户名不能为空");
+            } else {
+                // 如果发送的author与token中的nick不一致，则不能视为同一个人
+                // 通过这里则视为通过用户权限验证了
+                if (!author.equals(nick)) {
+                    return getErrorResult(ResultCode.USER_HAVE_RISK, "该账号存在风险，请重新登录");
+                }
+            }
+            if (color == null) {
+                return getErrorResult(ResultCode.PARAM_IS_INVALID, "颜色不能为空");
+            }
+            if (!hasText(id)) {
+                return getErrorResult(ResultCode.PARAM_IS_INVALID, "弹幕池id不能为空");
+            }
+            if (hasText(text)) {
+                text = GeneralUtils.htmlEncode(text);
+                if (!hasText(text)) {
+                    return getErrorResult(ResultCode.PARAM_IS_INVALID, "弹幕不能为空");
+                }
+            }
+            if (time == null) {
+                return getErrorResult(ResultCode.PARAM_IS_INVALID, "time不能为空");
+            }
+            if (type == null) {
+                return getErrorResult(ResultCode.PARAM_IS_INVALID, "弹幕类型不能为空");
+            } else {
+                if (!validDanmakuType(type)) {
+                    return getErrorResult(ResultCode.PARAM_IS_INVALID, "弹幕类型错误");
+                }
+            }
+            // init danmaku entity
+            danmaku.setColor(color);
+            danmaku.setText(text);
+            danmaku.setDanmakuId(id);
+            danmaku.setUsername(author);
+            danmaku.setTime(time);
+            danmaku.setType(type);
+            danmaku.setUserId(uid);
+        } catch (Exception e) {
+            getErrorResult(ResultCode.DATA_IS_WRONG, "发送的数据类型有误");
+        }
+
+        String ipAddress = GeneralUtils.getIpAddress(request);
+        danmaku.setIpAddress(ipAddress);
+        danmaku.setUserId(uid);
+        danmaku.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        danmaku.setReferer(GeneralUtils.getReferer(request));
+
+        danmakuService.saveDanmaku(danmaku);
+        return getSuccessResult(requestMap);
+    }
+
+    private boolean hasText(String string) {
+        return StringUtils.hasText(string);
+    }
+
+    private boolean validDanmakuType(Integer type) {
+        for (int i : danmakuTypeHolder) {
+            if (i == type) {
+                return true;
+            }
+        }
+        return false;
     }
 }
