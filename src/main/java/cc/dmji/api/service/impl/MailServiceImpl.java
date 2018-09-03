@@ -20,7 +20,7 @@ import javax.mail.internet.MimeMessage;
 public class MailServiceImpl implements MailService {
     private static final Logger logger = LoggerFactory.getLogger(MailServiceImpl.class);
 
-    private static final String MAIL_CONTENT = "<html><body><a href='http://localhost:8083/#/vemail?userId=%s&uuid=%s' target='_blank'>单击此处完成注册</a><br><p>有效期20分钟</p></body></html>";
+    private static final String MAIL_CONTENT = "<html><body><a href='https://darker.online/#/vemail?userId=%s&uuid=%s' target='_blank'>单击此处完成注册</a><br><p>有效期20分钟</p></body></html>";
 
 
     @Value("${spring.mail.username}")

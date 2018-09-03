@@ -166,7 +166,7 @@ public class AdminEpisodeController extends BaseController {
         if(null == editedEpisode){//没有对应的数据，则返回错误信息
             return getErrorResult(ResultCode.RESULT_DATA_NOT_FOUND,"epId不存在");
         }
-
+        editedEpisode.setUrl(episode.getUrl());
         //如果bangumiId参数不为空，则检查bangumiId是否存在于bangumiId表
         if(null != episode.getBangumiId()){
             Bangumi bangumi = bangumiService.getBangumiById(episode.getBangumiId());
